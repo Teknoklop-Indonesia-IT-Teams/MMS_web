@@ -1,0 +1,115 @@
+import { User, Equipment, Record, DashboardStats } from '../types';
+
+export const mockUsers: User[] = [
+  {
+    id: 1,
+    nama: 'Revan Ardian',
+    created_at: '2024-01-15T08:00:00Z',
+    updated_at: '2024-01-15T08:00:00Z',
+  },
+  {
+    id: 2,
+    nama: 'Achmad Rofiuddin',
+    created_at: '2024-01-16T08:00:00Z',
+    updated_at: '2024-01-16T08:00:00Z',
+  },
+  {
+    id: 3,
+    nama: 'Fayyadh',
+    created_at: '2024-01-17T08:00:00Z',
+    updated_at: '2024-01-17T08:00:00Z',
+  },
+];
+
+export const mockEquipment: Equipment[] = [
+  {
+    id: 1,
+    nama: 'AWLR-WK-JS (TKI)',
+    lokasi: 'Ambarawa',
+    jenis: 'AWLR',
+    instalasi: '2024-03-10',
+    garansi: '2025-03-22',
+    remot: true,
+    status: 'Garansi',
+    device: 'S. Patang',
+    sensor: 'P/T',
+    pelanggan: 'P/T',
+    pic: 'Revan Ardian',
+    gambar: 'https://images.pexels.com/photos/2882552/pexels-photo-2882552.jpeg?auto=compress&cs=tinysrgb&w=100',
+    created_at: '2024-03-10T08:00:00Z',
+    updated_at: '2024-03-10T08:00:00Z',
+  },
+  {
+    id: 2,
+    nama: 'CCTV Solo',
+    lokasi: 'Solo',
+    jenis: 'CCTV',
+    instalasi: '2024-03-18',
+    garansi: '2024-03-18',
+    remot: false,
+    status: 'Habis',
+    device: 'CCTV',
+    sensor: 'P/T',
+    pelanggan: 'P/T',
+    pic: 'Achmad Rofiuddin',
+    gambar: 'https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg?auto=compress&cs=tinysrgb&w=100',
+    created_at: '2024-03-18T08:00:00Z',
+    updated_at: '2024-03-18T08:00:00Z',
+  },
+  {
+    id: 3,
+    nama: 'TELEMETRI PEMANTAUAN REMBESAN B.W.LINGI (TKI)',
+    lokasi: 'Bondung Wingi',
+    jenis: 'Rembesan',
+    instalasi: '2024-04-26',
+    garansi: '2025-04-18',
+    remot: true,
+    status: 'Garansi',
+    device: 'OPL',
+    sensor: 'P/T',
+    pelanggan: 'P/T',
+    pic: 'Fayyadh',
+    gambar: 'https://images.pexels.com/photos/5474292/pexels-photo-5474292.jpeg?auto=compress&cs=tinysrgb&w=100',
+    created_at: '2024-04-26T08:00:00Z',
+    updated_at: '2024-04-26T08:00:00Z',
+  },
+];
+
+export const mockRecords: Record[] = [
+  {
+    id: 1,
+    alat_id: 1,
+    tanggal: '2024-12-20',
+    nilai: 1.5,
+    keterangan: 'Normal operation',
+    foto_panel: 'https://images.pexels.com/photos/2882552/pexels-photo-2882552.jpeg?auto=compress&cs=tinysrgb&w=300',
+    created_at: '2024-12-20T08:00:00Z',
+    updated_at: '2024-12-20T08:00:00Z',
+  },
+  {
+    id: 2,
+    alat_id: 1,
+    tanggal: '2024-12-19',
+    nilai: 1.8,
+    keterangan: 'Maintenance check',
+    foto_alat: 'https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg?auto=compress&cs=tinysrgb&w=300',
+    created_at: '2024-12-19T08:00:00Z',
+    updated_at: '2024-12-19T08:00:00Z',
+  },
+];
+
+export const mockDashboardStats: DashboardStats = {
+  totalEquipment: 23,
+  equipmentByType: {
+    ARR: 3,
+    AWLR: 5,
+    WQMS: 3,
+    'Flow Meter': 2,
+    Rembesan: 4,
+    GWL: 2,
+    'Weather Station': 2,
+    CCTV: 2,
+  },
+  activeEquipment: 18,
+  warrantyExpiring: 5,
+};
