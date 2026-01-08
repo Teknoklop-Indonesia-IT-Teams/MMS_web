@@ -1,12 +1,3 @@
-/**
- * Enhanced AuthContext with Robust Token Management
- * Fixes logout on refresh issues with:
- * 1. Proper loading states during initialization
- * 2. No premature redirects
- * 3. Single-flight token refresh
- * 4. Better error handling
- */
-
 import React, {
   createContext,
   useState,
@@ -47,8 +38,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check authentication status
   const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
-      console.log("🔍 Checking authentication status...");
-
       // Check if we have a valid token
       const token = await tokenManager.getValidToken();
 
@@ -63,10 +52,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          console.log(
-            "✅ User restored from localStorage:",
-            parsedUser.username
-          );
           return true;
         } catch (error) {
           console.error("❌ Failed to parse stored user data:", error);
@@ -81,7 +66,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const userData = profileResponse.data as User;
           setUser(userData);
           localStorage.setItem("user", JSON.stringify(userData));
-          console.log("✅ User profile fetched from API:", userData.username);
           return true;
         }
       } catch (error) {
@@ -100,7 +84,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Refresh authentication (force re-check)
   const refreshAuth = useCallback(async (): Promise<void> => {
-    console.log("🔄 Refreshing authentication...");
     setLoading(true);
 
     try {
@@ -119,8 +102,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize authentication on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log("🚀 Initializing authentication...");
-
       try {
         // Show loading during initialization
         setLoading(true);
@@ -145,7 +126,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Keep initialization flag for a bit longer to prevent premature redirects
         setTimeout(() => {
           setIsInitializing(false);
-          console.log("✅ Authentication initialization complete");
         }, 500);
       }
     };
@@ -157,8 +137,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = useCallback(
     async (token: string, userData: User): Promise<void> => {
       try {
-        console.log("🔑 Logging in user:", userData.username);
-
         // Save tokens using token manager
         tokenManager.saveTokens({
           accessToken: token,
@@ -170,8 +148,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Save user data
         localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
-
-        console.log("✅ Login successful");
       } catch (error) {
         console.error("❌ Login failed:", error);
         throw error;
@@ -183,8 +159,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Logout function
   const logout = useCallback(async (): Promise<void> => {
     try {
-      console.log("🚪 Logging out user...");
-
       // Call API logout (if available)
       try {
         await authService.logout();
@@ -205,8 +179,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Navigate to login page
       navigate("/login", { replace: true });
-
-      console.log("✅ Logout successful");
     } catch (error) {
       console.error("❌ Logout failed:", error);
       // Even if logout fails, clear local state

@@ -34,7 +34,6 @@ const Login: React.FC = () => {
     showLoadingToast("Logging in...");
 
     try {
-      console.log("🔑 Robust Login: Attempting login...");
       const response = await authService.login(credentials);
 
       // Type assertion for response data with enhanced parsing
@@ -50,14 +49,6 @@ const Login: React.FC = () => {
         };
         message?: string;
       };
-
-      console.log("✅ Robust Login: Response received:", {
-        hasToken: !!(responseData.token || responseData.accessToken),
-        hasUser: !!responseData.user,
-        expiresIn: responseData.expiresIn,
-        message: responseData.message,
-      });
-
       // Extract token and user data
       const token = responseData.token || responseData.accessToken;
       const user = responseData.user;
@@ -76,13 +67,6 @@ const Login: React.FC = () => {
         petugas: user.name,
         email: user.email,
       };
-
-      console.log("👤 Robust Login: User data prepared:", {
-        id: userData.id,
-        email: userData.email,
-        role: userData.role,
-        expiresIn: expiresIn + " seconds",
-      });
 
       // Use robust login with expiration time
       login(token, userData, expiresIn);
@@ -114,7 +98,6 @@ const Login: React.FC = () => {
 
       // Delay navigation untuk memberikan waktu user melihat pesan success
       setTimeout(() => {
-        console.log("✅ Robust Login: Login completed successfully");
         navigate("/dashboard");
       }, 3500); // Total 3.5 detik untuk experience yang optimal
     } catch (error: unknown) {

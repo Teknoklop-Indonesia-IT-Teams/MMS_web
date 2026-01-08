@@ -58,13 +58,13 @@ const EquipmentTable: React.FC = () => {
   const canDeleteEquipment = hasAnyRole([...PERMISSIONS.DASHBOARD_FULL_ACCESS]);
 
   // Initialize Maintenance Email service
-  const initializeEmailService = useCallback(() => {
-    MaintenanceEmailService.init();
-  }, []);
+  // const initializeEmailService = useCallback(() => {
+  //   MaintenanceEmailService.init();
+  // }, []);
 
-  useEffect(() => {
-    initializeEmailService();
-  }, [initializeEmailService]);
+  // useEffect(() => {
+  //   initializeEmailService();
+  // }, [initializeEmailService]);
 
   const fetchEquipment = useCallback(async () => {
     try {
@@ -97,7 +97,6 @@ const EquipmentTable: React.FC = () => {
 
     // Cleanup session pada unmount untuk mencegah spam lintas halaman
     return () => {
-      console.log("🧹 EquipmentTable unmounting - clearing email session");
       MaintenanceEmailService.clearSessionProcessed();
     };
   }, [fetchEquipment]);
@@ -105,19 +104,11 @@ const EquipmentTable: React.FC = () => {
   // TERPISAH: Email checking hanya dilakukan SEKALI setelah equipment di-load
   useEffect(() => {
     if (equipment.length > 0 && !emailCheckDone) {
-      console.log("🔍 INITIAL email check (once only after equipment loaded)");
-
       const checkEmailsOnce = async () => {
-        console.log(
-          "📧 Running ONE-TIME email check for",
-          equipment.length,
-          "equipment"
-        );
         await MaintenanceEmailService.processMaintenanceNotifications(
           equipment
         );
-        setEmailCheckDone(true); // Mark as done - tidak akan jalan lagi
-        console.log("✅ Email check completed and marked as done");
+        setEmailCheckDone(true);
       };
 
       // Delay untuk memastikan tidak bentrok dengan proses lain
@@ -213,13 +204,6 @@ const EquipmentTable: React.FC = () => {
           const originalStatus = getValue<string>() || "";
           const status = originalStatus.toLowerCase().trim();
 
-          // Debug log untuk melihat nilai status yang diterima
-          console.log("Status Debug:", {
-            originalStatus,
-            status,
-            length: status.length,
-          });
-
           // Use a map untuk memastikan semua kemungkinan status tercakup
           const statusColorMap: { [key: string]: string } = {
             garansi: "bg-green-100 text-green-800 border border-green-200",
@@ -280,10 +264,11 @@ const EquipmentTable: React.FC = () => {
         size: 100,
         cell: ({ getValue }) => {
           const imageFilename = getValue<string>();
-          console.log("🖼️ Rendering image cell:", { imageFilename }); // Debug log
           return imageFilename ? (
             <ImageDisplay
-              src={`http://localhost:3001/uploads/${imageFilename}?t=${Date.now()}`}
+              src={`${
+                import.meta.env.VITE_URL
+              }/uploads/${imageFilename}?t=${Date.now()}`}
               alt="Equipment"
               className="object-cover w-12 h-12 rounded-md"
             />

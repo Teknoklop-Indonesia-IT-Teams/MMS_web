@@ -45,12 +45,7 @@ const LoadingSpinner = () => (
 function AppStateComponent() {
   const pageLifecycle = usePageLifecycle();
 
-  useEffect(() => {
-    console.log("🚀 Enhanced App: Initializing with robust authentication...");
-
-    // Log page lifecycle for debugging
-    console.log("📊 Page Lifecycle State:", pageLifecycle);
-  }, [pageLifecycle]);
+  useEffect(() => {}, [pageLifecycle]);
 
   return null;
 }

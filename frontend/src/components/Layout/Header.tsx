@@ -29,13 +29,9 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
   }, []);
 
   const handleLogout = async () => {
-    console.log("🚪 Header: Logout button clicked");
-
     if (window.confirm("Are you sure you want to logout?")) {
       try {
-        console.log("🔄 Header: Executing logout...");
         await logout();
-        console.log("✅ Header: Logout completed");
       } catch (error) {
         console.error("❌ Header: Logout failed:", error);
         // Force reload as fallback
@@ -46,8 +42,6 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
   };
 
   const toggleUserMenu = () => {
-    console.log("Toggle user menu, current state:", showUserMenu);
-    console.log("User data:", user);
     setShowUserMenu(!showUserMenu);
   };
 

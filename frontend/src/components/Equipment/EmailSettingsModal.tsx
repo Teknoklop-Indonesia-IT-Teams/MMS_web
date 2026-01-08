@@ -86,7 +86,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
 
     // Filter out empty emails and update service
     const validEmails = emails.filter((email) => email.trim());
-    MaintenanceEmailService.updateMaintenanceEmails(validEmails);
+    // MaintenanceEmailService.updateMaintenanceEmails(validEmails);
 
     alert(
       `✅ Email maintenance berhasil disimpan!\n${validEmails.length} email tersimpan.\n\n📧 Email akan dikirim SEKALI SAJA untuk setiap equipment dengan status kuning/merah.`

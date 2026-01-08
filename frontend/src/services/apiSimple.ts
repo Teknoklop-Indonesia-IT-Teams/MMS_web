@@ -287,7 +287,7 @@ export const enhancedStaffService = {
 const getImageSrc = (img?: string | null) => {
   if (!img) return null;
   if (img.startsWith("data:")) return img; // already a data URI (records)
-  return `${API_URL}/uploads/${img}`;
+  return `${import.meta.env.VITE_URL}/uploads/${img}`;
 };
 
 export default api;

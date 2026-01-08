@@ -30,10 +30,8 @@ const StaffList: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching staff data...");
 
         const response = await staffService.getAll();
-        console.log("Staff response:", response);
 
         if (!isMounted) return;
 
@@ -52,8 +50,6 @@ const StaffList: React.FC = () => {
 
           // Sort by ID in ascending order
           userData.sort((a, b) => a.id - b.id);
-
-          console.log("Setting user data (sorted by ID):", userData);
           setUsers(userData);
           setHasLoaded(true);
         } else {

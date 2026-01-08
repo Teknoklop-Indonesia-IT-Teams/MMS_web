@@ -88,7 +88,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         gambar: "",
       });
       if (equipment.i_alat) {
-        setImagePreview(`http://localhost:3001/uploads/${equipment.i_alat}`);
+        setImagePreview(
+          `${import.meta.env.VITE_URL}/uploads/${equipment.i_alat}`
+        );
       }
       // Reset file state saat editing
       setSelectedFile(null);

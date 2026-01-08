@@ -61,8 +61,13 @@ class MaintenanceEmailService {
     }
 
     try {
-      console.log(`🚫 Email service disabled - Warning email would have been sent for ${equipment.nama} to:`, this.MAINTENANCE_EMAILS);
-      console.log(`✅ Manual test warning email simulation completed for ${equipment.nama}`);
+      console.log(
+        `🚫 Email service disabled - Warning email would have been sent for ${equipment.nama} to:`,
+        this.MAINTENANCE_EMAILS
+      );
+      console.log(
+        `✅ Manual test warning email simulation completed for ${equipment.nama}`
+      );
     } catch (error) {
       console.error(`❌ Failed to send warning for ${equipment.nama}:`, error);
     }
@@ -77,8 +82,13 @@ class MaintenanceEmailService {
     }
 
     try {
-      console.log(`🚫 Email service disabled - Urgent email would have been sent for ${equipment.nama} to:`, this.MAINTENANCE_EMAILS);
-      console.log(`🚨 Manual test urgent email simulation completed for ${equipment.nama}`);
+      console.log(
+        `🚫 Email service disabled - Urgent email would have been sent for ${equipment.nama} to:`,
+        this.MAINTENANCE_EMAILS
+      );
+      console.log(
+        `🚨 Manual test urgent email simulation completed for ${equipment.nama}`
+      );
     } catch (error) {
       console.error(`❌ Failed to send urgent for ${equipment.nama}:`, error);
     }

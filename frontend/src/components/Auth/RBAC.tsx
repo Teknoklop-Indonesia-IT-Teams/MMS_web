@@ -21,13 +21,6 @@ export function RBAC({
 }: RBACProps) {
   const { user, isAuthenticated } = useAuth();
 
-  console.log("🔒 RBAC Debug:", {
-    isAuthenticated,
-    user,
-    allowedRoles,
-    userRole: user?.role,
-  });
-
   // If no user, redirect to login
   if (!isAuthenticated || !user) {
     console.log("❌ RBAC: No user, redirecting to login");
@@ -36,11 +29,6 @@ export function RBAC({
 
   // Check if user role is allowed
   const hasAccess = allowedRoles.includes(user.role);
-  console.log("🔑 RBAC: Access check:", {
-    hasAccess,
-    userRole: user.role,
-    allowedRoles,
-  });
 
   if (!hasAccess) {
     // If fallback provided, show it. Otherwise redirect

@@ -48,9 +48,6 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
 
       // Enhanced concurrency control using refs
       if (isRequestingRef.current && !forceRefresh) {
-        console.log(
-          "🚫 Equipment fetch already in progress, blocking duplicate request"
-        );
         return;
       }
 
@@ -58,16 +55,11 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
       const now = Date.now();
       const timeSinceLastRequest = now - lastRequestTimeRef.current;
       if (timeSinceLastRequest < 1000 && !forceRefresh) {
-        console.log("🚫 Rate limiting: Too many requests, waiting...");
         return;
       }
 
       try {
         requestCountRef.current++;
-        console.log(
-          `🔄 EquipmentContext: Fetching equipment (#${requestCountRef.current}, forceRefresh: ${forceRefresh})`
-        );
-
         isRequestingRef.current = true;
         lastRequestTimeRef.current = now;
         setLoading(true);
@@ -78,12 +70,6 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
         const response = await alatService.getAll();
 
         if (response.data && Array.isArray(response.data)) {
-          console.log(
-            "✅ EquipmentContext: Equipment data updated",
-            response.data.length,
-            "items"
-          );
-
           // Enhanced debug for problem equipment - FOKUS PADA URUTAN DAN DUPLIKASI
           const maintenanceDebugData = response.data
             .filter(
@@ -104,64 +90,17 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
               maintenanceInterval: eq.maintenanceInterval,
             }));
 
-          console.log(
-            "🔍 EquipmentContext: Enhanced maintenance debug data:",
-            maintenanceDebugData
-          );
-
-          // TOTAL EQUIPMENT ANALYSIS
-          const allEquipment = response.data || [];
-          console.log("📊 CONTEXT TOTAL ANALYSIS:", {
-            totalEquipment: allEquipment.length,
-            maintenanceActiveCount: allEquipment.filter((eq) =>
-              Boolean(eq.isMaintenanceActive)
-            ).length,
-            alertLevelDistribution: {
-              red: allEquipment.filter(
-                (eq) => eq.maintenanceAlertLevel === "red"
-              ).length,
-              yellow: allEquipment.filter(
-                (eq) => eq.maintenanceAlertLevel === "yellow"
-              ).length,
-              green: allEquipment.filter(
-                (eq) => eq.maintenanceAlertLevel === "green"
-              ).length,
-              blue: allEquipment.filter(
-                (eq) => eq.maintenanceAlertLevel === "blue"
-              ).length,
-              other: allEquipment.filter(
-                (eq) =>
-                  !["red", "yellow", "green", "blue"].includes(
-                    eq.maintenanceAlertLevel || ""
-                  )
-              ).length,
-            },
-          });
-
           // Check for duplicate names
           const duplicateNames = maintenanceDebugData.reduce((acc, item) => {
             acc[item.nama] = (acc[item.nama] || 0) + 1;
             return acc;
           }, {} as Record<string, number>);
-
-          console.log("🚨 FRONTEND DUPLICATE ANALYSIS:", duplicateNames);
-
           // Show which equipment has duplicates
           Object.entries(duplicateNames).forEach(([name, count]) => {
             if (count > 1) {
-              console.log(
-                `⚠️ FRONTEND DUPLICATE: "${name}" appears ${count} times`
-              );
               const duplicates = maintenanceDebugData.filter(
                 (item) => item.nama === name
               );
-              duplicates.forEach((dup, idx) => {
-                console.log(
-                  `  ${idx + 1}. ID:${dup.id} AlertLevel:${
-                    dup.maintenanceAlertLevel
-                  } Days:${dup.maintenanceDaysLeft}`
-                );
-              });
             }
           });
 
@@ -169,7 +108,6 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
           setLastUpdated(new Date());
           setIsDataLoaded(true);
         } else {
-          console.warn("⚠️ EquipmentContext: Invalid equipment data received");
           setEquipment([]);
         }
       } catch (error) {
@@ -192,7 +130,6 @@ export const EquipmentProvider: React.FC<EquipmentProviderProps> = ({
   }, [fetchEquipment]);
 
   const clearData = useCallback(() => {
-    console.log("🧹 Clearing equipment data");
     setEquipment([]);
     setIsDataLoaded(false);
     setLastUpdated(null);

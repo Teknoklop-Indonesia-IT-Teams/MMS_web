@@ -198,7 +198,9 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
               </label>
               <div className="p-4 rounded-lg bg-gray-50">
                 <img
-                  src={`http://localhost:3001/uploads/${equipment.i_alat}`}
+                  src={`${import.meta.env.VITE_URL}/uploads/${
+                    equipment.i_alat
+                  }`}
                   alt={equipment.nama}
                   className="h-auto max-w-full rounded-lg shadow-md"
                   onError={(e) => {

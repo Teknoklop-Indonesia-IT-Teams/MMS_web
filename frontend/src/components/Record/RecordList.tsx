@@ -30,17 +30,13 @@ const RecordList: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log("RecordList: Starting to fetch record data...");
 
       const response = await recordService.getAll();
-      console.log("RecordList: Full response:", response);
 
       if (response && response.status === 200 && response.data) {
         const recordData = Array.isArray(response.data) ? response.data : [];
-        console.log("RecordList: Record data:", recordData);
         setRecords(recordData);
       } else {
-        console.error("RecordList: Invalid response:", response);
         throw new Error(
           `HTTP ${response?.status || "Unknown"}: ${
             response?.statusText || "Unknown error"

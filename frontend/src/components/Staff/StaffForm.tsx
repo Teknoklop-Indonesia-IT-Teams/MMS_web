@@ -58,8 +58,6 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
         username: formData.nama.toLowerCase().replace(/\s+/g, ""),
         email: formData.email.trim() || undefined, // Include email in the data
       };
-
-      console.log("📝 StaffForm sending data:", dataToSend);
       onSave(dataToSend);
     }
   };

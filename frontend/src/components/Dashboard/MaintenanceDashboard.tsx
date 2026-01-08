@@ -72,37 +72,6 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
       }
     });
 
-    // DEBUG LOG: Show exactly which equipment is in each category
-    console.log("🏠 DASHBOARD STATS CALCULATION:");
-    console.log(
-      `  🔴 URGENT (${urgent}):`,
-      urgentEquipment.map((eq) => ({
-        nama: eq.nama,
-        id: eq.id,
-        alertLevel: eq.maintenanceAlertLevel,
-        daysLeft: eq.maintenanceDaysLeft,
-        status: eq.maintenanceStatus,
-      }))
-    );
-    console.log(
-      `  🟡 WARNING (${warning}):`,
-      warningEquipment.map((eq) => ({
-        nama: eq.nama,
-        id: eq.id,
-        alertLevel: eq.maintenanceAlertLevel,
-        daysLeft: eq.maintenanceDaysLeft,
-      }))
-    );
-    console.log(
-      `  🟢 NORMAL (${normal}):`,
-      normalEquipment.map((eq) => ({
-        nama: eq.nama,
-        id: eq.id,
-        alertLevel: eq.maintenanceAlertLevel,
-        daysLeft: eq.maintenanceDaysLeft,
-      }))
-    );
-
     return { selesai, urgent, warning, normal, inactive };
   };
 
@@ -144,28 +113,6 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
 
   // Get equipment by category for detail view
   const getEquipmentByCategory = (category: string) => {
-    // Debug specific equipment before filtering
-    const debugEquipment = equipment.filter(
-      (item) =>
-        item.nama === "scsC" ||
-        item.nama === "WQMS Sungai Progo Magelang" ||
-        item.nama === "acafaaf"
-    );
-
-    if (debugEquipment.length > 0) {
-      console.log(
-        `🏠 DASHBOARD - Debug equipment for category "${category}":`,
-        debugEquipment.map((item) => ({
-          nama: item.nama,
-          maintenanceAlertLevel: item.maintenanceAlertLevel,
-          maintenanceDaysLeft: item.maintenanceDaysLeft,
-          isMaintenanceActive: item.isMaintenanceActive,
-          maintenanceStatus: item.maintenanceStatus,
-          willMatchCategory: getWillMatchCategory(item, category),
-        }))
-      );
-    }
-
     switch (category) {
       case "selesai":
         return equipment.filter(

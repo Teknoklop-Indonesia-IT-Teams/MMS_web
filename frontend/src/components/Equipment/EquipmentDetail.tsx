@@ -225,7 +225,9 @@ export default function EquipmentDetail({
                 </label>
                 {equipment.i_alat ? (
                   <ImageDisplay
-                    src={`http://localhost:3001/uploads/${equipment.i_alat}`}
+                    src={`${import.meta.env.VITE_URL}/uploads/${
+                      equipment.i_alat
+                    }`}
                     alt="Equipment Image"
                     className="object-cover w-full h-48 border rounded-md"
                   />

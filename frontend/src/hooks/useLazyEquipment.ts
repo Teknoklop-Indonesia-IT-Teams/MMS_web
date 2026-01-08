@@ -27,7 +27,6 @@ export const useLazyEquipment = (shouldLoad: boolean = true) => {
     // 2. Data belum pernah dimuat
     // 3. Tidak sedang loading
     if (shouldLoad && !isDataLoaded && !loading) {
-      console.log("🔄 Lazy loading equipment data for current page");
       fetchEquipment();
     }
   }, [shouldLoad, isDataLoaded, loading, fetchEquipment]);
@@ -66,7 +65,6 @@ export const useDashboardData = () => {
 
   useEffect(() => {
     if (!isDataLoaded && !loading) {
-      console.log("📊 Loading data for dashboard");
       fetchEquipment();
     }
   }, [isDataLoaded, loading, fetchEquipment]);

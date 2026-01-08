@@ -21,7 +21,6 @@ const SimpleEquipmentDetail: React.FC = () => {
       try {
         setLoading(true);
         const response = await alatService.getById(id);
-        console.log("Equipment data:", response.data);
 
         if (response.data) {
           setEquipment(response.data);
@@ -265,7 +264,9 @@ const SimpleEquipmentDetail: React.FC = () => {
                 </h2>
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                   <img
-                    src={`http://localhost:3001/uploads/${equipment.i_alat}`}
+                    src={`${import.meta.env.VITE_URL}/uploads/${
+                      equipment.i_alat
+                    }`}
                     alt={equipment.nama}
                     className="max-w-full h-auto rounded-lg shadow-md mx-auto"
                     onError={(e) => {

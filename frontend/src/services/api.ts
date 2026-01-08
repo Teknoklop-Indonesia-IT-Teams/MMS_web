@@ -26,11 +26,6 @@ let isPageVisible = true;
 let lastVisibilityChange = Date.now();
 let totalRefreshAttempts = 1; // Start with 1 (initial page load)
 
-// IMMEDIATE PROTECTION: Assume we're in navigation state from the start
-console.log(
-  "🛡️ IMMEDIATE NAVIGATION PROTECTION ACTIVATED - Page loading detected"
-);
-
 // SESSION STORAGE STRATEGY - Most reliable refresh detection
 if (typeof window !== "undefined" && window.sessionStorage) {
   const sessionKey = "mms-navigation-state";
@@ -40,30 +35,17 @@ if (typeof window !== "undefined" && window.sessionStorage) {
   if (lastPageLoad) {
     const timeSinceLastLoad = currentTime - parseInt(lastPageLoad);
     if (timeSinceLastLoad < 5000) {
-      // Less than 5 seconds
-      console.log(
-        `🚨 FAST REFRESH DETECTED! Only ${timeSinceLastLoad}ms since last page load`
-      );
-
       // FORCE MAXIMUM PROTECTION
       isNavigating = true;
       rapidRefreshProtection = true;
       totalRefreshAttempts += 10; // Heavily penalize fast refresh
       refreshCount += 5;
 
-      // Extended protection for fast refresh
-      setTimeout(() => {
-        console.log(
-          "🔒 Extended protection active for fast refresh - 60 seconds"
-        );
-      }, 1000);
-
       // Only lift after 60 seconds for fast refresh
       setTimeout(() => {
         if (Date.now() - navigationStartTime > 60000) {
           isNavigating = false;
           rapidRefreshProtection = false;
-          console.log("✅ Fast refresh protection finally lifted after 60s");
         }
       }, 60000);
     }
@@ -80,9 +62,6 @@ setTimeout(() => {
     !rapidRefreshProtection &&
     Date.now() - navigationStartTime > 15000
   ) {
-    console.log(
-      "⏰ Auto-lifting navigation protection after 15s of no activity"
-    );
     isNavigating = false;
   }
 }, 15000);
@@ -105,13 +84,6 @@ class RefreshProtectionManager {
 
     // Add current refresh
     this.refreshTimes.push(now);
-
-    console.log(
-      `🔄 Refresh recorded: ${this.refreshTimes.length}/${
-        this.MAX_REFRESHES
-      } in ${this.TIME_WINDOW / 1000}s`
-    );
-
     // Check if we exceed the limit
     if (this.refreshTimes.length > this.MAX_REFRESHES) {
       this.activateLockout();
@@ -126,12 +98,6 @@ class RefreshProtectionManager {
 
     this.isLocked = true;
     rapidRefreshProtection = true;
-
-    console.log(
-      `🚫 RAPID REFRESH DETECTED! Activating ${
-        this.LOCKOUT_DURATION / 1000
-      }s lockout`
-    );
 
     // Show user warning
     if (typeof window !== "undefined") {
@@ -148,7 +114,6 @@ class RefreshProtectionManager {
       this.isLocked = false;
       rapidRefreshProtection = false;
       this.refreshTimes = [];
-      console.log("✅ Refresh lockout lifted");
     }, this.LOCKOUT_DURATION);
   }
 
@@ -160,7 +125,6 @@ class RefreshProtectionManager {
     this.refreshTimes = [];
     this.isLocked = false;
     rapidRefreshProtection = false;
-    console.log("🧹 Refresh protection reset");
   }
 }
 
@@ -178,7 +142,6 @@ if (typeof window !== "undefined") {
       // Page became visible - potential refresh or tab switch
       const timeSinceLastVisibility = Date.now() - lastVisibilityChange;
       if (timeSinceLastVisibility < 1000) {
-        console.log("🔍 FAST VISIBILITY CHANGE - Potential refresh detected");
         activateNavigationShield("visibility-change");
       }
     }
@@ -190,7 +153,6 @@ if (typeof window !== "undefined") {
     if (navigationEntries.length > 0) {
       const navEntry = navigationEntries[0] as PerformanceNavigationTiming;
       if (navEntry.type === "reload") {
-        console.log("🔄 PERFORMANCE API DETECTED RELOAD");
         totalRefreshAttempts++;
         isNavigating = true;
         navigationStartTime = Date.now();
@@ -204,8 +166,6 @@ if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
     const loadTime = Date.now() - pageLoadTime;
     if (loadTime < 2000) {
-      // Very fast load - likely a refresh
-      console.log(`⚡ FAST PAGE LOAD (${loadTime}ms) - Likely refresh`);
       activateNavigationShield("fast-load");
     }
   });
@@ -216,8 +176,6 @@ if (typeof window !== "undefined") {
 
     // Check rapid refresh protection first
     if (!refreshProtectionManager.recordRefresh()) {
-      console.log(`🚫 RAPID REFRESH BLOCKED: ${eventType}`);
-
       // FORCE NAVIGATION SHIELD even if refresh is blocked
       isNavigating = true;
       navigationStartTime = Date.now();
@@ -228,9 +186,6 @@ if (typeof window !== "undefined") {
         if (Date.now() - navigationStartTime > 45000) {
           // 45 seconds
           isNavigating = false;
-          console.log(
-            "✅ Extended navigation protection lifted after fast refresh block"
-          );
         }
       }, 45000);
 
@@ -242,10 +197,6 @@ if (typeof window !== "undefined") {
     refreshCount++;
     lastRefreshTime = Date.now();
     rapidRefreshProtection = refreshProtectionManager.isBlocked();
-
-    console.log(
-      `🛡️ NAVIGATION SHIELD ACTIVATED: ${eventType} (refresh #${refreshCount}, total attempts: ${totalRefreshAttempts})`
-    );
   };
 
   // Multiple event listeners for comprehensive detection
@@ -269,12 +220,10 @@ if (typeof window !== "undefined") {
       if (timeSinceRefresh > 10000) {
         // Only lift if no recent refresh
         isNavigating = false;
-        console.log("✅ Navigation protection lifted after 10s");
       } else {
         // Keep protection longer if recent refresh
         setTimeout(() => {
           isNavigating = false;
-          console.log("✅ Navigation protection lifted after extended period");
         }, 20000);
       }
     }, 10000);
@@ -318,7 +267,6 @@ api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("🔑 API: Added auth token to request");
     } else {
       console.log("⚠️ API: No auth token found for request");
     }
@@ -345,14 +293,12 @@ class OptimisticLockingManager {
 
     // Check if operation is already in progress
     if (this.operationQueue.has(operationKey)) {
-      console.log(`🔄 Waiting for existing operation: ${operationKey}`);
       return this.operationQueue.get(operationKey) as Promise<T>;
     }
 
     // Check if we have a recent lock
     const lastLock = this.operationLocks.get(operationKey);
     if (lastLock && now - lastLock < 5000) {
-      console.log(`⏳ Operation too recent, waiting: ${operationKey}`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
@@ -387,11 +333,7 @@ class OptimisticLockingManager {
   ): Promise<T> {
     for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
-        console.log(
-          `🔄 Executing ${operationKey}, attempt ${attempt}/${retryCount}`
-        );
         const result = await operation();
-        console.log(`✅ Operation successful: ${operationKey}`);
         return result;
       } catch (error: unknown) {
         const errorMessage =
@@ -415,7 +357,6 @@ class OptimisticLockingManager {
 
         // Exponential backoff
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-        console.log(`⏳ Waiting ${delay}ms before retry...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -429,14 +370,12 @@ class OptimisticLockingManager {
   clearLock(operationKey: string): void {
     this.operationLocks.delete(operationKey);
     this.operationQueue.delete(operationKey);
-    console.log(`🧹 Cleared lock for: ${operationKey}`);
   }
 
   // Clear semua locks (untuk cleanup)
   clearAllLocks(): void {
     this.operationLocks.clear();
     this.operationQueue.clear();
-    console.log(`🧹 Cleared all operation locks`);
   }
 }
 
@@ -466,57 +405,33 @@ class LogoutManager {
     this.logout401Count++;
     this.requestCount++;
 
-    console.log(
-      `🔍 401 Analysis: count=${
-        this.logout401Count
-      }, navigation=${isNavigating}, timeSinceNav=${
-        now - navigationStartTime
-      }ms`
-    );
-
     // ABSOLUTE PROTECTION #1: Navigation/Refresh Shield
     if (isNavigating) {
-      console.log(
-        "🛡️ NAVIGATION SHIELD ACTIVE - Blocking logout during navigation/refresh"
-      );
       return false;
     }
 
     // ABSOLUTE PROTECTION #1.5: Rapid refresh protection
     if (rapidRefreshProtection || refreshProtectionManager.isBlocked()) {
-      console.log(
-        "🛡️ RAPID REFRESH PROTECTION ACTIVE - Blocking logout during rapid refresh lockout"
-      );
       return false;
     }
 
     // ABSOLUTE PROTECTION #2: Recent refresh detection
     if (refreshCount > 0 && now - lastRefreshTime < 20000) {
-      // 20 seconds after any refresh
-      console.log(
-        `🛡️ RECENT REFRESH DETECTED - Blocking logout (refresh #${refreshCount}, ${
-          now - lastRefreshTime
-        }ms ago)`
-      );
       return false;
     }
 
     // Never logout during initialization period
     if (now < this.initializationEndTime) {
-      console.log("🚫 Still in initialization period - blocking logout");
       return false;
     }
 
     // Never logout if already in progress
     if (this.isLoggingOut) {
-      console.log("🚫 Logout already in progress");
       return false;
     }
 
     // Detect rapid fire requests (refresh scenario) - MUCH more permissive
     if (this.requestCount > 50 && now - this.lastRequestTime < 500) {
-      // Allow way more requests
-      console.log("🚫 Rapid fire requests detected - likely refresh");
       return false;
     }
 
@@ -525,19 +440,11 @@ class LogoutManager {
       this.logout401Count > 10 && // Allow way more 401s
       now - this.lastLogoutAttempt < this.RACE_CONDITION_WINDOW
     ) {
-      console.log(
-        `🚫 Race condition: ${this.logout401Count} 401s in ${
-          now - this.lastLogoutAttempt
-        }ms`
-      );
       return false;
     }
 
     // Only allow logout if we have a reasonable pause between attempts
     if (now - this.lastLogoutAttempt < this.DEBOUNCE_TIME) {
-      console.log(
-        `🚫 Debounce: Only ${now - this.lastLogoutAttempt}ms since last attempt`
-      );
       return false;
     }
 
@@ -549,14 +456,12 @@ class LogoutManager {
   performLogout(): void {
     if (this.isLoggingOut) return;
 
-    console.log("🚨 PERFORMING LOGOUT");
     this.isLoggingOut = true;
 
     // Clear all race condition protections
     try {
       optimisticLockManager.clearAllLocks();
       refreshProtectionManager.reset();
-      console.log("🧹 Race condition protections cleared during logout");
     } catch (error) {
       console.log("⚠️ Error clearing protections during logout:", error);
     }
@@ -568,14 +473,11 @@ class LogoutManager {
 
     // Use callback if available (React Router navigate)
     if (this.onLogoutCallback) {
-      console.log("✅ Using React Router navigate for logout");
       this.onLogoutCallback();
       this.reset();
       return;
     }
 
-    // Fallback: debounced redirect (only if no callback)
-    console.log("⚠️ No callback set - using fallback window.location redirect");
     if (this.logoutTimeoutId) {
       clearTimeout(this.logoutTimeoutId);
     }
@@ -601,7 +503,6 @@ class LogoutManager {
     const newEndTime = Date.now() + additionalMs;
     if (newEndTime > this.initializationEndTime) {
       this.initializationEndTime = newEndTime;
-      console.log(`🔒 Extended logout protection by ${additionalMs}ms`);
     }
   }
 }
@@ -629,8 +530,6 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      console.log("🔍 401 response received");
-
       // Check basic conditions first
       const stillInitializing = isAppStillInitializing();
       const currentPath = window.location.pathname;
@@ -639,48 +538,35 @@ api.interceptors.response.use(
 
       // Early exit conditions
       if (stillInitializing) {
-        console.log("🚫 Still initializing - ignoring 401");
         return Promise.reject(error);
       }
 
       if (currentPath === "/login" || currentPath.includes("/login")) {
-        console.log("🚫 Already on login page - ignoring 401");
         return Promise.reject(error);
       }
 
       if (inCriticalOperation) {
-        console.log("🚫 In critical operation - ignoring 401");
         return Promise.reject(error);
       }
 
       // ADDITIONAL FAST REFRESH PROTECTION
       if (isNavigating) {
-        console.log("🛡️ Navigation shield active - blocking 401 logout");
         return Promise.reject(error);
       }
 
       if (rapidRefreshProtection) {
-        console.log("🛡️ Rapid refresh protection active - blocking 401 logout");
         return Promise.reject(error);
       }
 
       // Check if we're in the danger zone (first 30 seconds after page load)
       const timeSincePageLoad = Date.now() - pageLoadTime;
       if (timeSincePageLoad < 30000) {
-        console.log(
-          `🛡️ Page load protection active (${timeSincePageLoad}ms since load) - blocking 401 logout`
-        );
         return Promise.reject(error);
       }
 
       if (!hasToken) {
-        console.log("🚫 No token - 401 expected");
         return Promise.reject(error);
       }
-
-      // COMPLETELY DISABLE AUTO-LOGOUT TO FIX REFRESH ISSUE
-      console.log("⚠️ 401 detected but auto-logout is DISABLED");
-      console.log("� This prevents logout on refresh. Manual logout only.");
       // Let the components handle 401 errors individually
     }
     return Promise.reject(error);
@@ -751,18 +637,12 @@ export const alatService = {
   },
   // Maintenance functions dengan Optimistic Locking
   stopMaintenance: (id: string) => {
-    console.log(
-      `🛑 API Service: Sending stop maintenance request for ID: ${id}`
-    );
     const operationKey = `stop-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
       api.post(`/alat/${id}/stop-maintenance`)
     );
   },
   completeMaintenance: (id: string) => {
-    console.log(
-      `✅ API Service: Sending complete maintenance request for ID: ${id}`
-    );
     const operationKey = `complete-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
       api.post(`/alat/${id}/complete-maintenance`)
@@ -776,7 +656,6 @@ export const alatService = {
       isMaintenanceActive?: boolean;
     }
   ) => {
-    console.log(`🔧 API Service: Updating maintenance settings for ID: ${id}`);
     const operationKey = `update-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
       api.put(`/alat/${id}/maintenance`, data)
@@ -792,7 +671,6 @@ export const recordService = {
 
     // Log the size of the request to help with debugging
     const totalSize = JSON.stringify(data).length;
-    console.log(`Sending record with total size: ${totalSize} bytes`);
 
     return api
       .post<Record>("/record", data, {
@@ -805,9 +683,6 @@ export const recordService = {
   },
   update: (id: string, data: Partial<Record>) => {
     AppStateManager.startCriticalOperation("Update record");
-
-    const totalSize = JSON.stringify(data).length;
-    console.log(`Updating record with total size: ${totalSize} bytes`);
 
     return api
       .put<Record>(`/record/${id}`, data, {
@@ -960,7 +835,6 @@ export const usersService = {
 export const RaceConditionUtils = {
   // Clear semua locks dan proteksi (gunakan saat logout manual)
   clearAllProtections: () => {
-    console.log("🧹 Clearing all race condition protections...");
     optimisticLockManager.clearAllLocks();
     refreshProtectionManager.reset();
 
@@ -1004,28 +878,10 @@ export const RaceConditionUtils = {
 
   // Force activate protection (untuk testing)
   forceActivateProtection: (reason: string) => {
-    console.log(`🛡️ FORCE ACTIVATING PROTECTION: ${reason}`);
     isNavigating = true;
     rapidRefreshProtection = true;
     navigationStartTime = Date.now();
     lastRefreshTime = Date.now();
-  },
-
-  // Debug info
-  logDebugInfo: () => {
-    const status = RaceConditionUtils.getProtectionStatus();
-    // Check session storage
-    if (typeof window !== "undefined" && window.sessionStorage) {
-      const sessionKey = "mms-navigation-state";
-      const lastPageLoad = sessionStorage.getItem(sessionKey);
-      if (lastPageLoad) {
-        console.log(
-          `📱 Session: ${
-            Date.now() - parseInt(lastPageLoad)
-          }ms since last recorded page load`
-        );
-      }
-    }
   },
 
   // Test fast refresh simulation
@@ -1037,7 +893,6 @@ export const RaceConditionUtils = {
     rapidRefreshProtection = true;
     try {
       const response = await api.get("/api/auth/profile");
-      console.log("✅ API call succeeded despite protection:", response.data);
     } catch (error) {
       console.log("❌ API call blocked/failed:", (error as Error).message);
     }
@@ -1045,7 +900,6 @@ export const RaceConditionUtils = {
     // Reset
     setTimeout(() => {
       RaceConditionUtils.clearAllProtections();
-      console.log("🔄 Protection reset after test");
     }, 3000);
   },
 };
@@ -1055,10 +909,4 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (
     window as Window & { refreshProtection?: typeof RaceConditionUtils }
   ).refreshProtection = RaceConditionUtils;
-  console.log(
-    "🧪 Debug: Use window.refreshProtection.logDebugInfo() to check protection status"
-  );
-  console.log(
-    "🧪 Debug: Use window.refreshProtection.simulateFastRefresh() to test protection"
-  );
 }

@@ -315,5 +315,4 @@ export const rolesService = {
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (window as Window & { apiService?: typeof apiService }).apiService =
     apiService;
-  console.log("🧪 Debug: Use window.apiService to inspect API service");
 }

@@ -68,12 +68,10 @@ const RecordForm: React.FC<RecordFormProps> = ({
         const response = await staffService.getAll();
         if (response && response.data) {
           const staffData = Array.isArray(response.data) ? response.data : [];
-          const mappedStaff = staffData.map(
-            (staff: { id: number; nama?: string; petugas?: string }) => ({
-              id: staff.id,
-              nama: staff.nama || staff.petugas || "",
-            })
-          );
+          const mappedStaff = (staffData as any[]).map((staff: any) => ({
+            id: staff.id,
+            nama: staff.nama || staff.petugas || "",
+          }));
           setStaffList(mappedStaff);
         }
       } catch (error) {

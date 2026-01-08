@@ -57,20 +57,16 @@ const SignUp: React.FC = () => {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        console.log("Fetching roles from API...");
         const response = await fetch(`${import.meta.env.VITE_API_URL}/roles`);
         if (response.ok) {
           const result: RolesApiResponse = await response.json();
-          console.log("API Response:", result);
           if (result.success && result.data) {
             const mappedRoles = result.data.map((role: ApiRole) => ({
               roleId: role.id,
               role: role.value,
             }));
-            console.log("Mapped roles:", mappedRoles);
             setRoles(mappedRoles);
           } else {
-            console.log("API response not successful, using fallback roles");
             // Fallback to default roles if API response is unexpected
             setRoles([
               { roleId: 2, role: "supervisor" },
@@ -79,7 +75,6 @@ const SignUp: React.FC = () => {
             ]);
           }
         } else {
-          console.error("Failed to fetch roles, status:", response.status);
           // Fallback to default roles if API fails
           setRoles([
             { roleId: 2, role: "supervisor" },

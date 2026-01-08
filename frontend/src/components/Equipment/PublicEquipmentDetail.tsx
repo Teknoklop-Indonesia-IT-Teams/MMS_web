@@ -23,8 +23,6 @@ const PublicEquipmentDetail: React.FC = () => {
 
       try {
         setLoading(true);
-        console.log("🔍 Public QR: Fetching equipment data for ID:", id);
-
         // Gunakan endpoint public untuk QR code access
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/alat/public/${id}`
@@ -40,7 +38,6 @@ const PublicEquipmentDetail: React.FC = () => {
         }
 
         const data = await response.json();
-        console.log("✅ Public QR: Equipment data received:", data);
 
         if (data.success && data.data) {
           setEquipment(data.data);

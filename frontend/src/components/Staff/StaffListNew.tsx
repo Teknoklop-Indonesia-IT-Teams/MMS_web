@@ -23,10 +23,7 @@ const StaffList: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log("Fetching staff data...");
-
       const response = await staffService.getAll();
-      console.log("Staff response:", response);
 
       if (response.status === 200 && response.data) {
         // Ensure data is an array and map to User interface
@@ -43,8 +40,6 @@ const StaffList: React.FC = () => {
 
         // Sort by ID in ascending order
         userData.sort((a, b) => a.id - b.id);
-
-        console.log("Setting user data (sorted by ID):", userData);
         setUsers(userData);
       } else {
         throw new Error(

@@ -29,12 +29,9 @@ if (typeof window !== "undefined") {
   // If page loaded within 5 seconds of last load, it's a refresh
   if (pageLoadTime && now - pageLoadTime < 5000) {
     isPageRefreshing = true;
-    console.log("🔄 Page refresh detected - blocking logout for 10 seconds");
-
     // Block logout for 10 seconds after refresh
     setTimeout(() => {
       isPageRefreshing = false;
-      console.log("✅ Refresh protection period ended");
     }, 10000);
   }
 
@@ -50,18 +47,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        console.log("🔄 Initializing auth...");
-
         const token = localStorage.getItem("token");
         const userData = localStorage.getItem("user");
 
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          console.log(
-            "✅ Auth restored from localStorage:",
-            parsedUser.username || parsedUser.nama
-          );
         } else {
           console.log("ℹ️ No stored auth data found");
         }
@@ -82,17 +73,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
-    console.log("✅ User logged in:", userData.username || userData.nama);
   };
 
   const logout = () => {
     // Prevent logout during refresh
     if (isPageRefreshing) {
-      console.log("🛡️ Logout blocked - page is refreshing");
       return;
     }
-
-    console.log("🚪 Manual logout");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("rememberMe");

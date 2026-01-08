@@ -26,8 +26,6 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
   });
 
   const handleCompleteMaintenance = async () => {
-    console.log("🔧 Complete Maintenance clicked for equipment:", equipment);
-
     if (!equipment.isMaintenanceActive) {
       console.warn("❌ Maintenance tidak aktif untuk peralatan ini");
       toast.error("Maintenance tidak aktif untuk peralatan ini");
@@ -36,23 +34,16 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
 
     try {
       setIsLoading(true);
-      console.log(`🚀 Calling API completeMaintenance for ID: ${equipment.id}`);
 
       const response = await alatService.completeMaintenance(
         equipment.id.toString()
       );
-      console.log("✅ Complete maintenance response:", response);
 
       toast.success("Maintenance berhasil diselesaikan!");
-
-      // Refresh equipment context to sync all components
-      console.log("🔄 Refreshing equipment context...");
       await refreshEquipment();
-      console.log("✅ Equipment context refreshed");
 
       // Call onUpdate if provided
       if (onUpdate) {
-        console.log("📞 Calling onUpdate callback...");
         onUpdate();
       }
     } catch (error) {
@@ -66,24 +57,17 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
   const handleStopMaintenance = async () => {
     // Prevent double-click
     if (isLoading) {
-      console.log(
-        "Stop maintenance already in progress, ignoring double-click"
-      );
       return;
     }
 
     try {
       setIsLoading(true);
-      console.log("🛑 Stopping maintenance for equipment:", equipment.id);
-
       await alatService.stopMaintenance(equipment.id.toString());
       toast.success("Maintenance dihentikan!");
 
       // Refresh equipment context to sync all components
       await refreshEquipment();
       onUpdate?.();
-
-      console.log("✅ Stop maintenance completed successfully");
     } catch (error) {
       console.error("❌ Error stopping maintenance:", error);
 
@@ -91,9 +75,6 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
       if (
         (error as { response?: { status?: number } })?.response?.status === 401
       ) {
-        console.log(
-          "🔒 Stop maintenance failed due to authentication - token may have expired"
-        );
         toast.error("Sesi berakhir, silakan login ulang");
       } else {
         toast.error("Gagal menghentikan maintenance");
@@ -112,11 +93,6 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
       );
       toast.success("Pengaturan maintenance berhasil diupdate!");
       setShowSettings(false);
-
-      // Refresh equipment context to sync all components
-      console.log(
-        "🔄 Maintenance settings updated - refreshing all components"
-      );
       await refreshEquipment();
       onUpdate?.();
     } catch (error) {

@@ -25,14 +25,12 @@ export const usePageLifecycle = () => {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        console.log("🔍 Page became visible - extending auth initialization");
         // Extend initialization when page becomes visible to prevent immediate logout
         extendInitializationPeriod(2000);
       }
     };
 
     const handleFocus = () => {
-      console.log("🎯 Window focused - extending auth initialization");
       // Extend initialization when window gains focus
       extendInitializationPeriod(1500);
     };

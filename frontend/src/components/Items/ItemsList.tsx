@@ -214,7 +214,7 @@ const ItemsList: React.FC = () => {
             {item.image && (
               <div className="h-48 bg-gray-200 flex items-center justify-center">
                 <img
-                  src={`http://localhost:3001/uploads/${item.image}`}
+                  src={`${import.meta.env.VITE_URL}/uploads/${item.image}`}
                   alt={item.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {

@@ -17,16 +17,10 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
   React.useEffect(() => {
     const generateQR = async () => {
       try {
-        console.log("🔄 Starting QR code generation...");
-
         // Gunakan network utils untuk mendapatkan URL terbaik dengan route public
         const urlInfo = await getMostAccessibleUrl(
           `/qr/telemetri/detail/${equipment.id}`
         );
-
-        console.log("🔗 Primary QR URL:", urlInfo.url);
-        console.log("🌐 All available URLs:", urlInfo.allUrls);
-
         // Buat QR code dengan error correction yang baik
         const qrUrl = await QRCode.toDataURL(urlInfo.url, {
           width: 256,
@@ -38,12 +32,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
           errorCorrectionLevel: "M", // Medium error correction untuk scanning yang lebih baik
         });
 
-        console.log("✅ QR Code generated successfully");
-        console.log("� Primary scan URL:", urlInfo.url);
         setQrCodeUrl(qrUrl);
       } catch (error) {
-        console.error("❌ Error generating QR code:", error);
-
         // Fallback ke metode lama jika network utils gagal
         try {
           const fallbackUrl = `${window.location.protocol}//${
@@ -51,7 +41,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
           }${
             window.location.port ? ":" + window.location.port : ""
           }/qr/telemetri/detail/${equipment.id}`;
-          console.log("� Using fallback URL:", fallbackUrl);
 
           const qrUrl = await QRCode.toDataURL(fallbackUrl, {
             width: 256,
@@ -89,8 +78,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      console.log("QR Code downloaded successfully");
     } catch (error) {
       console.error("Error downloading QR code:", error);
 

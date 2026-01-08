@@ -42,15 +42,12 @@ const StaffList: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log("📋 StaffList: Lazy loading staff data...");
 
       const response = await staffService.getAll();
-      console.log("StaffList: Full response:", response);
 
       if (response && response.status === 200 && response.data) {
         // Ensure data is an array and map to User interface
         const staffData = Array.isArray(response.data) ? response.data : [];
-        console.log("StaffList: Raw staff data:", staffData);
 
         const userData: User[] = (staffData as unknown as StaffResponse[]).map(
           (staff: StaffResponse) => ({
@@ -66,11 +63,9 @@ const StaffList: React.FC = () => {
         // Sort by ID in ascending order
         userData.sort((a, b) => a.id - b.id);
 
-        console.log("StaffList: Mapped and sorted user data:", userData);
         setUsers(userData);
         setDataLoaded(true);
       } else {
-        console.error("StaffList: Invalid response:", response);
         throw new Error(
           `HTTP ${response?.status || "Unknown"}: ${
             response?.statusText || "Unknown error"
@@ -92,7 +87,6 @@ const StaffList: React.FC = () => {
   // Lazy loading - hanya fetch ketika komponen mount dan data belum dimuat
   useEffect(() => {
     if (!dataLoaded) {
-      console.log("🔄 StaffList: Initial lazy load on mount");
       fetchUsers();
     }
   }, [fetchUsers, dataLoaded]);
@@ -144,7 +138,6 @@ const StaffList: React.FC = () => {
 
   const handleSaveUser = useCallback(
     async (userData: Omit<User, "id"> & { email?: string }) => {
-      console.log("🔧 HandleSaveUser received data:", userData);
       const isEdit = !!selectedUser;
       const action = isEdit ? "memperbarui" : "menambahkan";
       const loadingToastId = showLoadingToast(`Sedang ${action} petugas...`);
@@ -156,17 +149,13 @@ const StaffList: React.FC = () => {
           email: userData.email || undefined,
         };
 
-        console.log("📤 Sending API data:", apiData);
-
         if (selectedUser) {
-          console.log("🔄 Updating staff with ID:", selectedUser.id);
           await staffService.update(selectedUser.id.toString(), apiData);
           showSuccessToast(
             "Petugas berhasil diperbarui!",
             `Data ${userData.nama} telah diperbarui`
           );
         } else {
-          console.log("🆕 Creating new staff");
           await staffService.create(apiData);
           showSuccessToast(
             "Petugas berhasil ditambahkan!",

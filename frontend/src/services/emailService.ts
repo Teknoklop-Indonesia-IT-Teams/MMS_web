@@ -110,7 +110,6 @@ class EmailNotificationService {
 
       if (response.ok) {
         this.markNotificationSent(equipment.id, "yellow");
-        console.log(`✅ Warning email sent for equipment: ${equipment.nama}`);
         return true;
       } else {
         console.error(
@@ -155,7 +154,6 @@ class EmailNotificationService {
 
       if (response.ok) {
         this.markNotificationSent(equipment.id, "red");
-        console.log(`✅ Urgent email sent for equipment: ${equipment.nama}`);
         return true;
       } else {
         console.error("❌ Failed to send urgent email:", await response.text());
@@ -197,7 +195,6 @@ class EmailNotificationService {
 
   // Manual trigger for testing
   async testEmail(equipment: Equipment): Promise<boolean> {
-    console.log("🧪 Testing email notification for:", equipment.nama);
     if (equipment.maintenanceAlertLevel === "yellow") {
       return await this.sendMaintenanceWarningEmail(equipment);
     } else if (equipment.maintenanceAlertLevel === "red") {

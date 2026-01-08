@@ -18,14 +18,12 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("🖼️ ImageDisplay: Setting up image", { src, alt });
     setImageSrc(src);
     setHasError(false);
     setIsLoading(true);
 
     // Check if src is empty or invalid
     if (!src || src.trim() === "") {
-      console.log("❌ ImageDisplay: Empty src provided");
       setHasError(true);
       setIsLoading(false);
       return;
@@ -33,20 +31,12 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   }, [src, alt]);
 
   const handleImageLoad = () => {
-    console.log("✅ ImageDisplay: Image loaded successfully:", src);
     setIsLoading(false);
   };
 
   const handleImageError = (
     e: React.SyntheticEvent<HTMLImageElement, Event>
   ) => {
-    console.log("❌ ImageDisplay: Image failed to load:", src);
-    console.log("📋 ImageDisplay Error details:", {
-      originalSrc: src,
-      currentImageSrc: imageSrc,
-      timestamp: new Date().toISOString(),
-      errorEvent: e.type,
-    });
     setHasError(true);
     setIsLoading(false);
     if (onError) onError();

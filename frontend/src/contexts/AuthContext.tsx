@@ -35,8 +35,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
-      console.log("🔍 Enhanced Auth: Checking authentication status...");
-
       // Set refresh protection to prevent logout during this check
       EnhancedAuthStorage.setRefreshProtection(15000); // 15 seconds protection
 
@@ -51,7 +49,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Verify token with backend
       try {
-        console.log("🔐 Enhanced Auth: Verifying token with backend...");
         const response = await authService.getProfile();
 
         if (response.data) {
@@ -81,7 +78,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             Math.max(0, Math.floor((authData.expiresAt - Date.now()) / 1000))
           );
 
-          console.log("✅ Enhanced Auth: Authentication verified with server");
           return true;
         }
       } catch (error: unknown) {
@@ -91,18 +87,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // This handles cases where server is down but token is still valid
         const axiosError = error as { response?: { status?: number } };
         if (axiosError.response?.status !== 401) {
-          console.log(
-            "⚠️ Enhanced Auth: Using cached user data (server unavailable)"
-          );
           // Use cached user data directly since it's already in correct format
           setUser(authData.user);
           return true;
         }
 
         // If 401, token is invalid - clear data
-        console.log(
-          "🔑 Enhanced Auth: Token invalid (401), clearing auth data"
-        );
         EnhancedAuthStorage.clearAuthData();
         setUser(null);
         return false;
@@ -124,8 +114,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log("🚀 Enhanced Auth: Initializing...");
-
         // Small delay to ensure localStorage is ready
         await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -134,9 +122,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const isAuthenticated = await checkAuth();
 
         if (!isAuthenticated) {
-          console.log(
-            "🔄 Enhanced Auth: Not authenticated, checking for redirect"
-          );
           const currentPath = window.location.pathname;
 
           // Define public paths that don't require authentication
@@ -153,11 +138,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             currentPath.startsWith("/public");
 
           if (!isPublicPath) {
-            console.log("🔄 Enhanced Auth: Redirecting to login");
             navigate("/login", { replace: true });
           }
-        } else {
-          console.log("✅ Enhanced Auth: Authenticated successfully");
         }
       } catch (error) {
         console.error("❌ Enhanced Auth: Initialization error:", error);
@@ -181,11 +163,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = useCallback(
     (token: string, userData: User, expiresIn: number = 86400) => {
       try {
-        console.log(
-          "🔑 Enhanced Auth: Logging in user:",
-          userData.username || userData.email
-        );
-
         // Save auth data with enhanced storage
         const success = EnhancedAuthStorage.saveAuthData(
           token,
@@ -195,8 +172,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (success) {
           setUser(userData);
-          console.log("✅ Enhanced Auth: Login successful");
-
           // Navigate to dashboard
           navigate("/dashboard", { replace: true });
         } else {
@@ -216,13 +191,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const logout = useCallback(async () => {
     try {
-      console.log("🚪 Enhanced Auth: Logout initiated...");
-
       // Check if we're in refresh protection period
       if (EnhancedAuthStorage.isRefreshProtected()) {
-        console.log(
-          "🛡️ Enhanced Auth: Logout blocked - in refresh protection period, forcing logout..."
-        );
         // Force logout anyway - user explicitly clicked logout
         EnhancedAuthStorage.clearRefreshProtection();
       }
@@ -230,7 +200,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Call API logout
       try {
         await authService.logout();
-        console.log("✅ Enhanced Auth: API logout successful");
       } catch (error) {
         console.error("⚠️ Enhanced Auth: API logout failed:", error);
         // Continue with local logout even if API fails
@@ -242,8 +211,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Navigate to login
       navigate("/login", { replace: true });
-
-      console.log("✅ Enhanced Auth: Logout complete");
     } catch (error) {
       console.error("❌ Enhanced Auth: Logout error:", error);
       // Force logout even on error
@@ -259,7 +226,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        console.log("👁️ Enhanced Auth: Page became visible");
         EnhancedAuthStorage.updateActivity();
 
         // Re-check auth after page becomes visible
@@ -270,9 +236,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const handleBeforeUnload = () => {
-      console.log(
-        "🔄 Enhanced Auth: Page unloading - setting refresh protection"
-      );
       EnhancedAuthStorage.setRefreshProtection(10000); // 10 seconds
     };
 
@@ -288,7 +251,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Log auth status for debugging
   useEffect(() => {
     const authStatus = EnhancedAuthStorage.getAuthStatus();
-    console.log("🔍 Enhanced Auth Status:", authStatus);
   }, [user]);
 
   const value: AuthContextType = {
