@@ -9,7 +9,7 @@ import {
 } from "../types";
 import { AuthStorage } from "../utils/authStorage";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = 30000;
 
 // Simple refresh detection - sync with AuthContext using AuthStorage
@@ -20,13 +20,8 @@ if (typeof window !== "undefined") {
   isRefreshing = AuthStorage.isRefreshing();
 
   if (isRefreshing) {
-    console.log(
-      "🔄 API: Page refresh detected - blocking auto-logout for 5 seconds"
-    );
-
     setTimeout(() => {
       isRefreshing = false;
-      console.log("✅ API: Refresh protection period ended");
     }, 5000);
   }
 }
@@ -66,16 +61,10 @@ api.interceptors.response.use(
   (error) => {
     // Handle 401 errors with refresh protection
     if (error.response?.status === 401) {
-      console.log("🔍 401 response received");
-
       // Block auto-logout if currently refreshing
       if (isRefreshing) {
-        console.log("🛡️ Blocking auto-logout - page is refreshing");
         return Promise.reject(error);
       }
-
-      // Don't auto-logout, let components handle 401 errors
-      console.log("⚠️ 401 error - letting component handle it");
     }
 
     return Promise.reject(error);
@@ -90,16 +79,9 @@ export const authService = {
   logout: async () => {
     try {
       await api.post("/auth/logout");
-      console.log("✅ Logout API call successful");
     } catch (error) {
       console.error("❌ Logout API error:", error);
     }
-
-    // Don't clear localStorage here - let AuthContext handle it
-    // This prevents accidental data clearing during API errors
-    console.log(
-      "ℹ️ AuthService logout complete - localStorage managed by AuthContext"
-    );
   },
   getProfile: async () => {
     return api.get("/auth/profile");
@@ -115,9 +97,16 @@ export const alatService = {
     return response;
   },
   getById: (id: string) => api.get<Alat>(`/alat/${id}`),
-  create: (data: Partial<Alat>) => api.post<Alat>("/alat", data),
-  update: (id: string, data: Partial<Alat>) =>
-    api.put<Alat>(`/alat/${id}`, data),
+  create: (data: Partial<Alat> | FormData) => {
+    const headers =
+      data instanceof FormData ? {} : { "Content-Type": "application/json" };
+    return api.post<Alat>("/alat", data, { headers, timeout: 60000 });
+  },
+  update: (id: string, data: Partial<Alat> | FormData) => {
+    const headers =
+      data instanceof FormData ? {} : { "Content-Type": "application/json" };
+    return api.put<Alat>(`/alat/${id}`, data, { headers, timeout: 60000 });
+  },
   delete: (id: string) => api.delete(`/alat/${id}`),
   restore: (id: string) => api.patch(`/alat/${id}/restore`),
   updateMaintenance: (
@@ -189,12 +178,10 @@ export const rolesService = {
 
 // Simple function to extend logout protection
 export const extendLogoutProtection = (ms: number) => {
-  console.log(`🛡️ Extending logout protection for ${ms}ms`);
   AuthStorage.extendRefreshProtection(ms);
   isRefreshing = true;
   setTimeout(() => {
     isRefreshing = false;
-    console.log("✅ Extended logout protection period ended");
   }, ms);
 };
 
@@ -204,13 +191,7 @@ export { api };
 export const enhancedEquipmentService = {
   getAll: async () => {
     try {
-      console.log("🔄 Enhanced Equipment: Fetching all equipment...");
       const response = await alatService.getAll();
-      console.log(
-        "✅ Enhanced Equipment: Success!",
-        response.data?.length || 0,
-        "items"
-      );
       return response;
     } catch (error) {
       console.error("❌ Enhanced Equipment: Error:", error);
@@ -236,9 +217,7 @@ export const enhancedEquipmentService = {
 
   stopMaintenance: async (id: string) => {
     try {
-      console.log(`🛑 Enhanced Equipment: Stopping maintenance for ${id}...`);
       const response = await api.post(`/alat/${id}/stop-maintenance`);
-      console.log("✅ Enhanced Equipment: Successfully stopped maintenance");
       return response;
     } catch (error) {
       console.error("❌ Enhanced Equipment: Stop maintenance error:", error);
@@ -248,9 +227,7 @@ export const enhancedEquipmentService = {
 
   completeMaintenance: async (id: string) => {
     try {
-      console.log(`✅ Enhanced Equipment: Completing maintenance for ${id}...`);
       const response = await api.post(`/alat/${id}/complete-maintenance`);
-      console.log("✅ Enhanced Equipment: Successfully completed maintenance");
       return response;
     } catch (error) {
       console.error(
@@ -270,11 +247,7 @@ export const enhancedEquipmentService = {
     }
   ) => {
     try {
-      console.log(
-        `🔧 Enhanced Equipment: Updating maintenance settings for ${id}...`
-      );
       const response = await api.put(`/alat/${id}/maintenance`, data);
-      console.log("✅ Enhanced Equipment: Successfully updated maintenance");
       return response;
     } catch (error) {
       console.error("❌ Enhanced Equipment: Update maintenance error:", error);
@@ -286,13 +259,7 @@ export const enhancedEquipmentService = {
 export const enhancedStaffService = {
   getAll: async () => {
     try {
-      console.log("🔄 Enhanced Staff: Fetching all staff...");
       const response = await staffService.getAll();
-      console.log(
-        "✅ Enhanced Staff: Success!",
-        response.data?.length || 0,
-        "staff members"
-      );
       return response;
     } catch (error) {
       console.error("❌ Enhanced Staff: Error:", error);
@@ -315,6 +282,12 @@ export const enhancedStaffService = {
   delete: async (id: string) => {
     return staffService.delete(id);
   },
+};
+
+const getImageSrc = (img?: string | null) => {
+  if (!img) return null;
+  if (img.startsWith("data:")) return img; // already a data URI (records)
+  return `${API_URL}/uploads/${img}`;
 };
 
 export default api;

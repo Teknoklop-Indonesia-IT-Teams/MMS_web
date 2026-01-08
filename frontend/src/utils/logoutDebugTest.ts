@@ -22,23 +22,13 @@
 
 // Test function untuk debug logout
 export const testLogout = () => {
-  console.log("🧪 Testing logout flow...");
-
-  // Check current auth state
-  console.log("Current auth storage:", localStorage.getItem("authToken"));
-  console.log("Current user:", localStorage.getItem("authUser"));
-  console.log("Refresh protection:", localStorage.getItem("refreshProtection"));
-
   // Simulate logout
   if (typeof window !== "undefined") {
     const logoutButton = document.querySelector(
       '[data-testid="logout-button"]'
     );
     if (logoutButton) {
-      console.log("🎯 Found logout button, triggering click...");
       (logoutButton as HTMLElement).click();
-    } else {
-      console.log("⚠️ Logout button not found");
     }
   }
 };
@@ -46,7 +36,6 @@ export const testLogout = () => {
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (window as Window & { testLogout?: typeof testLogout }).testLogout =
     testLogout;
-  console.log("🧪 Debug: Use window.testLogout() to test logout");
 }
 
 export default testLogout;

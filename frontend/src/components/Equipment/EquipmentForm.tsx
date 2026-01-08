@@ -52,6 +52,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     maintenanceDate: "",
     maintenanceInterval: 90,
     isMaintenanceActive: false,
+    gambar: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -84,6 +85,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
           : "",
         maintenanceInterval: equipment.maintenanceInterval || 90,
         isMaintenanceActive: Boolean(equipment.isMaintenanceActive) || false,
+        gambar: "",
       });
       if (equipment.i_alat) {
         setImagePreview(`http://localhost:3001/uploads/${equipment.i_alat}`);
@@ -114,22 +116,18 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     const fetchStaff = async () => {
       try {
         setLoadingStaff(true);
-        console.log("🔄 Fetching staff data for PIC dropdown...");
         const response = await staffService.getAll();
-        console.log("Staff API response:", response);
 
         // Handle direct array response from staff API
         const staffData = Array.isArray(response)
           ? response
           : response?.data || [];
-        console.log("Staff data array:", staffData);
 
         const mappedStaff = (staffData as StaffApiResponse[]).map((staff) => ({
           id: staff.id,
           nama: staff.nama || staff.petugas || staff.name || "",
         }));
 
-        console.log("Mapped staff for PIC dropdown:", mappedStaff);
         setStaffList(mappedStaff);
       } catch (error) {
         console.error("❌ Error fetching staff:", error);
@@ -163,8 +161,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🔍 Form submission started");
-    console.log("📋 Current formData:", formData);
 
     if (validateForm()) {
       try {
@@ -183,13 +179,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         formDataToSubmit.append("pelanggan", formData.pelanggan);
         formDataToSubmit.append("pic", formData.pic);
 
-        // Append maintenance fields
-        console.log("🔧 Appending maintenance fields:", {
-          maintenanceDate: formData.maintenanceDate,
-          maintenanceInterval: formData.maintenanceInterval,
-          isMaintenanceActive: formData.isMaintenanceActive,
-        });
-
         formDataToSubmit.append(
           "maintenanceDate",
           formData.maintenanceDate || ""
@@ -203,42 +192,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
           formData.isMaintenanceActive.toString()
         );
 
-        // Log FormData contents BEFORE adding file
-        console.log("📤 FormData contents (before image):");
-        for (const [key, value] of formDataToSubmit.entries()) {
-          console.log(`  ${key}: ${value}`);
-        }
-
         // Append image file if selected
         if (selectedFile) {
-          console.log("📷 Appending selected file:", {
-            name: selectedFile.name,
-            type: selectedFile.type,
-            size: selectedFile.size,
-            isHeic: isHeicFile,
-          });
           formDataToSubmit.append("gambar", selectedFile);
-
-          // Log FormData contents AFTER adding file
-          console.log("📤 FormData contents (after image):");
-          for (const [key, value] of formDataToSubmit.entries()) {
-            if (value instanceof File) {
-              console.log(
-                `  ${key}: [File] ${value.name} (${value.size} bytes)`
-              );
-            } else {
-              console.log(`  ${key}: ${value}`);
-            }
-          }
         } else if (equipment?.i_alat) {
-          // Keep existing image if no new file selected during edit
-          console.log("📷 Keeping existing image:", equipment.i_alat);
           formDataToSubmit.append("i_alat", equipment.i_alat);
         } else {
           console.log("⚠️ No image file selected and no existing image");
         }
-
-        console.log("📡 Sending form data to parent component...");
         onSave(formDataToSubmit);
       } catch (error) {
         console.error("❌ Error preparing form data:", error);
@@ -254,12 +215,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       setImageLoading(true);
 
       try {
-        console.log("🔄 Processing file:", {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        });
-
         // Auto-convert HEIC if needed
         const result = await autoConvertHeic(file);
         setConversionResult(result);

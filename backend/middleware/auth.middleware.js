@@ -91,7 +91,6 @@ const authMiddleware = async (req, res, next) => {
       name: decoded.name,
     };
 
-    console.log("✅ Auth middleware: User authenticated:", req.user.email);
     next();
   } catch (error) {
     console.error("❌ Auth middleware error:", error);
@@ -144,7 +143,6 @@ const optionalAuthMiddleware = async (req, res, next) => {
           role: decoded.role,
           name: decoded.name,
         };
-        console.log("✅ Optional auth: User authenticated:", req.user.email);
       } catch (error) {
         console.log("⚠️ Optional auth: Invalid token, continuing without auth");
         req.user = null;

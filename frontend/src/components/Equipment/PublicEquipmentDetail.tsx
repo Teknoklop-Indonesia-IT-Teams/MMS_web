@@ -27,7 +27,7 @@ const PublicEquipmentDetail: React.FC = () => {
 
         // Gunakan endpoint public untuk QR code access
         const response = await fetch(
-          `http://localhost:3001/api/alat/public/${id}`
+          `${import.meta.env.VITE_API_URL}/alat/public/${id}`
         );
 
         if (!response.ok) {

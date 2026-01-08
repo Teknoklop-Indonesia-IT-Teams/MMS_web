@@ -2,14 +2,9 @@ const db = require("../config/db");
 
 const getAllUsers = async (req, res) => {
   try {
-    console.log("🔄 Getting all users from m_user...");
-
     const [users] = await db.query(
       "SELECT id, petugas, email FROM m_user ORDER BY id ASC"
     );
-
-    console.log("Raw users data from m_user:", users);
-
     // Map to exact format as requested
     const mappedUsers = users.map((user) => {
       let roleId, roleName;
@@ -63,9 +58,6 @@ const getAllUsers = async (req, res) => {
         roleName: roleName,
       };
     });
-
-    console.log("Mapped users data:", mappedUsers);
-    console.log("✅ Users data retrieved, count:", mappedUsers.length);
     res.json(mappedUsers);
   } catch (error) {
     console.error("❌ Error in getAllUsers:", error.message);
@@ -76,7 +68,6 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
-    console.log("🔄 Getting user by ID:", userId);
 
     const [users] = await db.query(
       "SELECT id, petugas, email FROM m_user WHERE id = ?",
@@ -148,7 +139,6 @@ const getUserById = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { name, email, mobile, roleId } = req.body;
-    console.log("🆕 Creating user:", { name, email, mobile, roleId });
 
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
@@ -171,8 +161,6 @@ const createUser = async (req, res) => {
         roleName = "Employee";
     }
 
-    console.log("✅ User created with ID:", result.insertId);
-
     res.status(201).json({
       userId: result.insertId,
       email: email || `user${result.insertId}@bewithdhanu.in`,
@@ -194,14 +182,6 @@ const updateUser = async (req, res) => {
   try {
     const { name, email, mobile, roleId } = req.body;
     const userId = parseInt(req.params.id);
-
-    console.log("🔄 Updating user:", {
-      id: userId,
-      name,
-      email,
-      mobile,
-      roleId,
-    });
 
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
@@ -236,8 +216,6 @@ const updateUser = async (req, res) => {
         roleName = "Employee";
     }
 
-    console.log("✅ User updated successfully");
-
     res.json({
       userId: userId,
       email: email || `user${userId}@bewithdhanu.in`,
@@ -258,11 +236,9 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
-    console.log("🗑️ Deleting user:", userId);
 
     await db.query("DELETE FROM m_user WHERE id = ?", [userId]);
 
-    console.log("✅ User deleted successfully");
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Error in deleteUser:", error);

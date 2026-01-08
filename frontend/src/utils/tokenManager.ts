@@ -55,8 +55,6 @@ class TokenManager {
 
       // Legacy support
       localStorage.setItem("token", tokenData.accessToken);
-
-      console.log("✅ Tokens saved securely");
     } catch (error) {
       console.error("❌ Failed to save tokens:", error);
       throw new Error("Failed to save authentication tokens");
@@ -129,7 +127,6 @@ class TokenManager {
 
     // If already refreshing, add to queue
     if (this.isRefreshing && this.refreshPromise) {
-      console.log("🔄 Token refresh in progress, queuing request...");
       return this.refreshPromise;
     }
 
@@ -170,10 +167,6 @@ class TokenManager {
     this.refreshCount++;
     this.lastRefreshTime = Date.now();
 
-    console.log(
-      `🔄 Starting token refresh (attempt ${this.refreshCount}/${this.maxRefreshAttempts})`
-    );
-
     this.refreshPromise = this.performTokenRefresh();
 
     try {
@@ -181,7 +174,6 @@ class TokenManager {
 
       // Reset refresh counter on success
       this.refreshCount = 0;
-      console.log("✅ Token refresh successful");
 
       return newToken;
     } catch (error) {
@@ -263,8 +255,6 @@ class TokenManager {
       this.refreshPromise = null;
       this.refreshCount = 0;
       this.requestQueue = [];
-
-      console.log("✅ All tokens cleared");
     } catch (error) {
       console.error("❌ Failed to clear tokens:", error);
     }
@@ -335,7 +325,4 @@ export const clearAllTokens = () => tokenManager.clearTokens();
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (window as Window & { tokenManager?: typeof tokenManager }).tokenManager =
     tokenManager;
-  console.log(
-    "🧪 Debug: Use window.tokenManager.getStatus() to check token status"
-  );
 }

@@ -43,12 +43,6 @@ export class EnhancedAuthStorage {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      console.log("✅ Enhanced auth data saved:", {
-        user: userData.username || userData.email,
-        expiresAt: new Date(expiresAt),
-        expiresIn: expiresIn + " seconds",
-      });
-
       return true;
     } catch (error) {
       console.error("❌ Failed to save auth data:", error);
@@ -69,7 +63,6 @@ export class EnhancedAuthStorage {
       const issuedStr = localStorage.getItem(this.ISSUED_KEY);
 
       if (!token || !userStr) {
-        console.log("ℹ️ No auth data found in storage");
         return null;
       }
 
@@ -80,21 +73,12 @@ export class EnhancedAuthStorage {
 
       // Check if token is expired
       if (expiresAt && now > expiresAt) {
-        console.log("⏰ Token expired, clearing auth data");
         this.clearAuthData();
         return null;
       }
 
       // Update last activity
       localStorage.setItem(this.LAST_ACTIVITY_KEY, now.toString());
-
-      console.log("✅ Valid auth data loaded:", {
-        user: user.username || user.email,
-        expiresAt: new Date(expiresAt),
-        timeUntilExpiry: expiresAt
-          ? Math.round((expiresAt - now) / 1000 / 60) + " minutes"
-          : "unknown",
-      });
 
       return {
         token,
@@ -153,8 +137,6 @@ export class EnhancedAuthStorage {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("tokenExpiresAt");
-
-      console.log("🗑️ All auth data cleared");
     } catch (error) {
       console.error("❌ Error clearing auth data:", error);
     }
@@ -170,7 +152,6 @@ export class EnhancedAuthStorage {
         this.REFRESH_PROTECTION_KEY,
         protectUntil.toString()
       );
-      console.log(`🛡️ Refresh protection set for ${durationMs}ms`);
     } catch (error) {
       console.error("❌ Error setting refresh protection:", error);
     }
@@ -188,7 +169,6 @@ export class EnhancedAuthStorage {
       const now = Date.now();
 
       if (now < protectUntil) {
-        console.log("🛡️ Currently in refresh protection period");
         return true;
       } else {
         localStorage.removeItem(this.REFRESH_PROTECTION_KEY);
@@ -206,7 +186,6 @@ export class EnhancedAuthStorage {
   static clearRefreshProtection(): void {
     try {
       localStorage.removeItem(this.REFRESH_PROTECTION_KEY);
-      console.log("🧹 Refresh protection cleared");
     } catch (error) {
       console.error("❌ Error clearing refresh protection:", error);
     }

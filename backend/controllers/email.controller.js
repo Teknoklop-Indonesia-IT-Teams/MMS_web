@@ -15,9 +15,6 @@ const createTransporter = () => {
 const sendMaintenanceWarning = async (req, res) => {
   try {
     const { equipmentName, equipmentId, location, pic, email } = req.body;
-
-    console.log(`📧 Sending warning email for equipment: ${equipmentName}`);
-
     // Untuk testing, kita simulasikan pengiriman email
     const transporter = createTransporter();
 
@@ -46,10 +43,6 @@ const sendMaintenanceWarning = async (req, res) => {
       `,
     };
 
-    // Simulasi pengiriman email (uncomment untuk pengiriman sesungguhnya)
-    // await transporter.sendMail(mailOptions);
-
-    console.log("✅ Warning email simulated successfully");
     res.status(200).json({
       success: true,
       message: "Warning email sent successfully (simulated)",
@@ -70,9 +63,6 @@ const sendMaintenanceWarning = async (req, res) => {
 const sendMaintenanceUrgent = async (req, res) => {
   try {
     const { equipmentName, equipmentId, location, pic, email } = req.body;
-
-    console.log(`📧 Sending urgent email for equipment: ${equipmentName}`);
-
     const transporter = createTransporter();
 
     const mailOptions = {
@@ -102,8 +92,6 @@ const sendMaintenanceUrgent = async (req, res) => {
 
     // Simulasi pengiriman email
     // await transporter.sendMail(mailOptions);
-
-    console.log("✅ Urgent email simulated successfully");
     res.status(200).json({
       success: true,
       message: "Urgent email sent successfully (simulated)",
@@ -122,7 +110,6 @@ const sendMaintenanceUrgent = async (req, res) => {
 
 const sendMaintenanceResolved = async (req, res) => {
   try {
-    console.log("📧 Resolved email function called");
     res
       .status(200)
       .json({ success: true, message: "Resolved email sent (simulated)" });
@@ -135,7 +122,6 @@ const sendMaintenanceResolved = async (req, res) => {
 
 const sendMaintenanceWarningReminder = async (req, res) => {
   try {
-    console.log("📧 Warning reminder email function called");
     res
       .status(200)
       .json({ success: true, message: "Warning reminder sent (simulated)" });
@@ -148,7 +134,6 @@ const sendMaintenanceWarningReminder = async (req, res) => {
 
 const sendMaintenanceUrgentReminder = async (req, res) => {
   try {
-    console.log("📧 Urgent reminder email function called");
     res
       .status(200)
       .json({ success: true, message: "Urgent reminder sent (simulated)" });
@@ -163,11 +148,6 @@ const sendTestEmail = async (req, res) => {
   try {
     const { equipmentName = "Test Equipment", equipmentId = "TEST-001" } =
       req.body;
-
-    console.log(`📧 Sending test email for equipment: ${equipmentName}`);
-
-    // Simulasi test email
-    console.log("✅ Test email simulated successfully");
     res.status(200).json({
       success: true,
       message: "Test email sent successfully (simulated)",

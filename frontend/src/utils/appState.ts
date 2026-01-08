@@ -6,7 +6,6 @@ export const AppStateManager = {
 
   // Mark start of critical operation (like saving, loading, etc.)
   startCriticalOperation: (description = "Unknown operation") => {
-    console.log(`🔒 Starting critical operation: ${description}`);
     AppStateManager.isCriticalOperation = true;
 
     // Clear any existing timeout
@@ -16,14 +15,12 @@ export const AppStateManager = {
 
     // Auto-end critical operation after 60 seconds as safety - MUCH longer
     AppStateManager.criticalOperationTimeout = setTimeout(() => {
-      console.log(`⚠️ Critical operation timeout reached for: ${description}`);
       AppStateManager.endCriticalOperation();
     }, 60000); // 60 seconds instead of 10
   },
 
   // Mark end of critical operation
   endCriticalOperation: () => {
-    console.log("🔓 Ending critical operation");
     AppStateManager.isCriticalOperation = false;
 
     if (AppStateManager.criticalOperationTimeout) {

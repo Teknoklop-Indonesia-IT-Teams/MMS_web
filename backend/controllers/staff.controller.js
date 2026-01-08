@@ -2,14 +2,9 @@ const { db } = require("../config/db.js");
 
 const getAllStaff = async (req, res) => {
   try {
-    console.log("🔄 Getting all staff from m_user...");
-
     const [staff] = await db.query(
       "SELECT id, petugas, email FROM m_user ORDER BY id ASC"
     );
-
-    console.log("Raw staff data from m_user:", staff);
-
     // Map to expected format
     const mappedStaff = staff.map((item) => ({
       id: item.id,
@@ -19,12 +14,8 @@ const getAllStaff = async (req, res) => {
       username: item.petugas.toLowerCase().replace(/\s+/g, ""),
       email: item.email || "Tidak ada email",
     }));
-
-    console.log("Mapped staff data:", mappedStaff);
-    console.log("✅ Staff data retrieved, count:", mappedStaff.length);
     res.json(mappedStaff);
   } catch (error) {
-    console.error("❌ Error in getAllStaff:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -61,7 +52,6 @@ const getStaffById = async (req, res) => {
 const createStaff = async (req, res) => {
   try {
     const { nama, email } = req.body;
-    console.log("🆕 Creating staff:", { nama, email });
 
     if (!nama) {
       return res.status(400).json({ message: "Nama is required" });
@@ -71,8 +61,6 @@ const createStaff = async (req, res) => {
       "INSERT INTO m_user (petugas, email) VALUES (?, ?)",
       [nama, email || null]
     );
-
-    console.log("✅ Staff created with ID:", result.insertId);
 
     res.status(201).json({
       id: result.insertId,
@@ -92,8 +80,6 @@ const updateStaff = async (req, res) => {
   try {
     const { nama, email } = req.body;
     const staffId = parseInt(req.params.id);
-
-    console.log("🔄 Updating staff:", { id: staffId, nama, email });
 
     if (!nama) {
       return res.status(400).json({ message: "Nama is required" });
@@ -116,8 +102,6 @@ const updateStaff = async (req, res) => {
       staffId,
     ]);
 
-    console.log("✅ Staff updated successfully");
-
     res.json({
       id: staffId,
       nama: nama,
@@ -135,11 +119,7 @@ const updateStaff = async (req, res) => {
 const deleteStaff = async (req, res) => {
   try {
     const staffId = parseInt(req.params.id);
-    console.log("🗑️ Deleting staff:", staffId);
-
     await db.query("DELETE FROM m_user WHERE id = ?", [staffId]);
-
-    console.log("✅ Staff deleted successfully");
     res.json({ message: "Petugas berhasil dihapus" });
   } catch (error) {
     console.error("Error in deleteStaff:", error);

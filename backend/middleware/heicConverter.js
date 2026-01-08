@@ -18,16 +18,11 @@ const autoHeicConverter = async (req, res, next) => {
   try {
     // Check if uploaded file is HEIC/HEIF
     if (fileExtension === ".heic" || fileExtension === ".heif") {
-      console.log("🔄 Auto-converting HEIC file:", filename);
-
       // Read HEIC file
       const inputBuffer = await fs.readFile(filePath);
 
       // Get file stats
       const originalStats = await fs.stat(filePath);
-      console.log(
-        `📊 Original HEIC size: ${(originalStats.size / 1024).toFixed(2)}KB`
-      );
 
       // Convert HEIC to JPEG
       const outputBuffer = await heicConvert({
@@ -43,15 +38,9 @@ const autoHeicConverter = async (req, res, next) => {
       // Save converted JPEG
       await fs.writeFile(jpegPath, outputBuffer);
 
-      console.log(`✅ HEIC auto-converted: ${filename} → ${jpegFilename}`);
-      console.log(
-        `📊 Converted JPEG size: ${(outputBuffer.length / 1024).toFixed(2)}KB`
-      );
-
       // Remove original HEIC file to save space
       try {
         await fs.unlink(filePath);
-        console.log("🗑️ Original HEIC file removed to save space");
       } catch (unlinkError) {
         console.warn(
           "⚠️ Could not remove original HEIC file:",
@@ -68,7 +57,6 @@ const autoHeicConverter = async (req, res, next) => {
       req.file.originalFormat = "heic";
       req.file.autoConverted = true;
     } else {
-      console.log("📁 Standard image file uploaded:", filename);
       // For non-HEIC files, no conversion needed
       req.file.displayFilename = filename;
       req.file.originalFormat = "standard";

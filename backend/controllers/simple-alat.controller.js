@@ -40,31 +40,18 @@ const getAllAlat = async (req, res) => {
 // Fixed delete function
 const deleteAlat = async (req, res) => {
   try {
-    console.log(`🗑️ Delete request for sequential ID: ${req.params.id}`);
-
     const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");
     const sequentialId = parseInt(req.params.id);
 
-    console.log(
-      `📊 Total equipment: ${allAlat.length}, Sequential ID: ${sequentialId}`
-    );
-
     if (sequentialId > allAlat.length || sequentialId < 1) {
-      console.log(`❌ Invalid sequential ID: ${sequentialId}`);
       return res.status(404).json({ message: "Alat tidak ditemukan" });
     }
 
     const originalId = allAlat[sequentialId - 1].id;
 
-    console.log(
-      `🎯 Mapping: Sequential ID ${sequentialId} → Original ID ${originalId}`
-    );
-
     const [result] = await db.query("DELETE FROM m_alat WHERE id = ?", [
       originalId,
     ]);
-
-    console.log(`✅ Delete successful, affected rows: ${result.affectedRows}`);
 
     res.json({
       message: "Alat berhasil dihapus",

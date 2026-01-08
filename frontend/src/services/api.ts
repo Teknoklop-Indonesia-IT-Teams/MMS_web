@@ -9,7 +9,7 @@ import {
 import { isAppStillInitializing } from "../utils/authUtils";
 import { AppStateManager } from "../utils/appState";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000; // Reduced from 60s to 10s
 
 // ABSOLUTE PROTECTION: Navigation/Refresh Detection - STRONGEST protection
@@ -829,14 +829,9 @@ export const recordService = {
 export const staffService = {
   getAll: async () => {
     try {
-      console.log("Staff API: Making request to /staff");
-      console.log("API_URL:", API_URL);
       const response = await api.get<Staff[]>("/staff");
-      console.log("Staff API: Response status:", response.status);
-      console.log("Staff API: Response data:", response.data);
       return response;
     } catch (error) {
-      console.error("Staff API: Error in getAll:", error);
       if (axios.isAxiosError(error)) {
         console.error("Staff API: Axios error details:", {
           message: error.message,
@@ -850,11 +845,9 @@ export const staffService = {
   },
   getById: (id: string) => api.get<Staff>(`/staff/${id}`),
   create: (data: { nama: string; email?: string }) => {
-    console.log("Staff API: Creating staff with data:", data);
     return api.post<Staff>("/staff", data);
   },
   update: (id: string, data: { nama: string; email?: string }) => {
-    console.log("Staff API: Updating staff", id, "with data:", data);
     return api.put<Staff>(`/staff/${id}`, data);
   },
   delete: (id: string) => api.delete(`/staff/${id}`),
@@ -976,8 +969,6 @@ export const RaceConditionUtils = {
     refreshCount = 0;
     lastRefreshTime = 0;
     rapidRefreshProtection = false;
-
-    console.log("✅ All protections cleared");
   },
 
   // Clear locks untuk operasi tertentu
@@ -1023,9 +1014,6 @@ export const RaceConditionUtils = {
   // Debug info
   logDebugInfo: () => {
     const status = RaceConditionUtils.getProtectionStatus();
-    console.log("🔍 REFRESH PROTECTION DEBUG INFO:");
-    console.table(status);
-
     // Check session storage
     if (typeof window !== "undefined" && window.sessionStorage) {
       const sessionKey = "mms-navigation-state";
@@ -1042,16 +1030,11 @@ export const RaceConditionUtils = {
 
   // Test fast refresh simulation
   simulateFastRefresh: async () => {
-    console.log("🧪 SIMULATING FAST REFRESH...");
-
     // Simulate rapid navigation
     isNavigating = true;
     refreshCount = 5;
     lastRefreshTime = Date.now() - 1000;
     rapidRefreshProtection = true;
-
-    console.log("Protection activated, now testing API call...");
-
     try {
       const response = await api.get("/api/auth/profile");
       console.log("✅ API call succeeded despite protection:", response.data);

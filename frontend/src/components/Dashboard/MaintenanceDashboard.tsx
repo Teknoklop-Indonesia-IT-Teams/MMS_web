@@ -116,7 +116,8 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
       case "selesai":
         return (
           item.maintenanceStatus === "selesai" ||
-          (Boolean(item.isMaintenanceActive) && item.maintenanceAlertLevel === "blue")
+          (Boolean(item.isMaintenanceActive) &&
+            item.maintenanceAlertLevel === "blue")
         );
       case "urgent":
         return (
@@ -170,7 +171,8 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
         return equipment.filter(
           (item) =>
             item.maintenanceStatus === "selesai" ||
-            (Boolean(item.isMaintenanceActive) && item.maintenanceAlertLevel === "blue")
+            (Boolean(item.isMaintenanceActive) &&
+              item.maintenanceAlertLevel === "blue")
         );
       case "urgent":
         return equipment.filter(
@@ -381,7 +383,9 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
                         <span className="text-gray-600 dark:text-gray-400">
                           Pelanggan:
                         </span>
-                        <span className="ml-2">{item.pelanggan}</span>
+                        <span className="ml-2 dark:text-white">
+                          {item.pelanggan}
+                        </span>
                       </div>
                     </div>
 

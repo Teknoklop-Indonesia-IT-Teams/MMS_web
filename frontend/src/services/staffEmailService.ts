@@ -40,9 +40,6 @@ class StaffEmailService {
     const staffIndex = this.staffEmails.findIndex((s) => s.id === staffId);
     if (staffIndex !== -1) {
       this.staffEmails[staffIndex].email = newEmail;
-      console.log(
-        `📧 Email updated for ${this.staffEmails[staffIndex].nama}: ${newEmail}`
-      );
       return true;
     }
     return false;
@@ -53,7 +50,6 @@ class StaffEmailService {
     const newId = Math.max(...this.staffEmails.map((s) => s.id)) + 1;
     const newStaff: StaffEmail = { id: newId, nama, email };
     this.staffEmails.push(newStaff);
-    console.log(`📧 Added new staff email: ${nama} - ${email}`);
     return newStaff;
   }
 
@@ -90,7 +86,6 @@ class StaffEmailService {
 
   // Log current configuration (untuk debugging)
   static logCurrentConfig(): void {
-    console.log("📧 Current Staff Email Configuration:");
     this.staffEmails.forEach((staff) => {
       console.log(`  ${staff.id}. ${staff.nama}: ${staff.email}`);
     });

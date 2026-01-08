@@ -58,7 +58,7 @@ const SignUp: React.FC = () => {
     const fetchRoles = async () => {
       try {
         console.log("Fetching roles from API...");
-        const response = await fetch("http://localhost:3001/api/roles");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/roles`);
         if (response.ok) {
           const result: RolesApiResponse = await response.json();
           console.log("API Response:", result);
@@ -158,19 +158,22 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          mobile: formData.mobile,
-          roleId: formData.roleId,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            mobile: formData.mobile,
+            roleId: formData.roleId,
+          }),
+        }
+      );
 
       const data = await response.json();
 

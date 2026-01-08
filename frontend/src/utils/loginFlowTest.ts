@@ -17,5 +17,3 @@
  * - LayoutWrapper.tsx: Layout dengan sidebar
  * - Sidebar.tsx: Navigation menu
  */
-
-console.log("✅ Login Flow Connected Successfully!");

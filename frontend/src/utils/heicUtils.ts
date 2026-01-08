@@ -8,7 +8,6 @@ export const isHeicFile = (file: File): boolean => {
 
 export const convertHeicToJpeg = async (file: File): Promise<File> => {
   try {
-    console.log("Converting HEIC file to JPEG...");
     const convertedBlob = await heic2any({
       blob: file,
       toType: "image/jpeg",
@@ -26,8 +25,6 @@ export const convertHeicToJpeg = async (file: File): Promise<File> => {
         type: "image/jpeg",
       }
     );
-
-    console.log("HEIC conversion successful");
     return convertedFile;
   } catch (error) {
     console.error("HEIC conversion failed:", error);
@@ -43,7 +40,6 @@ export const createFilePreview = async (file: File): Promise<string> => {
   if (isHeicFile(file)) {
     // Untuk HEIC, convert ke JPEG untuk preview (tapi file asli tetap HEIC)
     try {
-      console.log("Converting HEIC to preview...");
       const convertedBlob = await heic2any({
         blob: file,
         toType: "image/jpeg",
@@ -59,7 +55,6 @@ export const createFilePreview = async (file: File): Promise<string> => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
-          console.log("HEIC preview created successfully");
           resolve(result);
         };
         reader.onerror = () => {
@@ -73,13 +68,10 @@ export const createFilePreview = async (file: File): Promise<string> => {
       return getHeicPlaceholder();
     }
   } else {
-    // Standard image file - create normal preview
-    console.log("Processing standard image file...");
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        console.log("Standard image preview created");
         resolve(result);
       };
       reader.onerror = (error) => {

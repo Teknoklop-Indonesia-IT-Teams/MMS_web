@@ -11,7 +11,7 @@ import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios";
 import { EnhancedAuthStorage } from "../utils/enhancedAuthStorage";
 import { User } from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 
 // Request queue for handling requests during token refresh

@@ -265,7 +265,7 @@ const SimpleEquipmentDetail: React.FC = () => {
                 </h2>
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                   <img
-                    src={`http://192.168.1.25:3001/uploads/${equipment.i_alat}`}
+                    src={`http://localhost:3001/uploads/${equipment.i_alat}`}
                     alt={equipment.nama}
                     className="max-w-full h-auto rounded-lg shadow-md mx-auto"
                     onError={(e) => {

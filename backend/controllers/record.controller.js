@@ -55,7 +55,6 @@ const getRecordById = async (req, res) => {
 
 const createRecord = async (req, res) => {
   try {
-    console.log("Creating new record...");
     const {
       deskripsi,
       awal,
@@ -92,7 +91,6 @@ const createRecord = async (req, res) => {
     const processed_i_alat = processImage(i_alat);
     const processed_i_sensor = processImage(i_sensor);
 
-    console.log("Inserting record into database...");
     const [result] = await db.query(
       "INSERT INTO m_record (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_panel, i_alat, i_sensor, id_m_alat, tanggal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
@@ -124,7 +122,6 @@ const createRecord = async (req, res) => {
 
 const updateRecord = async (req, res) => {
   try {
-    console.log("Updating record...");
     const {
       deskripsi,
       awal,
@@ -154,7 +151,6 @@ const updateRecord = async (req, res) => {
     const processed_i_alat = processImage(i_alat);
     const processed_i_sensor = processImage(i_sensor);
 
-    console.log("Updating record in database...");
     await db.query(
       "UPDATE m_record SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_panel = ?, i_alat = ?, i_sensor = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
       [

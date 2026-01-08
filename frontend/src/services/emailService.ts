@@ -21,7 +21,7 @@ export interface EmailConfig {
 }
 
 class EmailNotificationService {
-  private baseURL = "http://localhost:3001/api";
+  private baseURL = `${import.meta.env.VITE_API_URL}`;
   private sentNotifications = new Set<string>(); // Track sent notifications to avoid spam
 
   // Generate unique key for equipment notification

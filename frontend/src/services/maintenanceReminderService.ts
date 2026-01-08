@@ -1,7 +1,7 @@
 import { Equipment } from "../types";
 import { staffService } from "./api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface EquipmentStatusHistory {
   equipmentId: number;
@@ -37,17 +37,7 @@ class MaintenanceReminderService {
   async processEquipmentStatusChanges(
     equipmentList: Equipment[]
   ): Promise<void> {
-
-    console.log(
-      `🔄 Processing ${equipmentList.length} equipment for status changes...`
-    );
-
     for (const equipment of equipmentList) {
-      console.log(
-        `📊 Processing equipment: ${equipment.nama} - Status: ${
-          equipment.maintenanceAlertLevel || "green"
-        } - PIC: ${equipment.pic}`
-      );
       await this.checkStatusChange(equipment);
       await this.checkReminderNeeded(equipment);
     }
@@ -58,22 +48,9 @@ class MaintenanceReminderService {
     const equipmentId = equipment.id;
     const currentStatus = equipment.maintenanceAlertLevel || "green";
     const existingHistory = this.statusHistory.get(equipmentId);
-
-    console.log(`🔍 Checking status change for ${equipment.nama}:`);
-    console.log(`   - Equipment ID: ${equipmentId}`);
-    console.log(`   - Current Status: ${currentStatus}`);
-    console.log(
-      `   - Previous Status: ${existingHistory?.currentStatus || "unknown"}`
-    );
-    console.log(`   - PIC: ${equipment.pic}`);
-
     // First time seeing this equipment or status changed
     if (!existingHistory || existingHistory.currentStatus !== currentStatus) {
       const previousStatus = existingHistory?.currentStatus || "unknown";
-
-      console.log(
-        `🔄 Status change detected for ${equipment.nama}: ${previousStatus} → ${currentStatus}`
-      );
 
       // Update status history
       const newHistory: EquipmentStatusHistory = {
@@ -102,21 +79,12 @@ class MaintenanceReminderService {
     previousStatus: string,
     currentStatus: string
   ): Promise<void> {
-    const statusTransition = `${previousStatus} → ${currentStatus}`;
-
-    console.log(
-      `🔄 Status change detected for ${equipment.nama}: ${statusTransition}`
-    );
-
     // Send email for yellow status (warning)
     if (currentStatus === "yellow" && previousStatus !== "yellow") {
       const history = this.statusHistory.get(equipment.id);
 
       // Check if warning email was already sent for this equipment
       if (!history?.yellowEmailSent) {
-        console.log(
-          `⚠️ Sending YELLOW status notification for: ${equipment.nama}`
-        );
         await this.sendStatusChangeEmail(equipment, "warning");
 
         // Update flag to mark yellow email as sent
@@ -125,10 +93,6 @@ class MaintenanceReminderService {
           history.yellowEmailSent = true;
           this.statusHistory.set(equipment.id, history);
         }
-      } else {
-        console.log(
-          `⚠️ YELLOW email already sent for ${equipment.nama}, skipping`
-        );
       }
     }
 
@@ -138,9 +102,6 @@ class MaintenanceReminderService {
 
       // Check if warning email was already sent for this equipment
       if (!history?.yellowEmailSent) {
-        console.log(
-          `⚠️ Sending YELLOW status notification for existing yellow equipment: ${equipment.nama}`
-        );
         await this.sendStatusChangeEmail(equipment, "warning");
 
         // Update flag to mark yellow email as sent
@@ -149,10 +110,6 @@ class MaintenanceReminderService {
           history.yellowEmailSent = true;
           this.statusHistory.set(equipment.id, history);
         }
-      } else {
-        console.log(
-          `⚠️ YELLOW email already sent for existing equipment ${equipment.nama}, skipping`
-        );
       }
     }
 
@@ -162,9 +119,6 @@ class MaintenanceReminderService {
 
       // Check if urgent email was already sent for this equipment
       if (!history?.redEmailSent) {
-        console.log(
-          `🚨 Sending RED status notification for: ${equipment.nama}`
-        );
         await this.sendStatusChangeEmail(equipment, "urgent");
 
         // Update flag to mark red email as sent
@@ -173,10 +127,6 @@ class MaintenanceReminderService {
           history.redEmailSent = true;
           this.statusHistory.set(equipment.id, history);
         }
-      } else {
-        console.log(
-          `🚨 RED email already sent for ${equipment.nama}, skipping`
-        );
       }
     }
 
@@ -186,9 +136,6 @@ class MaintenanceReminderService {
 
       // Check if urgent email was already sent for this equipment
       if (!history?.redEmailSent) {
-        console.log(
-          `🚨 Sending RED status notification for existing red equipment: ${equipment.nama}`
-        );
         await this.sendStatusChangeEmail(equipment, "urgent");
 
         // Update flag to mark red email as sent
@@ -197,10 +144,6 @@ class MaintenanceReminderService {
           history.redEmailSent = true;
           this.statusHistory.set(equipment.id, history);
         }
-      } else {
-        console.log(
-          `🚨 RED email already sent for existing equipment ${equipment.nama}, skipping`
-        );
       }
     }
 
@@ -209,9 +152,6 @@ class MaintenanceReminderService {
       currentStatus === "green" &&
       (previousStatus === "yellow" || previousStatus === "red")
     ) {
-      console.log(
-        `✅ Sending RESOLVED status notification for: ${equipment.nama}`
-      );
       await this.sendStatusChangeEmail(equipment, "resolved");
 
       // Clear reminders for this equipment
@@ -223,9 +163,6 @@ class MaintenanceReminderService {
         history.yellowEmailSent = false;
         history.redEmailSent = false;
         this.statusHistory.set(equipment.id, history);
-        console.log(
-          `🔄 Email flags reset for ${equipment.nama} - can send new alerts when status changes again`
-        );
       }
     }
   }
@@ -234,35 +171,18 @@ class MaintenanceReminderService {
   private setupReminders(equipment: Equipment): void {
     // Clear existing reminders first
     this.clearReminders(equipment.id);
-
-    // Since maxReminders is 1 for both yellow and red, no need to setup recurring reminders
-    // Email will be sent immediately when status changes
-    console.log(
-      `ℹ️ No recurring reminders needed for ${equipment.nama} - email sent once per status change`
-    );
   }
 
   // Check if reminder is needed based on time elapsed
   private async checkReminderNeeded(equipment: Equipment): Promise<void> {
     const history = this.statusHistory.get(equipment.id);
     if (!history) {
-      console.log(
-        `⚠️ No history found for ${equipment.nama}, skipping reminder check`
-      );
       return;
     }
 
     const currentStatus = equipment.maintenanceAlertLevel || "green";
-
-    console.log(
-      `⏰ Checking reminder for ${equipment.nama} (Status: ${currentStatus})`
-    );
-
     // Only send reminders for red/yellow status
     if (currentStatus !== "red" && currentStatus !== "yellow") {
-      console.log(
-        `ℹ️ ${equipment.nama} status is ${currentStatus}, no reminder needed`
-      );
       return;
     }
 
@@ -274,9 +194,6 @@ class MaintenanceReminderService {
 
     // Check if we've reached max reminders
     if (history.reminderEmailsSent.length >= config.maxReminders) {
-      console.log(
-        `📧 Max reminders (${config.maxReminders}) reached for ${equipment.nama}`
-      );
       return;
     }
 
@@ -287,15 +204,8 @@ class MaintenanceReminderService {
       ? now.getTime() - lastReminder.getTime()
       : Infinity;
 
-    console.log(
-      `⏱️ Time since last reminder for ${equipment.nama}: ${timeSinceLastReminder}ms (Required: ${config.reminderInterval}ms)`
-    );
-
     if (timeSinceLastReminder >= config.reminderInterval) {
-      console.log(`✅ Sending reminder for ${equipment.nama}`);
       await this.sendReminderEmail(equipment, currentStatus);
-    } else {
-      console.log(`⏳ Not enough time passed for ${equipment.nama} reminder`);
     }
   }
 
@@ -312,13 +222,8 @@ class MaintenanceReminderService {
 
     // Check if we haven't exceeded max reminders
     if (history.reminderEmailsSent.length >= config.maxReminders) {
-      console.log(`📧 Max reminders reached for ${equipment.nama}`);
       return;
     }
-
-    console.log(
-      `🔔 Sending ${status.toUpperCase()} reminder email for: ${equipment.nama}`
-    );
 
     let success = false;
     if (status === "yellow") {
@@ -345,16 +250,6 @@ class MaintenanceReminderService {
         }, config.reminderInterval);
 
         this.reminderIntervals.set(equipment.id, nextReminderTimeout);
-
-        console.log(
-          `⏰ Next reminder scheduled for ${equipment.nama} in ${
-            config.reminderInterval >= 60 * 60 * 1000
-              ? `${config.reminderInterval / (60 * 60 * 1000)} hours`
-              : `${config.reminderInterval / (60 * 1000)} minutes`
-          }`
-        );
-      } else {
-        console.log(`📧 All reminders sent for ${equipment.nama}`);
       }
     }
   }
@@ -365,19 +260,6 @@ class MaintenanceReminderService {
     type: "warning" | "urgent" | "resolved"
   ): Promise<boolean> {
     try {
-      console.log(
-        `📧 Attempting to send ${type} email for ${equipment.nama}...`
-      );
-
-      const recipientEmail = await this.getEmailFromEquipment(equipment);
-      const recipientName = this.getNameFromPIC(equipment.pic);
-
-      console.log(`📧 Email details: ${recipientEmail} (${recipientName})`);
-
-      console.log(`📧 Email service has been disabled - skipping ${type} email for ${equipment.nama}`);
-
-      // Email service is disabled, just return false but log the action
-      console.log(`🚫 EmailJS service removed - ${type} email would have been sent for ${equipment.nama}`);
       return false;
     } catch (error) {
       console.error(
@@ -464,7 +346,6 @@ class MaintenanceReminderService {
     if (existingTimeout) {
       clearTimeout(existingTimeout);
       this.reminderIntervals.delete(equipmentId);
-      console.log(`⏰ Reminders cleared for equipment ID: ${equipmentId}`);
     }
   }
 
@@ -472,25 +353,16 @@ class MaintenanceReminderService {
   private async getEmailFromEquipment(equipment: Equipment): Promise<string> {
     // First check if equipment has direct email
     if (equipment.email && equipment.email.trim()) {
-      console.log(`✅ Using equipment direct email: ${equipment.email}`);
       return equipment.email.trim();
     }
-
-    console.log(`🔍 Looking up email for PIC: "${equipment.pic}"`);
-
     // Try to get email from staff data based on PIC name or ID
     try {
       const response = await staffService.getAll();
-      console.log(
-        "Staff API response in maintenanceReminderService:",
-        response
-      );
 
       // Handle direct array response from staff API
       const staffData = Array.isArray(response)
         ? response
         : response?.data || [];
-      console.log("Staff data for email lookup:", staffData);
 
       // Find staff member by name, petugas, or ID
       const staffMember = staffData.find(
@@ -520,15 +392,7 @@ class MaintenanceReminderService {
         }
       );
 
-      console.log(
-        `Looking for PIC: "${equipment.pic}", Found staff:`,
-        staffMember
-      );
-
       if (staffMember && staffMember.email && staffMember.email.trim()) {
-        console.log(
-          `✅ Found email for ${equipment.pic}: ${staffMember.email}`
-        );
         return staffMember.email.trim();
       } else {
         console.log(`❌ No email found for PIC: "${equipment.pic}"`);
@@ -536,9 +400,6 @@ class MaintenanceReminderService {
     } catch (error) {
       console.error("❌ Error fetching staff data for email:", error);
     }
-
-    // Fallback to default admin email
-    console.log(`⚠️ Using fallback email for ${equipment.nama}`);
     return "admin@company.com";
   }
 
@@ -563,7 +424,6 @@ class MaintenanceReminderService {
     this.reminderIntervals.forEach((timeout) => clearTimeout(timeout));
     this.reminderIntervals.clear();
     this.statusHistory.clear();
-    console.log("🔄 All tracking data reset");
   }
 }
 

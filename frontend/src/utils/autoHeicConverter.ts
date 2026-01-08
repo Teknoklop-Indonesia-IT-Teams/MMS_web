@@ -28,12 +28,8 @@ export async function autoConvertHeic(file: File): Promise<ConversionResult> {
     if (!isHeicFile) {
       // Not a HEIC file, use as-is
       result.previewUrl = URL.createObjectURL(file);
-      console.log("📁 Standard image file:", file.name);
       return result;
     }
-
-    console.log("🔄 HEIC file detected, auto-converting:", file.name);
-
     // Convert HEIC to JPEG
     const convertedBlob = await heic2any({
       blob: file,
@@ -57,13 +53,6 @@ export async function autoConvertHeic(file: File): Promise<ConversionResult> {
     result.convertedFile = convertedFile;
     result.isConverted = true;
     result.previewUrl = URL.createObjectURL(blob);
-
-    console.log("✅ HEIC auto-conversion successful:", {
-      original: file.name,
-      converted: jpegFileName,
-      originalSize: (file.size / 1024).toFixed(2) + "KB",
-      convertedSize: (convertedFile.size / 1024).toFixed(2) + "KB",
-    });
 
     return result;
   } catch (error) {

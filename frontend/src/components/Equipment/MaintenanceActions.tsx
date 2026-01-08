@@ -129,7 +129,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
 
   if (showSettings) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+      <div className="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg border">
         <h4 className="text-lg font-semibold mb-4">Pengaturan Maintenance</h4>
 
         <div className="space-y-4">
@@ -146,7 +146,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
                   maintenanceDate: e.target.value,
                 }))
               }
-              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
 
@@ -163,7 +163,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
                   maintenanceInterval: parseInt(e.target.value) || 90,
                 }))
               }
-              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               min="1"
             />
           </div>
@@ -190,7 +190,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
         <div className="flex justify-end space-x-2 mt-4">
           <button
             onClick={() => setShowSettings(false)}
-            className="px-4 py-2 text-gray-600 border rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-gray-600 border rounded-md hover:bg-gray-50 dark:text-white dark:hover:text-gray-600"
             disabled={isLoading}
           >
             Batal

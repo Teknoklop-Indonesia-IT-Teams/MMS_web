@@ -29,11 +29,6 @@ export class AuthStorage {
       localStorage.setItem(this.AUTH_USER_KEY, JSON.stringify(userData));
       localStorage.setItem(this.AUTH_REMEMBER_KEY, "true");
       localStorage.setItem(this.AUTH_TIMESTAMP_KEY, timestamp.toString());
-
-      console.log(
-        "💾 Auth data saved to localStorage with timestamp:",
-        new Date(timestamp)
-      );
       return true;
     } catch (error) {
       console.error("❌ Failed to save auth data:", error);
@@ -52,7 +47,6 @@ export class AuthStorage {
       const timestampStr = localStorage.getItem(this.AUTH_TIMESTAMP_KEY);
 
       if (!token || !userDataStr || rememberMe !== "true") {
-        console.log("ℹ️ Incomplete auth data in localStorage");
         return null;
       }
 
@@ -64,12 +58,9 @@ export class AuthStorage {
       const age = Date.now() - timestamp;
 
       if (age > maxAge) {
-        console.log("⚠️ Auth data expired, clearing...");
         this.clearAuthData();
         return null;
       }
-
-      console.log("✅ Valid auth data loaded from localStorage");
       return { token, user: userData, timestamp };
     } catch (error) {
       console.error("❌ Error loading auth data:", error);
@@ -87,7 +78,6 @@ export class AuthStorage {
       localStorage.removeItem(this.AUTH_USER_KEY);
       localStorage.removeItem(this.AUTH_REMEMBER_KEY);
       localStorage.removeItem(this.AUTH_TIMESTAMP_KEY);
-      console.log("🗑️ Auth data cleared from localStorage");
     } catch (error) {
       console.error("❌ Error clearing auth data:", error);
     }
@@ -104,7 +94,6 @@ export class AuthStorage {
       );
 
       if (lastPageLoad && now - lastPageLoad < 3000) {
-        console.log("🔄 Page refresh detected");
         return true;
       }
 
@@ -124,7 +113,6 @@ export class AuthStorage {
     try {
       const extendedTime = Date.now() - 3000 + ms; // Extend the window
       localStorage.setItem(this.AUTH_REFRESH_KEY, extendedTime.toString());
-      console.log(`🛡️ Extended refresh protection for ${ms}ms`);
     } catch (error) {
       console.error("❌ Error extending refresh protection:", error);
     }
