@@ -50,7 +50,7 @@ export default function EquipmentDetail({
     try {
       const response = await recordService.getAll();
       const equipmentRecords = response.data.filter(
-        (record: Record) => record.id_m_alat === equipment.id.toString()
+        (record: Record) => record.id_m_alat === equipment.id.toString(),
       );
       setRecords(equipmentRecords);
     } catch (error) {
@@ -67,7 +67,7 @@ export default function EquipmentDetail({
           (staff: StaffResponse) => ({
             id: staff.id,
             nama: staff.nama || staff.petugas || "",
-          })
+          }),
         );
         setStaffList(mappedStaff);
       }
@@ -143,7 +143,7 @@ export default function EquipmentDetail({
       <div className="w-full max-w-6xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold">
-            Detail Alat: {equipment.nama}
+            Detail Record Maintenance {equipment.nama}
           </h2>
           <button
             onClick={onClose}

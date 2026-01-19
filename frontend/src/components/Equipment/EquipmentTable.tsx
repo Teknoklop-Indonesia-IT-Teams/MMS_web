@@ -278,14 +278,14 @@ const EquipmentTable: React.FC = () => {
             <button
               onClick={() => handleViewDetail(row.original)}
               className="p-2 text-white transition-colors bg-blue-500 rounded-md shadow-sm hover:bg-blue-600"
-              title="Lihat Detail Alat"
+              title="Lihat Detail Info Alat"
             >
               <Eye size={16} />
             </button>
             <button
               onClick={() => setShowDetail(row.original)}
               className="p-2 text-white transition-colors bg-purple-600 rounded-md shadow-sm hover:bg-purple-700"
-              title="Record Maintenance"
+              title="Lihat Record Maintenance"
             >
               <FileText size={16} />
             </button>

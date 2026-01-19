@@ -236,8 +236,8 @@ const SimpleEquipmentDetail: React.FC = () => {
                         equipment.status === "Garansi"
                           ? "bg-green-100 text-green-800"
                           : equipment.status === "Non-Garansi"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
                       {equipment.status || "-"}
@@ -284,7 +284,7 @@ const SimpleEquipmentDetail: React.FC = () => {
                 ✅ QR Code berhasil di-scan!
               </h3>
               <p className="text-green-700 text-sm sm:text-base">
-                Anda berhasil mengakses detail alat{" "}
+                Anda berhasil mengakses detail record maintenance alat{" "}
                 <strong>{equipment.nama}</strong> melalui QR code.
               </p>
               <p className="text-xs sm:text-sm text-green-600 mt-2">

@@ -19,7 +19,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
       try {
         // Gunakan network utils untuk mendapatkan URL terbaik dengan route public
         const urlInfo = await getMostAccessibleUrl(
-          `/qr/telemetri/detail/${equipment.id}`
+          `/qr/telemetri/detail/${equipment.id}`,
         );
         // Buat QR code dengan error correction yang baik
         const qrUrl = await QRCode.toDataURL(urlInfo.url, {
@@ -53,7 +53,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
         } catch (fallbackError) {
           console.error(
             "❌ Fallback QR generation also failed:",
-            fallbackError
+            fallbackError,
           );
         }
       }
@@ -121,7 +121,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
             <div class="qr-container">
               <h3>${equipment.nama}</h3>
               <img src="${qrCodeUrl}" alt="QR Code" />
-              <p>Scan untuk melihat detail alat</p>
+              <p>Scan untuk melihat detail informasi alat</p>
             </div>
           </body>
         </html>

@@ -25,7 +25,7 @@ const PublicEquipmentDetail: React.FC = () => {
         setLoading(true);
         // Gunakan endpoint public untuk QR code access
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/alat/public/${id}`
+          `${import.meta.env.VITE_API_URL}/alat/public/${id}`,
         );
 
         if (!response.ok) {
@@ -174,7 +174,7 @@ const PublicEquipmentDetail: React.FC = () => {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Detail Alat - {equipment.nama}
+            Detail Record Maintenance Alat - {equipment.nama}
           </h1>
           <p className="text-gray-600">
             Informasi lengkap alat dari sistem maintenance
@@ -191,7 +191,7 @@ const PublicEquipmentDetail: React.FC = () => {
               </h2>
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                  equipment.status
+                  equipment.status,
                 )}`}
               >
                 {equipment.status.toUpperCase()}

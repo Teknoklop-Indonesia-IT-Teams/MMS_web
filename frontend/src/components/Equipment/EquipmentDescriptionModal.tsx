@@ -17,7 +17,9 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Detail Alat</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Detail Informasi Alat
+            </h2>
             <p className="mt-1 text-sm text-gray-600">
               {equipment.nama} - {equipment.jenis}
             </p>
@@ -128,8 +130,8 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
                     equipment.status === "aktif"
                       ? "bg-green-100 text-green-800"
                       : equipment.status === "non-aktif"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   {equipment.status || "-"}
