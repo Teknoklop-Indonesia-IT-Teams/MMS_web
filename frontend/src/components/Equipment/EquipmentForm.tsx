@@ -16,7 +16,7 @@ interface EquipmentFormProps {
   onSave: (
     equipmentData:
       | FormData
-      | Omit<Equipment, "id" | "created_at" | "updated_at">
+      | Omit<Equipment, "id" | "created_at" | "updated_at">,
   ) => void;
   onCancel: () => void;
 }
@@ -91,7 +91,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       });
       if (equipment.i_alat) {
         setImagePreview(
-          `${import.meta.env.VITE_URL}/uploads/${equipment.i_alat}`
+          `${import.meta.env.VITE_URL}/uploads/${equipment.i_alat}`,
         );
       }
       // Reset file state saat editing
@@ -184,66 +184,32 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
         formDataToSubmit.append(
           "maintenanceDate",
-          formData.maintenanceDate || ""
+          formData.maintenanceDate || "",
         );
         formDataToSubmit.append(
           "maintenanceInterval",
-          formData.maintenanceInterval.toString()
+          formData.maintenanceInterval.toString(),
         );
         formDataToSubmit.append(
           "isMaintenanceActive",
-          formData.isMaintenanceActive.toString()
+          formData.isMaintenanceActive.toString(),
         );
-
-        // SPECIAL HANDLING FOR UPDATE vs CREATE
-        console.log("🔍 Form mode:", equipment ? "EDIT" : "CREATE");
-        console.log("🖼️ Image state:", {
-          hasSelectedFile: !!selectedFile,
-          hasExistingImage: !!equipment?.i_alat,
-          imagePreview: imagePreview?.substring(0, 50),
-        });
 
         // ========== IMAGE HANDLING LOGIC ==========
         if (selectedFile) {
           // Ada file baru yang dipilih
           formDataToSubmit.append("i_alat", selectedFile);
-          console.log("✅ Appending new file:", selectedFile.name);
         } else {
           // Tidak ada file baru
           if (equipment) {
             // Mode EDIT
             if (!imagePreview && equipment.i_alat) {
               // User menghapus gambar yang ada
-              console.log("🗑️ User removed existing image");
               formDataToSubmit.append("i_alat", ""); // Kirim string kosong
               formDataToSubmit.append("removeImage", "true");
-            } else if (imagePreview && imagePreview.includes("/uploads/")) {
-              // Gambar tetap sama (preview dari URL server)
-              console.log("📁 Keeping existing image:", equipment.i_alat);
-              // Tidak perlu kirim apa-apa, backend akan keep existing
-            } else {
-              // Tidak ada gambar sama sekali
-              console.log("📭 No image at all");
             }
-          } else {
-            // Mode CREATE tanpa gambar
-            console.log("📭 Creating new without image");
           }
         }
-
-        // DEBUG: Log semua FormData entries
-        console.log("📋 FormData entries for submission:");
-        for (const [key, value] of formDataToSubmit.entries()) {
-          if (value instanceof File) {
-            console.log(
-              `  ${key}: File - ${value.name} (${value.size} bytes, ${value.type})`
-            );
-          } else {
-            console.log(`  ${key}: ${value}`);
-          }
-        }
-
-        console.log("CEK 4", formDataToSubmit);
         onSave(formDataToSubmit);
       } catch (error) {
         console.error("❌ Error preparing form data:", error);
@@ -256,13 +222,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log("📁 File selected:", {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified,
-      });
-
       setImageLoading(true);
 
       try {
@@ -275,29 +234,11 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         const uploadFile = getUploadFile(result);
         setSelectedFile(uploadFile); // Use converted file if available
         setImagePreview(result.previewUrl);
-
-        console.log("🔄 File processing result:", {
-          originalName: file.name,
-          processedName: uploadFile.name,
-          isConverted: result.isConverted,
-          fileSize: uploadFile.size,
-          previewUrl: result.previewUrl?.substring(0, 100) + "...",
-        });
-
-        if (result.error) {
-          console.warn("⚠️ Conversion warning:", result.error);
-        }
-
-        if (result.isConverted) {
-          console.log("✅ HEIC file auto-converted successfully");
-        } else {
-          console.log("📁 Standard image file processed");
-        }
       } catch (error) {
         console.error("❌ Error processing image:", error);
         // Fallback error handling
         setImagePreview(
-          "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkVGMkY0IiBzdHJva2U9IiNGQ0E1QTUiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iMzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjRjU5RTBCIj5QcmV2aWV3IEVycm9yPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI2IiBmaWxsPSIjNzM3Mzc0Ij5GaWxlIFVwbG9hZGVkPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI2IiBmaWxsPSIjNzM3Mzc0Ij5CdXQgUmVhZHk8L3RleHQ+Cjwvc3ZnPgo="
+          "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkVGMkY0IiBzdHJva2U9IiNGQ0E1QTUiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iMzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjRjU5RTBCIj5QcmV2aWV3IEVycm9yPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI2IiBmaWxsPSIjNzM3Mzc0Ij5GaWxlIFVwbG9hZGVkPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI2IiBmaWxsPSIjNzM3Mzc0Ij5CdXQgUmVhZHk8L3RleHQ+Cjwvc3ZnPgo=",
         );
       } finally {
         setImageLoading(false);

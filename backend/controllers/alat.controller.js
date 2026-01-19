@@ -2,8 +2,6 @@ const { db } = require("../config/db.js");
 
 const getAllAlat = async (req, res) => {
   try {
-    console.log("🔍 Executing getAllAlat query...");
-
     // Pertama, cek struktur tabel
     const [tableInfo] = await db.query(`
       SELECT COLUMN_NAME, DATA_TYPE 
@@ -12,39 +10,12 @@ const getAllAlat = async (req, res) => {
       AND TABLE_NAME = 'm_alat'
       ORDER BY ORDINAL_POSITION
     `);
-    console.log("📊 Table structure:", tableInfo);
 
     const [alat] = await db.query("SELECT * FROM m_alat ORDER BY id DESC");
-    console.log(`📊 Found ${alat.length} equipment records`);
-
-    if (alat.length > 0) {
-      console.log("📋 First equipment record:", {
-        id: alat[0].id,
-        nama: alat[0].nama,
-        i_alat: alat[0].i_alat,
-        maintenance_fields: {
-          maintenance_date: alat[0].maintenance_date,
-          maintenance_interval_days: alat[0].maintenance_interval_days,
-          is_maintenance_active: alat[0].is_maintenance_active,
-          // Cek semua kemungkinan nama kolom
-          isMaintenanceActive: alat[0].isMaintenanceActive,
-          isMaintenance_active: alat[0].isMaintenance_active,
-        },
-      });
-    }
 
     // Calculate maintenance status for each equipment
     const alatWithSequentialId = alat.map((item, index) => {
       const sequentialId = alat.length - index;
-
-      // DEBUG: Log maintenance calculation
-      console.log(`⚙️ Calculating maintenance for ${item.nama}:`, {
-        maintenanceDate: item.maintenance_date,
-        interval: item.maintenance_interval_days,
-        isActive: item.is_maintenance_active,
-        hasMaintenanceDate: !!item.maintenance_date,
-        hasInterval: !!item.maintenance_interval_days,
-      });
 
       // Calculate maintenance status
       let maintenanceStatus = "inactive";
@@ -62,10 +33,6 @@ const getAllAlat = async (req, res) => {
         (typeof item.is_maintenance_active === "string" &&
           item.is_maintenance_active.toLowerCase() === "true");
 
-      console.log(
-        `   Is maintenance active? ${isActive} (raw: ${item.is_maintenance_active})`
-      );
-
       if (isActive) {
         if (item.maintenance_date && item.maintenance_interval_days) {
           const today = new Date();
@@ -75,14 +42,12 @@ const getAllAlat = async (req, res) => {
           // Calculate next maintenance date
           nextMaintenanceDate = new Date(lastMaintenanceDate);
           nextMaintenanceDate.setDate(
-            nextMaintenanceDate.getDate() + intervalDays
+            nextMaintenanceDate.getDate() + intervalDays,
           );
 
           // Calculate days left
           const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
           maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-          console.log(`   Days left: ${maintenanceDaysLeft}`);
 
           // Determine status and alert level
           if (maintenanceDaysLeft <= 0) {
@@ -108,7 +73,6 @@ const getAllAlat = async (req, res) => {
           maintenanceAlertLevel = "yellow";
           maintenanceStatusText = "Maintenance belum dijadwalkan";
           maintenanceDaysLeft = null;
-          console.log(`   No maintenance date or interval set`);
         }
       } else if (item.maintenance_date && item.maintenance_interval_days) {
         // Equipment is not currently under maintenance but has maintenance schedule
@@ -126,21 +90,16 @@ const getAllAlat = async (req, res) => {
           maintenanceStatus = "selesai";
           maintenanceAlertLevel = "blue";
           maintenanceStatusText = "Maintenance selesai hari ini";
-          console.log(`   Maintenance completed today`);
         } else {
           // Calculate next maintenance date
           nextMaintenanceDate = new Date(lastMaintenanceDate);
           nextMaintenanceDate.setDate(
-            nextMaintenanceDate.getDate() + intervalDays
+            nextMaintenanceDate.getDate() + intervalDays,
           );
 
           // Calculate days left
           const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
           maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-          console.log(
-            `   Inactive but scheduled - Days left: ${maintenanceDaysLeft}`
-          );
 
           // Determine status
           if (maintenanceDaysLeft <= 0) {
@@ -166,7 +125,6 @@ const getAllAlat = async (req, res) => {
         maintenanceStatus = "inactive";
         maintenanceAlertLevel = "none";
         maintenanceStatusText = "Tidak ada jadwal maintenance";
-        console.log(`   No maintenance schedule at all`);
       }
 
       return {
@@ -198,8 +156,6 @@ const getAllAlat = async (req, res) => {
         nextMaintenanceDate: nextMaintenanceDate,
       };
     });
-
-    console.log("✅ Successfully processed all equipment");
     res.json(alatWithSequentialId);
   } catch (error) {
     console.error("❌ Error in getAllAlat:", error);
@@ -256,36 +212,6 @@ const getAlatById = async (req, res) => {
 
 const createAlat = async (req, res) => {
   try {
-    console.log("\n========== CREATE ALAT START ==========");
-
-    // DEBUG: Log semua yang ada di request
-    console.log("📤 REQUEST DETAILS:");
-    console.log("- Headers:", {
-      "content-type": req.headers["content-type"],
-      "content-length": req.headers["content-length"],
-    });
-    console.log("- Body keys:", Object.keys(req.body));
-    console.log(
-      "- File:",
-      req.file
-        ? {
-            fieldname: req.file.fieldname,
-            originalname: req.file.originalname,
-            filename: req.file.filename,
-            path: req.file.path,
-            size: req.file.size,
-          }
-        : "NO FILE"
-    );
-
-    // Log semua body fields
-    for (const [key, value] of Object.entries(req.body)) {
-      console.log(
-        `  ${key}:`,
-        typeof value === "string" ? value.substring(0, 100) : value
-      );
-    }
-
     const {
       nama,
       lokasi,
@@ -305,48 +231,20 @@ const createAlat = async (req, res) => {
     } = req.body;
 
     // ========== HANDLE FILE UPLOAD ==========
-    console.log("\n🖼️ FILE UPLOAD HANDLING:");
     let i_alat = null;
 
     if (req.file) {
       i_alat = req.file.filename;
-      console.log("✅ File uploaded successfully:", i_alat);
-
-      // Verifikasi file disimpan
-      const fs = require("fs");
-      const filePath = req.file.path;
-
-      if (fs.existsSync(filePath)) {
-        const stats = fs.statSync(filePath);
-        console.log("📊 File verified:", {
-          path: filePath,
-          size: stats.size + " bytes",
-          saved: true,
-        });
-      } else {
-        console.error("❌ CRITICAL: File NOT saved to disk!");
-      }
-    } else {
-      console.log("⚠️ No file uploaded");
-
-      // Cek apakah ada file di body (base64 atau string)
-      if (req.body.i_alat && req.body.i_alat.startsWith("data:image")) {
-        console.log("📤 Found base64 image in body");
-        // Handle base64 jika perlu
-      }
     }
 
     // ========== VALIDASI DATA ==========
     if (!nama || !lokasi || !jenis) {
-      console.error("❌ Validation failed: Missing required fields");
       return res.status(400).json({
         message: "Nama, lokasi, dan jenis wajib diisi",
       });
     }
 
     // ========== SAVE TO DATABASE ==========
-    console.log("\n💾 SAVING TO DATABASE:");
-
     const is_maintenance_active =
       isMaintenanceActive === true ||
       isMaintenanceActive === "true" ||
@@ -382,15 +280,7 @@ const createAlat = async (req, res) => {
       is_maintenance_active,
     ];
 
-    console.log("📝 Executing query with params:", params);
-
     const [result] = await db.query(query, params);
-
-    console.log("✅ Database insert successful!");
-    console.log("📊 Result:", {
-      insertId: result.insertId,
-      affectedRows: result.affectedRows,
-    });
 
     // ========== RESPONSE ==========
     const responseData = {
@@ -414,10 +304,6 @@ const createAlat = async (req, res) => {
       isMaintenanceActive: Boolean(is_maintenance_active),
       message: "Alat berhasil ditambahkan",
     };
-
-    console.log("📤 Sending response:", responseData);
-    console.log("========== CREATE ALAT END ==========\n");
-
     res.status(201).json(responseData);
   } catch (error) {
     console.error("\n❌❌❌ CREATE ALAT ERROR ❌❌❌");
@@ -439,8 +325,6 @@ const createAlat = async (req, res) => {
 
 const updateAlat = async (req, res) => {
   try {
-    console.log("✏️ UPDATE ALAT - Mulai proses");
-
     // Get original ID dari sequential ID
     const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");
     const sequentialId = parseInt(req.params.id);
@@ -486,19 +370,10 @@ const updateAlat = async (req, res) => {
     if (req.file) {
       // Ada file baru → update dengan filename baru
       i_alat = req.file.filename;
-      console.log("🔄 Update gambar:", {
-        old: existingData.i_alat || "(tidak ada)",
-        new: i_alat,
-      });
     } else if (req.body.removeImage === "true") {
       // Client minta hapus gambar
       i_alat = null;
-      console.log("🗑️ Hapus gambar yang ada");
     }
-    // Jika tidak ada file baru dan tidak minta hapus → keep existing
-
-    console.log("📁 Gambar untuk database:", i_alat || "(null)");
-
     // Convert maintenance values
     const processedMaintenanceDate =
       maintenanceDate && maintenanceDate !== ""
@@ -562,11 +437,6 @@ const updateAlat = async (req, res) => {
       processedIsMaintenanceActive,
       originalId,
     ]);
-
-    console.log("✅ Update berhasil:", {
-      affectedRows: result.affectedRows,
-      gambar: i_alat || "(tidak berubah)",
-    });
 
     res.json({
       id: sequentialId,
@@ -646,7 +516,7 @@ const stopMaintenance = async (req, res) => {
     // Check if maintenance is already inactive to prevent unnecessary updates
     const [currentStatus] = await db.query(
       "SELECT is_maintenance_active FROM m_alat WHERE id = ?",
-      [originalId]
+      [originalId],
     );
 
     if (currentStatus.length === 0) {
@@ -665,7 +535,7 @@ const stopMaintenance = async (req, res) => {
 
     await db.query(
       "UPDATE m_alat SET is_maintenance_active = FALSE WHERE id = ?",
-      [originalId]
+      [originalId],
     );
 
     res.json({
@@ -687,9 +557,6 @@ const stopMaintenance = async (req, res) => {
 
 const updateMaintenanceSettings = async (req, res) => {
   try {
-    console.log("⚙️ Update maintenance settings request");
-    console.log("📦 Request body:", req.body);
-
     const { maintenanceDate, maintenanceInterval, isMaintenanceActive } =
       req.body;
 
@@ -730,8 +597,6 @@ const updateMaintenanceSettings = async (req, res) => {
       originalId,
     ]);
 
-    console.log("✅ Maintenance settings updated:", result);
-
     res.json({
       message: "Pengaturan maintenance berhasil diupdate",
       id: sequentialId,
@@ -769,7 +634,7 @@ const completeMaintenance = async (req, res) => {
         maintenance_date = ?, 
         is_maintenance_active = 0
        WHERE id = ?`,
-      [today, originalId]
+      [today, originalId],
     );
     res.json({
       message: "Maintenance berhasil diselesaikan dan dinonaktifkan",
@@ -786,7 +651,7 @@ const completeMaintenance = async (req, res) => {
 const testMaintenance = async (req, res) => {
   try {
     const [result] = await db.query(
-      "SELECT id, nama, maintenance_date, maintenance_interval_days, is_maintenance_active FROM m_alat WHERE id = 7"
+      "SELECT id, nama, maintenance_date, maintenance_interval_days, is_maintenance_active FROM m_alat WHERE id = 7",
     );
     res.json(result);
   } catch (error) {
@@ -835,7 +700,7 @@ const getPublicAlatById = async (req, res) => {
 
         nextMaintenanceDate = new Date(lastMaintenanceDate);
         nextMaintenanceDate.setDate(
-          nextMaintenanceDate.getDate() + intervalDays
+          nextMaintenanceDate.getDate() + intervalDays,
         );
 
         maintenanceStatus = "active";

@@ -43,11 +43,11 @@ const EquipmentTable: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(
-    null
+    null,
   );
   const [showDetail, setShowDetail] = useState<Equipment | null>(null);
   const [showDescription, setShowDescription] = useState<Equipment | null>(
-    null
+    null,
   );
   const [showQR, setShowQR] = useState<Equipment | null>(null);
   const [emailCheckDone, setEmailCheckDone] = useState(false); // Track apakah email check sudah dilakukan
@@ -70,27 +70,9 @@ const EquipmentTable: React.FC = () => {
     try {
       const response = await alatService.getAll();
       if (response.data) {
-        console.log("Equipment data:", response.data); // DEBUG
-        // console.log("First equipment i_alat:", response.data[0]?.i_alat); // DEBUG
-        console.log("===== EQUIPMENT DATA DEBUG =====");
-        response.data.forEach((item: Equipment, index: number) => {
-          console.log(`[${index}] ${item.nama}:`, {
-            id: item.id,
-            i_alat: item.i_alat,
-            maintenanceStatus: item.maintenanceStatus,
-            isMaintenanceActive: item.isMaintenanceActive,
-            maintenanceStatusText: item.maintenanceStatusText,
-          });
-        });
-        console.log("===== END DEBUG =====");
         setEquipment(response.data);
-
-        // REMOVED: Email service call - akan dipanggil terpisah dengan kontrol ketat
-        // await MaintenanceEmailService.processMaintenanceNotifications(response.data);
-
-        // Process status changes and setup reminders
         await maintenanceReminderService.processEquipmentStatusChanges(
-          response.data
+          response.data,
         );
       } else {
         showErrorToast("Tidak ada data alat", "Response kosong dari server");
@@ -99,7 +81,7 @@ const EquipmentTable: React.FC = () => {
     } catch (error: unknown) {
       showErrorToast(
         "Gagal memuat data alat",
-        "Terjadi kesalahan saat mengambil data"
+        "Terjadi kesalahan saat mengambil data",
       );
       console.error("Error fetching equipment:", error);
     }
@@ -109,27 +91,27 @@ const EquipmentTable: React.FC = () => {
     fetchEquipment();
 
     // Cleanup session pada unmount untuk mencegah spam lintas halaman
-    return () => {
-      MaintenanceEmailService.clearSessionProcessed();
-    };
+    // return () => {
+    //   MaintenanceEmailService.clearSessionProcessed();
+    // };
   }, [fetchEquipment]);
 
   // TERPISAH: Email checking hanya dilakukan SEKALI setelah equipment di-load
-  useEffect(() => {
-    if (equipment.length > 0 && !emailCheckDone) {
-      const checkEmailsOnce = async () => {
-        await MaintenanceEmailService.processMaintenanceNotifications(
-          equipment
-        );
-        setEmailCheckDone(true);
-      };
+  // useEffect(() => {
+  //   if (equipment.length > 0 && !emailCheckDone) {
+  //     const checkEmailsOnce = async () => {
+  //       await MaintenanceEmailService.processMaintenanceNotifications(
+  //         equipment,
+  //       );
+  //       setEmailCheckDone(true);
+  //     };
 
-      // Delay untuk memastikan tidak bentrok dengan proses lain
-      const emailTimeout = setTimeout(checkEmailsOnce, 1000);
+  //     // Delay untuk memastikan tidak bentrok dengan proses lain
+  //     const emailTimeout = setTimeout(checkEmailsOnce, 1000);
 
-      return () => clearTimeout(emailTimeout);
-    }
-  }, [equipment, emailCheckDone]); // Depends on equipment dan emailCheckDone
+  //     return () => clearTimeout(emailTimeout);
+  //   }
+  // }, [equipment, emailCheckDone]); // Depends on equipment dan emailCheckDone
 
   const handleDeleteEquipment = useCallback(
     async (id: number) => {
@@ -145,13 +127,13 @@ const EquipmentTable: React.FC = () => {
             await fetchEquipment();
             showSuccessToast(
               "Alat berhasil dihapus!",
-              `${equipmentName} telah dihapus dari sistem`
+              `${equipmentName} telah dihapus dari sistem`,
             );
           } catch (error) {
             console.error("Error deleting equipment:", error);
             showErrorToast(
               "Gagal menghapus alat",
-              "Terjadi kesalahan saat menghapus data alat"
+              "Terjadi kesalahan saat menghapus data alat",
             );
           } finally {
             toast.dismiss(loadingToastId);
@@ -160,10 +142,10 @@ const EquipmentTable: React.FC = () => {
         () => {
           // User cancelled - no action needed
         },
-        "Tindakan ini tidak dapat dibatalkan"
+        "Tindakan ini tidak dapat dibatalkan",
       );
     },
-    [equipment, fetchEquipment]
+    [equipment, fetchEquipment],
   );
 
   const columns = useMemo<ColumnDef<Equipment>[]>(
@@ -241,16 +223,6 @@ const EquipmentTable: React.FC = () => {
             statusColorMap[status] ||
             "bg-orange-100 text-orange-800 border border-orange-200";
 
-          // Log jika status tidak ditemukan
-          if (!statusColorMap[status]) {
-            console.log(
-              "Status tidak ditemukan dalam map:",
-              status,
-              "Available keys:",
-              Object.keys(statusColorMap)
-            );
-          }
-
           return (
             <span
               className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${colorClasses}`}
@@ -279,14 +251,6 @@ const EquipmentTable: React.FC = () => {
         cell: ({ row }) => {
           const equipment = row.original;
           const imageFilename = equipment.i_alat;
-
-          // Debug info
-          console.log(`📊 Table cell - ${equipment.nama}:`, {
-            hasImage: !!imageFilename,
-            imageFilename: imageFilename,
-            equipmentId: equipment.id,
-          });
-
           // Gunakan SimpleImageDisplay untuk table (lebih ringan)
           return (
             <div className="w-12 h-12">
@@ -354,7 +318,7 @@ const EquipmentTable: React.FC = () => {
         ),
       },
     ],
-    [handleDeleteEquipment, canEditEquipment, canDeleteEquipment]
+    [handleDeleteEquipment, canEditEquipment, canDeleteEquipment],
   );
 
   const filteredData = useMemo(() => {
@@ -400,29 +364,26 @@ const EquipmentTable: React.FC = () => {
   };
 
   const handleSaveEquipment = async (
-    equipmentData: FormData | Omit<Equipment, "id">
+    equipmentData: FormData | Omit<Equipment, "id">,
   ) => {
     const isEdit = !!selectedEquipment;
     const action = isEdit ? "memperbarui" : "menambahkan";
     const loadingToastId = showLoadingToast(`Sedang ${action} alat...`);
-
-    console.log("CEK 3:", equipmentData);
-
     try {
       if (selectedEquipment) {
         await alatService.update(
           selectedEquipment.id.toString(),
-          equipmentData
+          equipmentData,
         );
         showSuccessToast(
           "Alat berhasil diperbarui!",
-          `Data alat telah diperbarui`
+          `Data alat telah diperbarui`,
         );
       } else {
         await alatService.create(equipmentData);
         showSuccessToast(
           "Alat berhasil ditambahkan!",
-          `Alat baru telah ditambahkan ke sistem`
+          `Alat baru telah ditambahkan ke sistem`,
         );
       }
       await fetchEquipment();
@@ -432,7 +393,7 @@ const EquipmentTable: React.FC = () => {
       console.error("Error saving equipment:", error);
       showErrorToast(
         `Gagal ${action} alat`,
-        "Terjadi kesalahan saat menyimpan data alat"
+        "Terjadi kesalahan saat menyimpan data alat",
       );
     } finally {
       toast.dismiss(loadingToastId);
@@ -516,7 +477,7 @@ const EquipmentTable: React.FC = () => {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </th>
                   ))}
@@ -536,7 +497,7 @@ const EquipmentTable: React.FC = () => {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   ))}

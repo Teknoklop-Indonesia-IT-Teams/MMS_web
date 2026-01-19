@@ -21,15 +21,12 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string>("");
 
   useEffect(() => {
-    console.log(`🖼️ ImageDisplay received src:`, src);
-
     // Reset states
     setHasError(false);
     setIsLoading(false);
     setCurrentSrc("");
 
     if (!src || src.trim() === "" || src === "undefined" || src === "null") {
-      console.log(`⚠️ Empty image source for ${alt}`);
       setHasError(true);
       setImageUrl("");
       return;
@@ -59,15 +56,12 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         processedUrl = urlObj.toString();
       }
     }
-
-    console.log(`🖼️ Processed URL: ${processedUrl}`);
     setImageUrl(processedUrl);
     setCurrentSrc(src); // Store original src for comparison
     setIsLoading(true); // Start loading
   }, [src, alt]);
 
   const handleImageLoad = () => {
-    console.log(`✅ Image loaded successfully: ${alt}`);
     setIsLoading(false);
     setHasError(false);
     if (onLoad) onLoad();

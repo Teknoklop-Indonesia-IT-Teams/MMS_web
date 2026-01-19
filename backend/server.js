@@ -20,7 +20,7 @@ app.use(
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // Important for cookies
-  })
+  }),
 );
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
@@ -57,7 +57,6 @@ app.use(
       // Set Content-Type jika diketahui
       if (mimeTypes[ext]) {
         res.setHeader("Content-Type", mimeTypes[ext]);
-        console.log(`📁 Static file served: ${filePath} as ${mimeTypes[ext]}`);
       }
 
       // Allow CORS untuk development
@@ -77,7 +76,7 @@ app.use(
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       }
     },
-  })
+  }),
 );
 
 // Add debug middleware
@@ -137,11 +136,6 @@ app.use((err, req, res, next) => {
 
 // Tambahkan di server.js sebelum routes
 app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.originalUrl}`);
-  console.log("📤 Request body:", req.body);
-  console.log("📁 Request files:", req.files || "No files");
-  console.log("📄 Request params:", req.params);
-  console.log("🔍 Request query:", req.query);
   next();
 });
 

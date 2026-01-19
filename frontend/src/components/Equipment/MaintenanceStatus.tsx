@@ -10,15 +10,6 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
   equipment,
   showDetails = false,
 }) => {
-  console.log("Maintenance debug:", {
-    id: equipment.id,
-    name: equipment.nama,
-    maintenanceStatus: equipment.maintenanceStatus,
-    isMaintenanceActive: equipment.isMaintenanceActive,
-    maintenanceStatusText: equipment.maintenanceStatusText,
-    maintenanceDate: equipment.maintenanceDate,
-  }); // DEBUG
-
   // Tentukan apakah maintenance aktif (handle semua kemungkinan)
   const isMaintenanceActive = (() => {
     const value = equipment.isMaintenanceActive;
@@ -83,7 +74,7 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
               <span className="font-medium">Terakhir Maintenance:</span>{" "}
               {equipment.maintenanceDate
                 ? new Date(equipment.maintenanceDate).toLocaleDateString(
-                    "id-ID"
+                    "id-ID",
                   )
                 : "Hari ini"}
             </div>
@@ -251,7 +242,7 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
             <span className="font-medium">Maintenance Berikutnya:</span>{" "}
             {equipment.nextMaintenanceDate
               ? new Date(equipment.nextMaintenanceDate).toLocaleDateString(
-                  "id-ID"
+                  "id-ID",
                 )
               : "Belum dijadwalkan"}
           </div>

@@ -6,7 +6,6 @@ const router = express.Router();
 
 // Debug logging
 router.use((req, res, next) => {
-  console.log(`[Auth Router] ${req.method} ${req.path}`);
   next();
 });
 

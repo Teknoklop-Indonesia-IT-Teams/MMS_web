@@ -4,7 +4,6 @@ const userController = require("../controllers/users.controller");
 
 // Debug logging
 router.use((req, res, next) => {
-  console.log(`[Users Router] ${req.method} ${req.path}`);
   next();
 });
 

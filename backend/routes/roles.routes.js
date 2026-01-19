@@ -4,7 +4,6 @@ const roleController = require("../controllers/roles.controller");
 
 // Debug logging
 router.use((req, res, next) => {
-  console.log(`[Roles Router] ${req.method} ${req.path}`);
   next();
 });
 

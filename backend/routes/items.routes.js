@@ -5,7 +5,6 @@ const { upload } = require("../middleware/auth.middleware");
 
 // Debug logging
 router.use((req, res, next) => {
-  console.log(`[Items Router] ${req.method} ${req.path}`);
   next();
 });
 

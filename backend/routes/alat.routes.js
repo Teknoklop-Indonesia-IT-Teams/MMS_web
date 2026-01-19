@@ -20,7 +20,7 @@ router.post(
   "/",
   upload.single("i_alat"), // ← MIDDLEWARE UPLOAD DI SINI
   autoHeicConverter,
-  alatController.createAlat
+  alatController.createAlat,
 );
 
 // UPDATE dengan UPLOAD GAMBAR
@@ -28,7 +28,7 @@ router.put(
   "/:id",
   upload.single("i_alat"), // ← MIDDLEWARE UPLOAD DI SINI
   autoHeicConverter,
-  alatController.updateAlat
+  alatController.updateAlat,
 );
 
 router.delete("/:id", alatController.deleteAlat);
@@ -38,10 +38,6 @@ router.put("/:id/maintenance", alatController.updateMaintenanceSettings);
 
 // ========== DEBUG ROUTE ==========
 router.post("/debug-upload", upload.single("i_alat"), (req, res) => {
-  console.log("🧪 DEBUG UPLOAD:");
-  console.log("- File:", req.file);
-  console.log("- Body:", req.body);
-
   res.json({
     success: true,
     file: req.file
