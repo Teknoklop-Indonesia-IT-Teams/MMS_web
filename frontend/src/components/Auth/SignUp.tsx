@@ -301,9 +301,9 @@ const SignUp: React.FC = () => {
               >
                 <option value="">Pilih Role</option>
                 <option value={ROLES.ADMIN}>Admin</option>
-                <option value={ROLES.SUPERVISOR}>Supervisor</option>
-                <option value={ROLES.OPERATOR}>Operator</option>
-                <option value={ROLES.MAINTENANCE}>Maintenance</option>
+                <option value={ROLES.MANAGER}>Manager</option>
+                <option value={ROLES.AST_MANAGER}>Asisten Manager</option>
+                <option value={ROLES.ENGINEER}>Engineer</option>
               </select>
             </div>
 

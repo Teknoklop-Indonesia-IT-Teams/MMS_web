@@ -209,9 +209,9 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
               >
                 <option value="">Pilih Role</option>
                 <option value={ROLES.ADMIN}>Admin</option>
-                <option value={ROLES.SUPERVISOR}>Supervisor</option>
-                <option value={ROLES.OPERATOR}>Operator</option>
-                <option value={ROLES.MAINTENANCE}>Maintenance</option>
+                <option value={ROLES.MANAGER}>Manager</option>
+                <option value={ROLES.AST_MANAGER}>Asisten Manager</option>
+                <option value={ROLES.ENGINEER}>Engineer</option>
               </select>
               {errors.role && (
                 <p className="text-sm text-red-500 flex items-center">

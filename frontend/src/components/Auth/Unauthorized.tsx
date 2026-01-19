@@ -16,13 +16,13 @@ const Unauthorized: React.FC = () => {
       case "admin":
         navigate("/dashboard");
         break;
-      case "supervisor":
+      case "manager":
         navigate("/equipment");
         break;
-      case "operator":
+      case "engineer":
         navigate("/equipment");
         break;
-      case "maintenance":
+      case "ast_manager":
         navigate("/equipment");
         break;
       default:

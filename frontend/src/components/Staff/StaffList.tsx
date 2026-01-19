@@ -147,7 +147,7 @@ const StaffList: React.FC = () => {
         const apiData = {
           nama: userData.nama,
           email: userData.email || undefined,
-          role: userData.role || "operator",
+          role: userData.role || "engineer",
           username: userData.username,
           telp: userData.telp,
         };

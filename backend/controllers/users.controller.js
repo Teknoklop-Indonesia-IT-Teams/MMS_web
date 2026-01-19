@@ -25,7 +25,7 @@ const getUserById = async (req, res) => {
       FROM m_user 
       WHERE id = ?
     `,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (user.length === 0) {
@@ -46,7 +46,7 @@ const createUser = async (req, res) => {
     // Check if email already exists
     const [existingUser] = await db.query(
       "SELECT id FROM m_user WHERE email = ?",
-      [email]
+      [email],
     );
     if (existingUser.length > 0) {
       return res.status(400).json({ message: "Email sudah digunakan" });
@@ -57,14 +57,14 @@ const createUser = async (req, res) => {
 
     const [result] = await db.query(
       "INSERT INTO m_user (email, password, petugas, role) VALUES (?, ?, ?, ?)",
-      [email, hashedPassword, name, role || "operator"]
+      [email, hashedPassword, name, role || "engineer"],
     );
 
     res.status(201).json({
       userId: result.insertId,
       email,
       name,
-      role: role || "operator",
+      role: role || "engineer",
     });
   } catch (error) {
     console.error(error);
@@ -80,7 +80,7 @@ const updateUser = async (req, res) => {
     // Check if email already exists for other users
     const [existingUser] = await db.query(
       "SELECT userId FROM tbl_users WHERE email = ? AND userId != ? AND isDeleted = 0",
-      [email, req.params.id]
+      [email, req.params.id],
     );
     if (existingUser.length > 0) {
       return res.status(400).json({ message: "Email sudah digunakan" });
@@ -120,7 +120,7 @@ const deleteUser = async (req, res) => {
   try {
     await db.query(
       "UPDATE tbl_users SET isDeleted = 1, updatedDtm = NOW(), updatedBy = 1 WHERE userId = ?",
-      [req.params.id]
+      [req.params.id],
     );
     res.json({ message: "User berhasil dihapus" });
   } catch (error) {
@@ -134,7 +134,7 @@ const restoreUser = async (req, res) => {
   try {
     await db.query(
       "UPDATE tbl_users SET isDeleted = 0, updatedDtm = NOW(), updatedBy = 1 WHERE userId = ?",
-      [req.params.id]
+      [req.params.id],
     );
     res.json({ message: "User berhasil dipulihkan" });
   } catch (error) {
@@ -152,7 +152,7 @@ const changePassword = async (req, res) => {
     // Get current user
     const [users] = await db.query(
       "SELECT password FROM tbl_users WHERE userId = ? AND isDeleted = 0",
-      [userId]
+      [userId],
     );
     if (users.length === 0) {
       return res.status(404).json({ message: "User tidak ditemukan" });
@@ -161,7 +161,7 @@ const changePassword = async (req, res) => {
     // Verify old password
     const isValidPassword = await bcrypt.compare(
       oldPassword,
-      users[0].password
+      users[0].password,
     );
     if (!isValidPassword) {
       return res.status(400).json({ message: "Password lama tidak sesuai" });
@@ -173,7 +173,7 @@ const changePassword = async (req, res) => {
     // Update password
     await db.query(
       "UPDATE tbl_users SET password = ?, updatedDtm = NOW(), updatedBy = 1 WHERE userId = ?",
-      [hashedPassword, userId]
+      [hashedPassword, userId],
     );
 
     res.json({ message: "Password berhasil diubah" });

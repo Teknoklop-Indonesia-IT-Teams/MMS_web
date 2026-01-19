@@ -12,8 +12,18 @@ const getRoles = async (req, res) => {
       },
       {
         id: 2,
-        name: "Operator",
-        value: "operator",
+        name: "Engineer",
+        value: "engineer",
+      },
+      {
+        id: 3,
+        name: "Ast_Manager",
+        value: "ast_manager",
+      },
+      {
+        id: 4,
+        name: "Manager",
+        value: "manager",
       },
     ];
 
@@ -35,7 +45,9 @@ const getAllRoles = async (req, res) => {
   try {
     const roles = [
       { roleId: 1, role: "admin" },
-      { roleId: 2, role: "operator" },
+      { roleId: 2, role: "engineer" },
+      { roleId: 3, role: "ast_manager" },
+      { roleId: 4, role: "manager" },
     ];
     res.json(roles);
   } catch (error) {
@@ -50,7 +62,9 @@ const getRoleById = async (req, res) => {
     const roleId = parseInt(req.params.id);
     const roles = {
       1: { roleId: 1, role: "admin" },
-      2: { roleId: 2, role: "operator" },
+      2: { roleId: 2, role: "engineer" },
+      3: { roleId: 3, role: "ast_manager" },
+      4: { roleId: 4, role: "manager" },
     };
 
     if (roles[roleId]) {

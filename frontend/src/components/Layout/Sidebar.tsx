@@ -16,11 +16,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     switch (role) {
       case "admin":
         return "bg-red-500 text-white";
-      case "supervisor":
+      case "manager":
         return "bg-blue-500 text-white";
-      case "operator":
+      case "engineer":
         return "bg-green-500 text-white";
-      case "maintenance":
+      case "ast_manager":
         return "bg-orange-500 text-white";
       default:
         return "bg-gray-500 text-white";
@@ -117,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             <div className="text-gray-400 text-xs">{user.username}</div>
             <div
               className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${getRoleBadgeColor(
-                user.role
+                user.role,
               )}`}
             >
               {user.role}

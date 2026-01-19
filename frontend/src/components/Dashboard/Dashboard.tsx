@@ -16,14 +16,13 @@ const Dashboard: React.FC = () => {
 
   const { user } = useAuth();
 
-  // Check if user has full dashboard access (admin/supervisor) or read-only (operator/maintenance)
   const userRole = user?.role || "";
   const hasFullAccess = PERMISSIONS.DASHBOARD_FULL_ACCESS.includes(
-    userRole as "admin" | "supervisor"
+    userRole as "admin" | "manager",
   );
-  const hasReadOnlyAccess = PERMISSIONS.DASHBOARD_READ_ONLY.includes(
-    userRole as "operator" | "maintenance"
-  );
+  // const hasReadOnlyAccess = PERMISSIONS.DASHBOARD_READ_ONLY.includes(
+  //   userRole as "engineer" | "ast_manager",
+  // );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -34,10 +33,13 @@ const Dashboard: React.FC = () => {
     };
   }, [clickTimeout]);
 
-  const equipmentByType = equipment.reduce((acc, curr) => {
-    acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
-    return acc;
-  }, {} as { [key: string]: number });
+  const equipmentByType = equipment.reduce(
+    (acc, curr) => {
+      acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
+      return acc;
+    },
+    {} as { [key: string]: number },
+  );
 
   const deviceTypes = Object.keys(equipmentByType);
 
@@ -103,7 +105,7 @@ const Dashboard: React.FC = () => {
             <h1 className="flex items-center text-2xl font-bold text-gray-800 dark:text-gray-200">
               <span className="mr-2">📊</span>
               Dashboard
-              {hasReadOnlyAccess && !hasFullAccess && (
+              {!hasFullAccess && (
                 <span className="px-2 py-1 ml-3 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                   View Only
                 </span>
@@ -204,7 +206,7 @@ const Dashboard: React.FC = () => {
               <span className="font-semibold text-red-600 dark:text-red-400">
                 {hasActiveFilter
                   ? filteredEquipment.filter(
-                      (e) => e.maintenanceAlertLevel === "red"
+                      (e) => e.maintenanceAlertLevel === "red",
                     ).length
                   : stats.alertCounts.red}
               </span>
@@ -216,7 +218,7 @@ const Dashboard: React.FC = () => {
               <span className="font-semibold text-orange-600 dark:text-orange-400">
                 {hasActiveFilter
                   ? filteredEquipment.filter(
-                      (e) => e.maintenanceAlertLevel === "yellow"
+                      (e) => e.maintenanceAlertLevel === "yellow",
                     ).length
                   : stats.alertCounts.yellow}
               </span>
@@ -228,7 +230,7 @@ const Dashboard: React.FC = () => {
               <span className="font-semibold text-blue-600 dark:text-blue-400">
                 {hasActiveFilter
                   ? filteredEquipment.filter(
-                      (e) => e.maintenanceAlertLevel === "blue"
+                      (e) => e.maintenanceAlertLevel === "blue",
                     ).length
                   : stats.alertCounts.blue}
               </span>
@@ -247,16 +249,22 @@ const Dashboard: React.FC = () => {
           </h3>
           <div className="space-y-2">
             {Object.entries(
-              filteredEquipment.reduce((acc, curr) => {
-                acc[curr.lokasi] = (acc[curr.lokasi] || 0) + 1;
-                return acc;
-              }, {} as { [key: string]: number })
-            ).length > 0 ? (
-              Object.entries(
-                filteredEquipment.reduce((acc, curr) => {
+              filteredEquipment.reduce(
+                (acc, curr) => {
                   acc[curr.lokasi] = (acc[curr.lokasi] || 0) + 1;
                   return acc;
-                }, {} as { [key: string]: number })
+                },
+                {} as { [key: string]: number },
+              ),
+            ).length > 0 ? (
+              Object.entries(
+                filteredEquipment.reduce(
+                  (acc, curr) => {
+                    acc[curr.lokasi] = (acc[curr.lokasi] || 0) + 1;
+                    return acc;
+                  },
+                  {} as { [key: string]: number },
+                ),
               ).map(([location, count], index) => (
                 <div key={location} className="flex justify-between text-sm">
                   <span className="text-gray-700 dark:text-gray-300">
@@ -267,8 +275,8 @@ const Dashboard: React.FC = () => {
                       index % 3 === 0
                         ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
                         : index % 3 === 1
-                        ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                        : "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200"
+                          ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                          : "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200"
                     } px-2 py-1 rounded`}
                   >
                     {count}
