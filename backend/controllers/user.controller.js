@@ -3,20 +3,20 @@ const db = require("../config/db");
 const getAllUsers = async (req, res) => {
   try {
     const [users] = await db.query(
-      "SELECT id, petugas, email FROM m_user ORDER BY id ASC"
+      "SELECT id, nama, email, role, username, telp FROM m_user ORDER BY id ASC",
     );
     // Map to exact format as requested
     const mappedUsers = users.map((user) => {
       let roleId, roleName;
 
       // Set role based on user id or name
-      if (user.id === 1 || user.petugas === "Revan Ardian") {
+      if (user.id === 1 || user.nama === "Revan Ardian") {
         roleId = 1;
         roleName = "System Administrator";
-      } else if (user.id === 2 || user.petugas === "Achmad Rofiuddin") {
+      } else if (user.id === 2 || user.nama === "Achmad Rofiuddin") {
         roleId = 2;
         roleName = "Manager";
-      } else if (user.id === 3 || user.petugas === "Fayyadh") {
+      } else if (user.id === 3 || user.nama === "Fayyadh") {
         roleId = 3;
         roleName = "Employee";
       } else {
@@ -31,10 +31,10 @@ const getAllUsers = async (req, res) => {
           (user.id === 1
             ? "alirohman857@gmail.com"
             : user.id === 2
-            ? "manager@bewithdhanu.in"
-            : user.id === 3
-            ? "employee@bewithdhanu.in"
-            : `user${user.id}@bewithdhanu.in`),
+              ? "manager@bewithdhanu.in"
+              : user.id === 3
+                ? "employee@bewithdhanu.in"
+                : `user${user.id}@bewithdhanu.in`),
         name: user.petugas,
         mobile: "9890098900",
         roleId: roleId,
@@ -43,18 +43,18 @@ const getAllUsers = async (req, res) => {
           user.id === 1
             ? "2015-07-01T11:56:49.000Z"
             : user.id === 2
-            ? "2016-12-09T10:49:56.000Z"
-            : user.id === 3
-            ? "2016-12-09T10:50:22.000Z"
-            : new Date().toISOString(),
+              ? "2016-12-09T10:49:56.000Z"
+              : user.id === 3
+                ? "2016-12-09T10:50:22.000Z"
+                : new Date().toISOString(),
         updatedDtm:
           user.id === 1
             ? "2025-09-09T02:37:01.000Z"
             : user.id === 2
-            ? "2017-06-19T02:22:29.000Z"
-            : user.id === 3
-            ? "2017-06-19T02:23:21.000Z"
-            : new Date().toISOString(),
+              ? "2017-06-19T02:22:29.000Z"
+              : user.id === 3
+                ? "2017-06-19T02:23:21.000Z"
+                : new Date().toISOString(),
         roleName: roleName,
       };
     });
@@ -71,7 +71,7 @@ const getUserById = async (req, res) => {
 
     const [users] = await db.query(
       "SELECT id, petugas, email FROM m_user WHERE id = ?",
-      [userId]
+      [userId],
     );
 
     if (users.length === 0) {
@@ -102,10 +102,10 @@ const getUserById = async (req, res) => {
         (user.id === 1
           ? "alirohman857@gmail.com"
           : user.id === 2
-          ? "manager@bewithdhanu.in"
-          : user.id === 3
-          ? "employee@bewithdhanu.in"
-          : `user${user.id}@bewithdhanu.in`),
+            ? "manager@bewithdhanu.in"
+            : user.id === 3
+              ? "employee@bewithdhanu.in"
+              : `user${user.id}@bewithdhanu.in`),
       name: user.petugas,
       mobile: "9890098900",
       roleId: roleId,
@@ -114,18 +114,18 @@ const getUserById = async (req, res) => {
         user.id === 1
           ? "2015-07-01T11:56:49.000Z"
           : user.id === 2
-          ? "2016-12-09T10:49:56.000Z"
-          : user.id === 3
-          ? "2016-12-09T10:50:22.000Z"
-          : new Date().toISOString(),
+            ? "2016-12-09T10:49:56.000Z"
+            : user.id === 3
+              ? "2016-12-09T10:50:22.000Z"
+              : new Date().toISOString(),
       updatedDtm:
         user.id === 1
           ? "2025-09-09T02:37:01.000Z"
           : user.id === 2
-          ? "2017-06-19T02:22:29.000Z"
-          : user.id === 3
-          ? "2017-06-19T02:23:21.000Z"
-          : new Date().toISOString(),
+            ? "2017-06-19T02:22:29.000Z"
+            : user.id === 3
+              ? "2017-06-19T02:23:21.000Z"
+              : new Date().toISOString(),
       roleName: roleName,
     };
 
@@ -146,7 +146,7 @@ const createUser = async (req, res) => {
 
     const [result] = await db.query(
       "INSERT INTO m_user (petugas, email) VALUES (?, ?)",
-      [name, email || null]
+      [name, email || null],
     );
 
     let roleName;
@@ -190,7 +190,7 @@ const updateUser = async (req, res) => {
     // Check if user exists
     const [existingUsers] = await db.query(
       "SELECT id FROM m_user WHERE id = ?",
-      [userId]
+      [userId],
     );
 
     if (existingUsers.length === 0) {

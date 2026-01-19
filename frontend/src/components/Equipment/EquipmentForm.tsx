@@ -8,6 +8,8 @@ import {
   cleanupPreviewUrl,
   ConversionResult,
 } from "../../utils/autoHeicConverter";
+import { log } from "console";
+import axios from "axios";
 
 interface EquipmentFormProps {
   equipment: Equipment | null;
@@ -52,7 +54,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     maintenanceDate: "",
     maintenanceInterval: 90,
     isMaintenanceActive: false,
-    gambar: "",
+    i_alat: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -85,7 +87,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
           : "",
         maintenanceInterval: equipment.maintenanceInterval || 90,
         isMaintenanceActive: Boolean(equipment.isMaintenanceActive) || false,
-        gambar: "",
+        i_alat: equipment.i_alat || "",
       });
       if (equipment.i_alat) {
         setImagePreview(
@@ -164,10 +166,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const formDataToSubmit = new FormData();
     if (validateForm()) {
       try {
-        const formDataToSubmit = new FormData();
-
         // Append all text fields
         formDataToSubmit.append("nama", formData.nama);
         formDataToSubmit.append("lokasi", formData.lokasi);
@@ -194,14 +195,55 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
           formData.isMaintenanceActive.toString()
         );
 
-        // Append image file if selected
+        // SPECIAL HANDLING FOR UPDATE vs CREATE
+        console.log("🔍 Form mode:", equipment ? "EDIT" : "CREATE");
+        console.log("🖼️ Image state:", {
+          hasSelectedFile: !!selectedFile,
+          hasExistingImage: !!equipment?.i_alat,
+          imagePreview: imagePreview?.substring(0, 50),
+        });
+
+        // ========== IMAGE HANDLING LOGIC ==========
         if (selectedFile) {
-          formDataToSubmit.append("gambar", selectedFile);
-        } else if (equipment?.i_alat) {
-          formDataToSubmit.append("i_alat", equipment.i_alat);
+          // Ada file baru yang dipilih
+          formDataToSubmit.append("i_alat", selectedFile);
+          console.log("✅ Appending new file:", selectedFile.name);
         } else {
-          console.log("⚠️ No image file selected and no existing image");
+          // Tidak ada file baru
+          if (equipment) {
+            // Mode EDIT
+            if (!imagePreview && equipment.i_alat) {
+              // User menghapus gambar yang ada
+              console.log("🗑️ User removed existing image");
+              formDataToSubmit.append("i_alat", ""); // Kirim string kosong
+              formDataToSubmit.append("removeImage", "true");
+            } else if (imagePreview && imagePreview.includes("/uploads/")) {
+              // Gambar tetap sama (preview dari URL server)
+              console.log("📁 Keeping existing image:", equipment.i_alat);
+              // Tidak perlu kirim apa-apa, backend akan keep existing
+            } else {
+              // Tidak ada gambar sama sekali
+              console.log("📭 No image at all");
+            }
+          } else {
+            // Mode CREATE tanpa gambar
+            console.log("📭 Creating new without image");
+          }
         }
+
+        // DEBUG: Log semua FormData entries
+        console.log("📋 FormData entries for submission:");
+        for (const [key, value] of formDataToSubmit.entries()) {
+          if (value instanceof File) {
+            console.log(
+              `  ${key}: File - ${value.name} (${value.size} bytes, ${value.type})`
+            );
+          } else {
+            console.log(`  ${key}: ${value}`);
+          }
+        }
+
+        console.log("CEK 4", formDataToSubmit);
         onSave(formDataToSubmit);
       } catch (error) {
         console.error("❌ Error preparing form data:", error);
@@ -214,6 +256,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log("📁 File selected:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+
       setImageLoading(true);
 
       try {
@@ -223,8 +272,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
         // Set states based on conversion result
         setIsHeicFile(result.isConverted);
-        setSelectedFile(getUploadFile(result)); // Use converted file if available
+        const uploadFile = getUploadFile(result);
+        setSelectedFile(uploadFile); // Use converted file if available
         setImagePreview(result.previewUrl);
+
+        console.log("🔄 File processing result:", {
+          originalName: file.name,
+          processedName: uploadFile.name,
+          isConverted: result.isConverted,
+          fileSize: uploadFile.size,
+          previewUrl: result.previewUrl?.substring(0, 100) + "...",
+        });
 
         if (result.error) {
           console.warn("⚠️ Conversion warning:", result.error);
@@ -244,6 +302,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       } finally {
         setImageLoading(false);
       }
+    } else {
+      console.log("⚠️ No file selected");
     }
   };
 
@@ -501,7 +561,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 </option>
                 {staffList.map((staff) => (
                   <option key={staff.id} value={staff.nama}>
-                    {staff.nama}
+                    {equipment?.pic === staff.nama
+                      ? `${staff.nama} (Current)`
+                      : staff.nama}
                   </option>
                 ))}
               </select>

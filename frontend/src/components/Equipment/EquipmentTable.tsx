@@ -35,7 +35,7 @@ import MaintenanceEmailService from "../../services/maintenanceEmailService";
 import { maintenanceReminderService } from "../../services/maintenanceReminderService";
 import { useAuth } from "../../hooks/useAuthSimple";
 import { PERMISSIONS } from "../../constants/roles";
-import ImageDisplay from "../Common/ImageDisplay";
+import ImageDisplay, { SimpleImageDisplay } from "../Common/ImageDisplay";
 
 const EquipmentTable: React.FC = () => {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
@@ -70,6 +70,19 @@ const EquipmentTable: React.FC = () => {
     try {
       const response = await alatService.getAll();
       if (response.data) {
+        console.log("Equipment data:", response.data); // DEBUG
+        // console.log("First equipment i_alat:", response.data[0]?.i_alat); // DEBUG
+        console.log("===== EQUIPMENT DATA DEBUG =====");
+        response.data.forEach((item: Equipment, index: number) => {
+          console.log(`[${index}] ${item.nama}:`, {
+            id: item.id,
+            i_alat: item.i_alat,
+            maintenanceStatus: item.maintenanceStatus,
+            isMaintenanceActive: item.isMaintenanceActive,
+            maintenanceStatusText: item.maintenanceStatusText,
+          });
+        });
+        console.log("===== END DEBUG =====");
         setEquipment(response.data);
 
         // REMOVED: Email service call - akan dipanggil terpisah dengan kontrol ketat
@@ -258,23 +271,30 @@ const EquipmentTable: React.FC = () => {
         accessorKey: "pic",
         size: 130,
       },
+      // Di kolom gambar, perbaiki menjadi:
       {
         header: "Gambar",
         accessorKey: "i_alat",
         size: 100,
-        cell: ({ getValue }) => {
-          const imageFilename = getValue<string>();
-          return imageFilename ? (
-            <ImageDisplay
-              src={`${
-                import.meta.env.VITE_URL
-              }/uploads/${imageFilename}?t=${Date.now()}`}
-              alt="Equipment"
-              className="object-cover w-12 h-12 rounded-md"
-            />
-          ) : (
-            <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-md">
-              <span className="text-xs text-gray-400">No Img</span>
+        cell: ({ row }) => {
+          const equipment = row.original;
+          const imageFilename = equipment.i_alat;
+
+          // Debug info
+          console.log(`📊 Table cell - ${equipment.nama}:`, {
+            hasImage: !!imageFilename,
+            imageFilename: imageFilename,
+            equipmentId: equipment.id,
+          });
+
+          // Gunakan SimpleImageDisplay untuk table (lebih ringan)
+          return (
+            <div className="w-12 h-12">
+              <SimpleImageDisplay
+                src={imageFilename || ""}
+                alt={`Equipment ${equipment.nama}`}
+                className="w-full h-full rounded-md border"
+              />
             </div>
           );
         },
@@ -338,10 +358,12 @@ const EquipmentTable: React.FC = () => {
   );
 
   const filteredData = useMemo(() => {
-    return equipment.filter((item) => {
+    const temp = equipment.filter((item) => {
       const matchesType = !typeFilter || item.jenis === typeFilter;
       return matchesType;
     });
+    console.log("Filtered data count:", temp);
+    return temp;
   }, [equipment, typeFilter]);
 
   const table = useReactTable({
@@ -383,6 +405,8 @@ const EquipmentTable: React.FC = () => {
     const isEdit = !!selectedEquipment;
     const action = isEdit ? "memperbarui" : "menambahkan";
     const loadingToastId = showLoadingToast(`Sedang ${action} alat...`);
+
+    console.log("CEK 3:", equipmentData);
 
     try {
       if (selectedEquipment) {

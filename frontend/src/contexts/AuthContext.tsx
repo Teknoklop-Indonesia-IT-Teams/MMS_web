@@ -54,19 +54,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.data) {
           // Adapt backend response to frontend User type
           const backendUser = response.data as {
-            userId: number;
-            name: string;
+            id: number;
+            nama: string;
             email: string;
             role: string;
+            username: string;
+            telp: string;
           };
 
           const adaptedUser: User = {
-            id: backendUser.userId,
-            nama: backendUser.name,
+            id: backendUser.id,
+            nama: backendUser.nama,
             email: backendUser.email || "",
             role: backendUser.role,
-            username: backendUser.email, // Use email as username fallback
-            petugas: backendUser.name,
+            username: backendUser.username,
+            telp: backendUser.telp || "",
           };
 
           setUser(adaptedUser);
@@ -75,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           EnhancedAuthStorage.saveAuthData(
             authData.token,
             adaptedUser,
-            Math.max(0, Math.floor((authData.expiresAt - Date.now()) / 1000))
+            Math.max(0, Math.floor((authData.expiresAt - Date.now()) / 1000)),
           );
 
           return true;
@@ -167,7 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const success = EnhancedAuthStorage.saveAuthData(
           token,
           userData,
-          expiresIn
+          expiresIn,
         );
 
         if (success) {
@@ -183,7 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw error;
       }
     },
-    [navigate]
+    [navigate],
   );
 
   /**

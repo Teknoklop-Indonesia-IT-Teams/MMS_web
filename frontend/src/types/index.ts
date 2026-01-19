@@ -3,8 +3,8 @@ export interface User {
   nama: string;
   role: string;
   username: string;
-  petugas: string;
   email?: string;
+  telp?: string;
 }
 
 export interface LoginCredentials {

@@ -103,17 +103,6 @@ function App() {
                     }
                   />
 
-                  <Route
-                    path="/equipment"
-                    element={
-                      <ProtectedRoute>
-                        <LayoutWrapper>
-                          <EquipmentTable />
-                        </LayoutWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-
                   {/* Staff/Petugas Routes */}
                   <Route
                     path="/petugas"
@@ -121,29 +110,6 @@ function App() {
                       <ProtectedRoute>
                         <LayoutWrapper>
                           <StaffList />
-                        </LayoutWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/staff"
-                    element={
-                      <ProtectedRoute>
-                        <LayoutWrapper>
-                          <StaffList />
-                        </LayoutWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Equipment Detail */}
-                  <Route
-                    path="/equipment/:id"
-                    element={
-                      <ProtectedRoute>
-                        <LayoutWrapper>
-                          <SimpleEquipmentDetail />
                         </LayoutWrapper>
                       </ProtectedRoute>
                     }

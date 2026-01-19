@@ -28,7 +28,57 @@ app.use(cookieParser()); // Add cookie parser middleware
 app.use(morgan("dev"));
 
 // Serve static files from uploads directory
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    setHeaders: (res, filePath) => {
+      // Set proper headers untuk semua jenis gambar
+      const ext = path.extname(filePath).toLowerCase();
+
+      // MIME type mapping
+      const mimeTypes = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".bmp": "image/bmp",
+        ".webp": "image/webp",
+        ".svg": "image/svg+xml",
+        ".ico": "image/x-icon",
+        ".heic": "image/heic",
+        ".heif": "image/heif",
+        ".heics": "image/heic-sequence",
+        ".heifs": "image/heif-sequence",
+        ".avif": "image/avif",
+        ".tiff": "image/tiff",
+        ".tif": "image/tiff",
+      };
+
+      // Set Content-Type jika diketahui
+      if (mimeTypes[ext]) {
+        res.setHeader("Content-Type", mimeTypes[ext]);
+        console.log(`📁 Static file served: ${filePath} as ${mimeTypes[ext]}`);
+      }
+
+      // Allow CORS untuk development
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+      // Cache control
+      if (ext === ".svg" || ext === ".ico") {
+        res.setHeader("Cache-Control", "public, max-age=604800"); // 1 week for icons
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=86400"); // 1 day for images
+      }
+
+      // Handle query parameters untuk cache busting
+      const reqUrl = res.req.originalUrl;
+      if (reqUrl.includes("?")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    },
+  })
+);
 
 // Add debug middleware
 app.use(debugMiddleware);
@@ -83,6 +133,16 @@ app.use((err, req, res, next) => {
         ? err.message
         : "Internal server error",
   });
+});
+
+// Tambahkan di server.js sebelum routes
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.originalUrl}`);
+  console.log("📤 Request body:", req.body);
+  console.log("📁 Request files:", req.files || "No files");
+  console.log("📄 Request params:", req.params);
+  console.log("🔍 Request query:", req.query);
+  next();
 });
 
 app.listen(PORT, () => {

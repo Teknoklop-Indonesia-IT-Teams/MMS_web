@@ -17,24 +17,24 @@ const transporter = nodemailer.createTransport({
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, mobile, roleId } = req.body;
+    const { nama, email, password, telp, role, username } = req.body;
 
     // Validate required fields
-    if (!name || !email || !password || !mobile || !roleId) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    // if (!nama || !email || !password || !telp || !role || !username) {
+    //   return res.status(400).json({ message: "All fields are required" });
+    // }
 
-    // Validate roleId is a number
-    if (isNaN(roleId) || roleId < 1) {
-      return res
-        .status(400)
-        .json({ message: "Valid role selection is required" });
-    }
+    // Validate role is a number
+    // if (isNaN(role) || role < 1) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Valid role selection is required" });
+    // }
 
     // Check if email exists in m_user
     const [existingEmails] = await db.query(
       "SELECT * FROM m_user WHERE email = ?",
-      [email]
+      [email],
     );
     if (existingEmails.length > 0) {
       return res.status(400).json({ message: "Email already exists" });
@@ -49,8 +49,15 @@ const register = async (req, res) => {
 
     // Insert user into m_user
     const [result] = await db.query(
-      "INSERT INTO m_user (email, password, petugas, role) VALUES (?, ?, ?, ?)",
-      [email, hashedPassword, name, roleId === 1 ? "admin" : "operator"]
+      "INSERT INTO m_user (email, password, nama, role, username, telp) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        email,
+        hashedPassword,
+        nama,
+        role === 1 ? "admin" : "operator",
+        username,
+        telp,
+      ],
     );
 
     // Send notification email to admin
@@ -61,10 +68,12 @@ const register = async (req, res) => {
         subject: "New User Registration - MMS System",
         html: `
           <h3>New User Registration Request</h3>
-          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Name:</strong> ${nama}</p>
           <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Mobile:</strong> ${mobile}</p>
-          <p><strong>Role ID:</strong> ${roleId}</p>
+          <p><strong>Mobile:</strong> ${telp}</p>
+          <p><strong>Role ID:</strong> ${role}</p>
+          <p><strong>Usernama:</strong> ${username}</p>
+          <p><strong>Telp:</strong> ${telp}</p>
           <p>Please review and approve this registration in the admin panel.</p>
         `,
       };
@@ -86,12 +95,13 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, username, password } = req.body;
 
     // Check if user exists in m_user table
-    const [users] = await db.query("SELECT * FROM m_user WHERE email = ?", [
-      username,
-    ]);
+    const [users] = await db.query(
+      "SELECT * FROM m_user WHERE email = ? || username = ?",
+      [email, username],
+    );
 
     if (users.length === 0) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -114,13 +124,15 @@ const login = async (req, res) => {
       userId: user.id,
       email: user.email,
       role: user.role || "operator",
-      name: user.petugas,
+      nama: user.nama,
+      username: user.username,
+      telp: user.telp,
     };
 
     const token = jwt.sign(
       tokenPayload,
       process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "1d" } // 24 hours
+      { expiresIn: "1d" }, // 24 hours
     );
 
     // Set cookie options
@@ -140,9 +152,11 @@ const login = async (req, res) => {
       token,
       user: {
         userId: user.id,
-        name: user.petugas,
+        nama: user.nama,
         email: user.email,
         role: user.role || "operator",
+        username: user.username,
+        telp: user.telp,
       },
       expiresIn: 24 * 60 * 60, // 24 hours in seconds
       message: "Login successful",
@@ -162,7 +176,7 @@ const forgotPassword = async (req, res) => {
     }
 
     // Check if user exists
-    const [users] = await db.query("SELECT * FROM staff WHERE email = ?", [
+    const [users] = await db.query("SELECT * FROM m_user WHERE email = ?", [
       email,
     ]);
 
@@ -181,8 +195,8 @@ const forgotPassword = async (req, res) => {
 
     // Save reset token to database
     await db.query(
-      "UPDATE staff SET reset_token = ?, reset_token_expiry = ? WHERE id = ?",
-      [resetToken, resetTokenExpiry, user.id]
+      "UPDATE m_user SET reset_token = ?, reset_token_expiry = ? WHERE id = ?",
+      [resetToken, resetTokenExpiry, user.id],
     );
 
     // Send reset email
@@ -234,8 +248,8 @@ const resetPassword = async (req, res) => {
 
     // Find user with valid reset token
     const [users] = await db.query(
-      "SELECT * FROM staff WHERE reset_token = ? AND reset_token_expiry > NOW()",
-      [token]
+      "SELECT * FROM m_user WHERE reset_token = ? AND reset_token_expiry > NOW()",
+      [token],
     );
 
     if (users.length === 0) {
@@ -252,8 +266,8 @@ const resetPassword = async (req, res) => {
 
     // Update password and clear reset token
     await db.query(
-      "UPDATE staff SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
-      [hashedPassword, user.id]
+      "UPDATE m_user SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
+      [hashedPassword, user.id],
     );
 
     res.json({ message: "Password reset successful" });
@@ -302,9 +316,11 @@ const getProfile = async (req, res) => {
 
     res.json({
       userId: user.id,
-      name: user.petugas,
+      nama: user.nama,
       email: user.email,
       role: user.role || "operator",
+      username: user.username,
+      telp: user.telp,
     });
   } catch (error) {
     console.error("Get profile error:", error);

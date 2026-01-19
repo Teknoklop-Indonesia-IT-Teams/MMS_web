@@ -2,17 +2,15 @@ const { db } = require("../config/db.js");
 
 const getAllStaff = async (req, res) => {
   try {
-    const [staff] = await db.query(
-      "SELECT id, petugas, email FROM m_user ORDER BY id ASC"
-    );
+    const [staff] = await db.query("SELECT * FROM m_user ORDER BY id ASC");
     // Map to expected format
     const mappedStaff = staff.map((item) => ({
       id: item.id,
-      nama: item.petugas,
-      petugas: item.petugas,
-      role: "staff",
-      username: item.petugas.toLowerCase().replace(/\s+/g, ""),
+      nama: item.nama,
+      role: item.role,
+      username: item.username,
       email: item.email || "Tidak ada email",
+      telp: item.telp || "Tidak ada telp",
     }));
     res.json(mappedStaff);
   } catch (error) {
@@ -24,10 +22,9 @@ const getStaffById = async (req, res) => {
   try {
     const staffId = parseInt(req.params.id);
 
-    const [staff] = await db.query(
-      "SELECT id, petugas, email FROM m_user WHERE id = ?",
-      [staffId]
-    );
+    const [staff] = await db.query("SELECT * FROM m_user WHERE id = ?", [
+      staffId,
+    ]);
 
     if (staff.length === 0) {
       return res.status(404).json({ message: "Petugas tidak ditemukan" });
@@ -35,11 +32,11 @@ const getStaffById = async (req, res) => {
 
     const result = {
       id: staff[0].id,
-      nama: staff[0].petugas,
-      petugas: staff[0].petugas,
-      role: "staff",
-      username: staff[0].petugas.toLowerCase().replace(/\s+/g, ""),
+      nama: staff[0].nama,
+      role: staff[0].role,
+      username: staff[0].username,
       email: staff[0].email,
+      telp: staff[0].telp,
     };
 
     res.json(result);
@@ -51,24 +48,24 @@ const getStaffById = async (req, res) => {
 
 const createStaff = async (req, res) => {
   try {
-    const { nama, email } = req.body;
+    const { nama, email, role, username, telp } = req.body;
 
     if (!nama) {
       return res.status(400).json({ message: "Nama is required" });
     }
 
     const [result] = await db.query(
-      "INSERT INTO m_user (petugas, email) VALUES (?, ?)",
-      [nama, email || null]
+      "INSERT INTO m_user (nama, email, role, username, telp) VALUES (?, ?, ?, ?, ?)",
+      [nama, email || null, role, username, telp || null],
     );
 
     res.status(201).json({
       id: result.insertId,
       nama: nama,
-      petugas: nama,
-      role: "staff",
-      username: nama.toLowerCase().replace(/\s+/g, ""),
       email: email || null,
+      role: role,
+      username: username,
+      telp: telp || null,
     });
   } catch (error) {
     console.error("Error in createStaff:", error);
@@ -78,7 +75,7 @@ const createStaff = async (req, res) => {
 
 const updateStaff = async (req, res) => {
   try {
-    const { nama, email } = req.body;
+    const { nama, email, role, username, telp } = req.body;
     const staffId = parseInt(req.params.id);
 
     if (!nama) {
@@ -87,8 +84,8 @@ const updateStaff = async (req, res) => {
 
     // First check if the staff exists
     const [existingStaff] = await db.query(
-      "SELECT id, petugas FROM m_user WHERE id = ?",
-      [staffId]
+      "SELECT id, nama, email, role, username, telp FROM m_user WHERE id = ?",
+      [staffId],
     );
 
     if (existingStaff.length === 0) {
@@ -96,19 +93,18 @@ const updateStaff = async (req, res) => {
     }
 
     // Update staff with email
-    await db.query("UPDATE m_user SET petugas = ?, email = ? WHERE id = ?", [
-      nama,
-      email || null,
-      staffId,
-    ]);
+    await db.query(
+      "UPDATE m_user SET nama = ?, email = ?, role = ?, username = ?, telp = ? WHERE id = ?",
+      [nama, email || null, role, username, telp || null, staffId],
+    );
 
     res.json({
       id: staffId,
       nama: nama,
-      petugas: nama,
-      role: "staff",
-      username: nama.toLowerCase().replace(/\s+/g, ""),
+      role: role,
+      username: username,
       email: email || null,
+      telp: telp || null,
     });
   } catch (error) {
     console.error("Error in updateStaff:", error);

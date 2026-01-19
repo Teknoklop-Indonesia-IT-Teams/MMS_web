@@ -1,24 +1,45 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 // Configure storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads/"));
+    const uploadPath = path.join(__dirname, "../uploads");
+
+    // Pastikan folder uploads ada
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+      console.log("📁 Created uploads directory:", uploadPath);
+    }
+
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + "." + file.originalname.split(".").pop();
-    cb(null, uniqueSuffix);
+    // Generate safe filename
+    const originalName = path.parse(file.originalname).name;
+    const ext = path.extname(file.originalname).toLowerCase();
+    const timestamp = Date.now();
+    const random = Math.round(Math.random() * 1e9);
+
+    // Buat filename yang aman
+    const safeName = originalName.replace(/[^a-zA-Z0-9]/g, "_");
+    const filename = `${safeName}_${timestamp}_${random}${ext}`;
+
+    console.log("📝 Generated filename:", {
+      original: file.originalname,
+      saved: filename,
+      extension: ext,
+    });
+
+    cb(null, filename);
   },
 });
 
-// File filter
+// File filter dengan support HEIC/HEIF
 const fileFilter = (req, file, cb) => {
-  // Get file extension
-  const fileExtension = path.extname(file.originalname).toLowerCase();
+  console.log("🔍 Checking file:", file.originalname);
 
-  // Allowed image extensions including HEIC
   const allowedExtensions = [
     ".jpg",
     ".jpeg",
@@ -28,9 +49,11 @@ const fileFilter = (req, file, cb) => {
     ".webp",
     ".heic",
     ".heif",
+    ".heics",
+    ".heifs",
+    ".avif",
   ];
 
-  // Allowed MIME types
   const allowedMimeTypes = [
     "image/jpeg",
     "image/jpg",
@@ -38,30 +61,41 @@ const fileFilter = (req, file, cb) => {
     "image/gif",
     "image/bmp",
     "image/webp",
+    "image/svg+xml",
     "image/heic",
     "image/heif",
-    "application/octet-stream", // HEIC files sometimes come as this
+    "image/heic-sequence",
+    "image/heif-sequence",
+    "image/avif",
+    "image/tiff",
+    "application/octet-stream",
   ];
 
-  // Check by extension first (more reliable for HEIC)
-  if (allowedExtensions.includes(fileExtension)) {
-    cb(null, true);
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mime = file.mimetype.toLowerCase();
+
+  console.log("📊 File info:", { ext, mime, size: file.size });
+
+  // Check by extension
+  if (allowedExtensions.includes(ext)) {
+    console.log("✅ Allowed by extension:", ext);
+    return cb(null, true);
   }
-  // Then check by MIME type
-  else if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
+
+  // Check by MIME type
+  if (allowedMimeTypes.includes(mime)) {
+    console.log("✅ Allowed by MIME type:", mime);
+    return cb(null, true);
   }
-  // Special handling for HEIC files that might not have proper MIME type
-  else if (fileExtension === ".heic" || fileExtension === ".heif") {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(
-        "Only image files are allowed! Supported formats: JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF"
-      ),
-      false
-    );
+
+  // Special case for HEIC files
+  if (ext === ".heic" || ext === ".heif") {
+    console.log("✅ Allowing HEIC/HEIF file:", file.originalname);
+    return cb(null, true);
   }
+
+  console.log("❌ File rejected. Extension:", ext, "MIME:", mime);
+  cb(new Error(`File type not allowed: ${ext} (${mime})`), false);
 };
 
 // Create multer instance
@@ -69,7 +103,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 20 * 1024 * 1024, // 20MB
   },
 });
 

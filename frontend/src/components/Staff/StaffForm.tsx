@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { X, User, Mail } from "lucide-react";
+import { X, User, Mail, Phone, PaintRoller, UserCheck } from "lucide-react";
 import { User as UserType } from "../../types";
+import { ROLES } from "../../constants/roles";
 
 interface StaffFormProps {
   user: UserType | null;
   onSave: (
     userData: Omit<UserType, "id" | "created_at" | "updated_at"> & {
       email?: string;
-    }
+    },
   ) => void;
   onCancel: () => void;
 }
@@ -16,6 +17,9 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     nama: "",
     email: "",
+    username: "",
+    role: "",
+    telp: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -25,6 +29,9 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
       setFormData({
         nama: user.nama || "",
         email: user.email || "",
+        username: user.username || "",
+        role: user.role || "",
+        telp: user.telp || "",
       });
     }
   }, [user]);
@@ -34,6 +41,10 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
 
     if (!formData.nama.trim()) {
       newErrors.nama = "Nama wajib diisi";
+    }
+
+    if (!formData.role.trim()) {
+      newErrors.role = "Role wajib dipilih";
     }
 
     if (formData.email && formData.email.trim()) {
@@ -53,10 +64,10 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
       // Prepare data to send
       const dataToSend = {
         nama: formData.nama,
-        petugas: formData.nama,
-        role: "staff",
-        username: formData.nama.toLowerCase().replace(/\s+/g, ""),
+        role: formData.role,
+        username: formData.username.toLowerCase().replace(/\s+/g, ""),
         email: formData.email.trim() || undefined, // Include email in the data
+        telp: formData.telp.trim() || undefined, // Include telp in the data
       };
       onSave(dataToSend);
     }
@@ -145,6 +156,99 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="username"
+                className="flex items-center text-sm font-semibold text-gray-700"
+              >
+                <UserCheck className="h-4 w-4 mr-2 text-blue-500" />
+                Username Petugas
+              </label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.username
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
+                }`}
+                placeholder="Masukkan username petugas"
+              />
+              {errors.username && (
+                <p className="text-sm text-red-500 flex items-center">
+                  <span className="mr-1">⚠️</span>
+                  {errors.username}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="role"
+                className="flex items-center text-sm font-semibold text-gray-700"
+              >
+                <PaintRoller className="h-4 w-4 mr-2 text-blue-500" />
+                Role Petugas
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.role ? "border-red-500 bg-red-50" : "border-gray-300"
+                }`}
+              >
+                <option value="">Pilih Role</option>
+                <option value={ROLES.ADMIN}>Admin</option>
+                <option value={ROLES.SUPERVISOR}>Supervisor</option>
+                <option value={ROLES.OPERATOR}>Operator</option>
+                <option value={ROLES.MAINTENANCE}>Maintenance</option>
+              </select>
+              {errors.role && (
+                <p className="text-sm text-red-500 flex items-center">
+                  <span className="mr-1">⚠️</span>
+                  {errors.role}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="telp"
+                className="flex items-center text-sm font-semibold text-gray-700"
+              >
+                <Phone className="h-4 w-4 mr-2 text-blue-500" />
+                No. Telepon
+              </label>
+              <input
+                type="number"
+                id="telp"
+                name="telp"
+                value={formData.telp}
+                onChange={(e) =>
+                  setFormData({ ...formData, telp: e.target.value })
+                }
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.telp ? "border-red-500 bg-red-50" : "border-gray-300"
+                }`}
+                placeholder="Masukkan telp petugas"
+              />
+              {errors.telp && (
+                <p className="text-sm text-red-500 flex items-center">
+                  <span className="mr-1">⚠️</span>
+                  {errors.telp}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
@@ -153,14 +257,14 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
               type="submit"
               className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
             >
-              💾 {user ? "Update Petugas" : "Simpan Petugas"}
+              {user ? "Update Petugas" : "Simpan Petugas"}
             </button>
             <button
               type="button"
               onClick={onCancel}
               className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
             >
-              ❌ Batal
+              Batal
             </button>
           </div>
         </form>

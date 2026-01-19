@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,42 +10,29 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
+import { Role } from "../../services/api";
+import { ROLES } from "../../constants/roles";
 
 interface SignUpForm {
-  name: string;
+  nama: string;
+  username: string;
   email: string;
   password: string;
-  confirmPassword: string;
-  mobile: string;
-  roleId: number;
-}
-
-interface Role {
-  roleId: number;
+  confirmPassword?: string;
+  telp: string;
   role: string;
-}
-
-interface ApiRole {
-  id: number;
-  name: string;
-  value: string;
-}
-
-interface RolesApiResponse {
-  success: boolean;
-  data: ApiRole[];
 }
 
 const SignUp: React.FC = () => {
   const [formData, setFormData] = useState<SignUpForm>({
-    name: "",
+    nama: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
-    mobile: "",
-    roleId: 0,
+    telp: "",
+    role: "",
   });
-  const [roles, setRoles] = useState<Role[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,51 +40,8 @@ const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
 
-  // Fetch available roles from backend
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/roles`);
-        if (response.ok) {
-          const result: RolesApiResponse = await response.json();
-          if (result.success && result.data) {
-            const mappedRoles = result.data.map((role: ApiRole) => ({
-              roleId: role.id,
-              role: role.value,
-            }));
-            setRoles(mappedRoles);
-          } else {
-            // Fallback to default roles if API response is unexpected
-            setRoles([
-              { roleId: 2, role: "supervisor" },
-              { roleId: 3, role: "operator" },
-              { roleId: 4, role: "maintenance" },
-            ]);
-          }
-        } else {
-          // Fallback to default roles if API fails
-          setRoles([
-            { roleId: 2, role: "supervisor" },
-            { roleId: 3, role: "operator" },
-            { roleId: 4, role: "maintenance" },
-          ]);
-        }
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-        // Fallback to default roles if API fails
-        setRoles([
-          { roleId: 2, role: "supervisor" },
-          { roleId: 3, role: "operator" },
-          { roleId: 4, role: "maintenance" },
-        ]);
-      }
-    };
-
-    fetchRoles();
-  }, []);
-
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -107,7 +51,7 @@ const SignUp: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.name.trim()) {
+    if (!formData.nama.trim()) {
       showError("Error", "Full name is required");
       return false;
     }
@@ -132,11 +76,11 @@ const SignUp: React.FC = () => {
       showError("Error", "Passwords do not match");
       return false;
     }
-    if (!formData.mobile.trim()) {
+    if (!formData.telp.trim()) {
       showError("Error", "Mobile number is required");
       return false;
     }
-    if (!formData.roleId || formData.roleId === 0) {
+    if (!formData.role || formData.role === "") {
       showError("Error", "Please select a role");
       return false;
     }
@@ -161,13 +105,14 @@ const SignUp: React.FC = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: formData.name,
+            nama: formData.nama,
+            username: formData.username,
             email: formData.email,
             password: formData.password,
-            mobile: formData.mobile,
-            roleId: formData.roleId,
+            telp: formData.telp,
+            role: formData.role,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -176,7 +121,7 @@ const SignUp: React.FC = () => {
         setIsSubmitted(true);
         showSuccess(
           "Account Created",
-          "Your account has been created successfully. Please wait for admin approval."
+          "Your account has been created successfully. Please wait for admin approval.",
         );
       } else {
         showError("Error", data.message || "Failed to create account");
@@ -185,7 +130,7 @@ const SignUp: React.FC = () => {
       console.error("Sign up error:", error);
       showError(
         "Network Error",
-        "Unable to connect to server. Please try again."
+        "Unable to connect to server. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -249,7 +194,7 @@ const SignUp: React.FC = () => {
             {/* Full Name */}
             <div>
               <label
-                htmlFor="name"
+                htmlFor="nama"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Full Name
@@ -257,10 +202,10 @@ const SignUp: React.FC = () => {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  id="name"
-                  name="name"
+                  id="nama"
+                  name="nama"
                   type="text"
-                  value={formData.name}
+                  value={formData.nama}
                   onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                   placeholder="Enter your full name"
@@ -269,10 +214,32 @@ const SignUp: React.FC = () => {
               </div>
             </div>
 
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Username
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
+            </div>
+
             {/* Mobile Number */}
             <div>
               <label
-                htmlFor="mobile"
+                htmlFor="telp"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Mobile Number
@@ -280,10 +247,10 @@ const SignUp: React.FC = () => {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  id="mobile"
-                  name="mobile"
-                  type="tel"
-                  value={formData.mobile}
+                  id="telp"
+                  name="telp"
+                  type="number"
+                  value={formData.telp}
                   onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                   placeholder="Enter your mobile number"
@@ -318,38 +285,26 @@ const SignUp: React.FC = () => {
             {/* Role */}
             <div>
               <label
-                htmlFor="roleId"
+                htmlFor="role"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Select Role
               </label>
               <select
-                id="roleId"
-                name="roleId"
-                value={formData.roleId}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
-                <option value={0}>Select a role...</option>
-                {roles.length > 0 ? (
-                  roles.map((role) => (
-                    <option key={role.roleId} value={role.roleId}>
-                      {role.role.charAt(0).toUpperCase() + role.role.slice(1)}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>Loading roles...</option>
-                )}
+                <option value="">Pilih Role</option>
+                <option value={ROLES.ADMIN}>Admin</option>
+                <option value={ROLES.SUPERVISOR}>Supervisor</option>
+                <option value={ROLES.OPERATOR}>Operator</option>
+                <option value={ROLES.MAINTENANCE}>Maintenance</option>
               </select>
-              {/* Debug information */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="text-xs text-gray-400 mt-1">
-                  Debug: {roles.length} roles loaded
-                </div>
-              )}
-              <p className="text-xs text-gray-500 mt-1">
-                Admin approval required for all roles
-              </p>
             </div>
 
             {/* Password */}

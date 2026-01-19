@@ -17,10 +17,10 @@ import { useNoEquipmentData } from "../../hooks/useLazyEquipment";
 interface StaffResponse {
   id: number;
   nama?: string;
-  petugas?: string;
   role?: string;
   username?: string;
   email?: string;
+  telp?: string;
 }
 
 const StaffList: React.FC = () => {
@@ -52,12 +52,12 @@ const StaffList: React.FC = () => {
         const userData: User[] = (staffData as unknown as StaffResponse[]).map(
           (staff: StaffResponse) => ({
             id: staff.id,
-            nama: staff.nama || staff.petugas || "",
-            petugas: staff.petugas || staff.nama || "",
-            role: staff.role || "staff",
-            username: staff.username || staff.nama || staff.petugas || "",
+            nama: staff.nama || "",
+            role: staff.role || undefined || "staff",
+            username: staff.username || "",
             email: staff.email || undefined,
-          })
+            telp: staff.telp || undefined,
+          }),
         );
 
         // Sort by ID in ascending order
@@ -69,7 +69,7 @@ const StaffList: React.FC = () => {
         throw new Error(
           `HTTP ${response?.status || "Unknown"}: ${
             response?.statusText || "Unknown error"
-          }`
+          }`,
         );
       }
     } catch (error) {
@@ -77,7 +77,7 @@ const StaffList: React.FC = () => {
       setError(
         `Gagal memuat data petugas: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     } finally {
       setLoading(false);
@@ -115,13 +115,13 @@ const StaffList: React.FC = () => {
             await fetchUsers();
             showSuccessToast(
               "Petugas berhasil dihapus!",
-              `${userName} telah dihapus dari sistem`
+              `${userName} telah dihapus dari sistem`,
             );
           } catch (error) {
             console.error("Error deleting staff:", error);
             showErrorToast(
               "Gagal menghapus petugas",
-              "Terjadi kesalahan saat menghapus data petugas"
+              "Terjadi kesalahan saat menghapus data petugas",
             );
           } finally {
             toast.dismiss(loadingToastId);
@@ -130,10 +130,10 @@ const StaffList: React.FC = () => {
         () => {
           // User cancelled - no action needed
         },
-        "Tindakan ini tidak dapat dibatalkan"
+        "Tindakan ini tidak dapat dibatalkan",
       );
     },
-    [fetchUsers, users]
+    [fetchUsers, users],
   );
 
   const handleSaveUser = useCallback(
@@ -147,19 +147,22 @@ const StaffList: React.FC = () => {
         const apiData = {
           nama: userData.nama,
           email: userData.email || undefined,
+          role: userData.role || "operator",
+          username: userData.username,
+          telp: userData.telp,
         };
 
         if (selectedUser) {
           await staffService.update(selectedUser.id.toString(), apiData);
           showSuccessToast(
             "Petugas berhasil diperbarui!",
-            `Data ${userData.nama} telah diperbarui`
+            `Data ${userData.nama} telah diperbarui`,
           );
         } else {
           await staffService.create(apiData);
           showSuccessToast(
             "Petugas berhasil ditambahkan!",
-            `${userData.nama} telah ditambahkan ke sistem`
+            `${userData.nama} telah ditambahkan ke sistem`,
           );
         }
         await fetchUsers();
@@ -167,7 +170,7 @@ const StaffList: React.FC = () => {
         console.error("Error saving staff:", error);
         showErrorToast(
           `Gagal ${action} petugas`,
-          "Terjadi kesalahan saat menyimpan data petugas"
+          "Terjadi kesalahan saat menyimpan data petugas",
         );
       } finally {
         toast.dismiss(loadingToastId);
@@ -175,7 +178,7 @@ const StaffList: React.FC = () => {
         setSelectedUser(null);
       }
     },
-    [selectedUser, fetchUsers]
+    [selectedUser, fetchUsers],
   );
 
   const handleCloseForm = useCallback(() => {
@@ -256,6 +259,15 @@ const StaffList: React.FC = () => {
                   Email
                 </th>
                 <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
+                  Username
+                </th>
+                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
+                  Telp
+                </th>
+                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
                   Aksi
                 </th>
               </tr>
@@ -288,6 +300,21 @@ const StaffList: React.FC = () => {
                       <span className="text-sm text-gray-900 dark:text-gray-100">
                         {user.email || "Tidak ada email"}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {user.username}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {user.role}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {user.telp}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
                       {canManageStaff && (

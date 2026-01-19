@@ -79,7 +79,7 @@ class RefreshProtectionManager {
 
     // Remove old refresh times outside the window
     this.refreshTimes = this.refreshTimes.filter(
-      (time) => now - time < this.TIME_WINDOW
+      (time) => now - time < this.TIME_WINDOW,
     );
 
     // Add current refresh
@@ -100,15 +100,15 @@ class RefreshProtectionManager {
     rapidRefreshProtection = true;
 
     // Show user warning
-    if (typeof window !== "undefined") {
-      setTimeout(() => {
-        alert(
-          `⚠️ Refresh terlalu cepat! Harap tunggu ${
-            this.LOCKOUT_DURATION / 1000
-          } detik untuk mencegah logout otomatis.`
-        );
-      }, 100);
-    }
+    // if (typeof window !== "undefined") {
+    //   setTimeout(() => {
+    //     alert(
+    //       `⚠️ Refresh terlalu cepat! Harap tunggu ${
+    //         this.LOCKOUT_DURATION / 1000
+    //       } detik untuk mencegah logout otomatis.`
+    //     );
+    //   }, 100);
+    // }
 
     setTimeout(() => {
       this.isLocked = false;
@@ -201,11 +201,11 @@ if (typeof window !== "undefined") {
 
   // Multiple event listeners for comprehensive detection
   window.addEventListener("beforeunload", () =>
-    activateNavigationShield("beforeunload")
+    activateNavigationShield("beforeunload"),
   );
   window.addEventListener("unload", () => activateNavigationShield("unload"));
   window.addEventListener("pagehide", () =>
-    activateNavigationShield("pagehide")
+    activateNavigationShield("pagehide"),
   );
 
   // Page load protection
@@ -275,7 +275,7 @@ api.interceptors.request.use(
   (error) => {
     console.error("❌ API: Request interceptor error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Optimistic Locking Manager untuk mencegah race conditions
@@ -287,7 +287,7 @@ class OptimisticLockingManager {
   async executeWithLock<T>(
     operationKey: string,
     operation: () => Promise<T>,
-    retryCount = 3
+    retryCount = 3,
   ): Promise<T> {
     const now = Date.now();
 
@@ -308,7 +308,7 @@ class OptimisticLockingManager {
     const operationPromise = this.executeWithRetry(
       operation,
       retryCount,
-      operationKey
+      operationKey,
     );
     this.operationQueue.set(operationKey, operationPromise);
 
@@ -329,7 +329,7 @@ class OptimisticLockingManager {
   private async executeWithRetry<T>(
     operation: () => Promise<T>,
     retryCount: number,
-    operationKey: string
+    operationKey: string,
   ): Promise<T> {
     for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
@@ -340,7 +340,7 @@ class OptimisticLockingManager {
           error instanceof Error ? error.message : "Unknown error";
         console.log(
           `❌ Attempt ${attempt} failed for ${operationKey}:`,
-          errorMessage
+          errorMessage,
         );
 
         // Don't retry on authentication errors to prevent logout loops
@@ -362,7 +362,7 @@ class OptimisticLockingManager {
     }
 
     throw new Error(
-      `Operation failed after ${retryCount} attempts: ${operationKey}`
+      `Operation failed after ${retryCount} attempts: ${operationKey}`,
     );
   }
 
@@ -570,7 +570,7 @@ api.interceptors.response.use(
       // Let the components handle 401 errors individually
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Page reload detection is now handled by LogoutManager's initialization period
@@ -609,7 +609,7 @@ export const alatService = {
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.post<Alat>("/alat", data, { headers })
+        api.post<Alat>("/alat", data, { headers }),
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
@@ -617,13 +617,21 @@ export const alatService = {
     AppStateManager.startCriticalOperation(`Equipment update ${id}`);
     const operationKey = `update-alat-${id}`;
 
+    if (typeof data === "object" && data instanceof FormData) {
+      console.log("CEK", [...data.entries()]);
+    }
+    console.log("CEK 2", typeof data);
+    console.log("CEK 2.1", data instanceof FormData);
+
     // For FormData, don't set Content-Type header - let browser set it automatically
     const headers =
-      data instanceof FormData ? {} : { "Content-Type": "application/json" };
+      data instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" };
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.put<Alat>(`/alat/${id}`, data, { headers })
+        api.put<Alat>(`/alat/${id}`, data, { headers }),
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
@@ -639,13 +647,13 @@ export const alatService = {
   stopMaintenance: (id: string) => {
     const operationKey = `stop-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.post(`/alat/${id}/stop-maintenance`)
+      api.post(`/alat/${id}/stop-maintenance`),
     );
   },
   completeMaintenance: (id: string) => {
     const operationKey = `complete-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.post(`/alat/${id}/complete-maintenance`)
+      api.post(`/alat/${id}/complete-maintenance`),
     );
   },
   updateMaintenanceSettings: (
@@ -654,11 +662,11 @@ export const alatService = {
       maintenanceDate?: string;
       maintenanceInterval?: number;
       isMaintenanceActive?: boolean;
-    }
+    },
   ) => {
     const operationKey = `update-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.put(`/alat/${id}/maintenance`, data)
+      api.put(`/alat/${id}/maintenance`, data),
     );
   },
 };
@@ -781,15 +789,12 @@ export const itemsService = {
 export interface Role {
   roleId: number;
   roleName: string;
-  createdDtm: string;
-  updatedDtm?: string;
 }
 
 export const rolesService = {
   getAll: () => api.get<Role[]>("/roles"),
   getById: (id: string) => api.get<Role>(`/roles/${id}`),
-  create: (data: Omit<Role, "roleId" | "createdDtm" | "updatedDtm">) =>
-    api.post<Role>("/roles", data),
+  create: (data: Omit<Role, "roleId">) => api.post<Role>("/roles", data),
   update: (id: string, data: Partial<Role>) =>
     api.put<Role>(`/roles/${id}`, data),
   delete: (id: string) => api.delete(`/roles/${id}`),
@@ -827,7 +832,7 @@ export const usersService = {
     data: {
       oldPassword: string;
       newPassword: string;
-    }
+    },
   ) => api.patch(`/users/${id}/password`, data),
 };
 
@@ -869,10 +874,10 @@ export const RaceConditionUtils = {
         timeSincePageLoad < 30000
           ? "HIGH"
           : isNavigating
-          ? "MEDIUM"
-          : rapidRefreshProtection
-          ? "HIGH"
-          : "LOW",
+            ? "MEDIUM"
+            : rapidRefreshProtection
+              ? "HIGH"
+              : "LOW",
     };
   },
 
