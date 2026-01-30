@@ -335,7 +335,6 @@ const EquipmentTable: React.FC = () => {
       const matchesType = !typeFilter || item.jenis === typeFilter;
       return matchesType;
     });
-    console.log("Filtered data count:", temp);
     return temp;
   }, [equipment, typeFilter]);
 

@@ -18,7 +18,7 @@ app.use(
       "http://192.168.18.116:5173",
       "http://192.168.18.116:5174",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true, // Important for cookies
   }),
 );

@@ -9,7 +9,7 @@ import {
 import { isAppStillInitializing } from "../utils/authUtils";
 import { AppStateManager } from "../utils/appState";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000; // Reduced from 60s to 10s
 
@@ -800,7 +800,7 @@ export interface User {
 
 export const usersService = {
   getAll: () => api.get<User[]>("/users"),
-  getUserById: (id: string) => api.get<User>(`/users/${id}`),
+  getUserById: (id: number) => api.get<User>(`/users/${id}`),
   create: (data: {
     email: string;
     password: string;
@@ -812,13 +812,6 @@ export const usersService = {
     api.put<User>(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),
   restore: (id: string) => api.patch(`/users/${id}/restore`),
-  changePassword: (
-    id: string,
-    data: {
-      oldPassword: string;
-      newPassword: string;
-    },
-  ) => api.patch(`/users/${id}/password`, data),
 };
 
 // Utility functions untuk race condition protection

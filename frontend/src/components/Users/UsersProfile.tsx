@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { usersService, User } from "../../services/api";
+import { usersService } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
-import { User2, Key, Save } from "lucide-react";
+import { User2, Key, Save, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import { authService } from "../../services/apiSimple";
 
 const UserProfile: React.FC = () => {
-  const { user } = useAuth();
-  const [userId, setUserId] = useState<number | null>(null);
+  const { user, updateUser } = useAuth();
+
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const { showSuccess, showError } = useToast();
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
 
   // Form state for profile
   const [formData, setFormData] = useState({
@@ -32,18 +37,7 @@ const UserProfile: React.FC = () => {
   const fetchCurrentUser = async () => {
     try {
       setLoading(true);
-
-      const storedUser = localStorage.getItem("users");
-      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-
-      if (!parsedUser?.id) {
-        showError("User tidak ditemukan");
-        return;
-      }
-
-      setUserId(parsedUser.id); // ✅ PENTING
-
-      const response = await usersService.getUserById(parsedUser.id);
+      const response = await authService.getProfile();
       if (response.status === 200) {
         setFormData({
           email: response.data.email || "",
@@ -65,25 +59,23 @@ const UserProfile: React.FC = () => {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userId) {
-      showError("User ID tidak ditemukan");
-      return;
-    }
+    try {
+      const response = await authService.updateProfile(formData);
 
-    const updateData = {
-      email: formData.email,
-      nama: formData.nama,
-      telp: formData.telp,
-      username: formData.username,
-      role: formData.role,
-    };
+      if (response.status === 200) {
+        showSuccess("Profile berhasil diperbarui");
+        setIsEditing(false);
+        setShowAlert(true);
 
-    const response = await usersService.update(userId, updateData);
+        updateUser(formData);
 
-    if (response.status === 200) {
-      showSuccess("Profile berhasil diperbarui");
-      setIsEditing(false);
-      fetchCurrentUser();
+        await fetchCurrentUser();
+        setTimeout(() => {
+          setShowAlert(false);
+        }, 3000);
+      }
+    } catch (error) {
+      showError("Gagal memperbarui profile");
     }
   };
 
@@ -103,7 +95,7 @@ const UserProfile: React.FC = () => {
     }
 
     try {
-      const response = await usersService.changePassword(user.id.toString(), {
+      const response = await authService.changePassword({
         oldPassword: passwordData.oldPassword,
         newPassword: passwordData.newPassword,
       });
@@ -373,12 +365,13 @@ const UserProfile: React.FC = () => {
             </div>
 
             <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Password Lama
                 </label>
+
                 <input
-                  type="password"
+                  type={showOld ? "text" : "password"}
                   value={passwordData.oldPassword}
                   onChange={(e) =>
                     setPasswordData({
@@ -386,18 +379,28 @@ const UserProfile: React.FC = () => {
                       oldPassword: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10
+               focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Masukkan password lama"
                   required
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowOld(!showOld)}
+                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                >
+                  {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Password Baru
                 </label>
+
                 <input
-                  type="password"
+                  type={showNew ? "text" : "password"}
                   value={passwordData.newPassword}
                   onChange={(e) =>
                     setPasswordData({
@@ -405,19 +408,29 @@ const UserProfile: React.FC = () => {
                       newPassword: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10
+               focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Minimal 6 karakter"
                   required
                   minLength={6}
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                >
+                  {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Konfirmasi Password Baru
                 </label>
+
                 <input
-                  type="password"
+                  type={showConfirm ? "text" : "password"}
                   value={passwordData.confirmPassword}
                   onChange={(e) =>
                     setPasswordData({
@@ -425,11 +438,20 @@ const UserProfile: React.FC = () => {
                       confirmPassword: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10
+               focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Konfirmasi password baru"
                   required
                   minLength={6}
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
 
               <div className="pt-4">

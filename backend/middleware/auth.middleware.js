@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(
       null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname),
     );
   },
 });
@@ -68,7 +68,7 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "your-secret-key"
+      process.env.JWT_SECRET || "your-secret-key",
     );
 
     // Optional: Verify user still exists in database
@@ -135,7 +135,7 @@ const optionalAuthMiddleware = async (req, res, next) => {
       try {
         const decoded = jwt.verify(
           token,
-          process.env.JWT_SECRET || "your-secret-key"
+          process.env.JWT_SECRET || "your-secret-key",
         );
         req.user = {
           id: decoded.userId,

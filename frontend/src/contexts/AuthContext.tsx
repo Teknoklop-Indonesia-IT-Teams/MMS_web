@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   checkAuth: () => Promise<boolean>;
+  updateUser: (newUser: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -188,6 +189,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     [navigate],
   );
 
+  const updateUser = (newUser: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...newUser } : prev));
+  };
+
   /**
    * Logout function with proper cleanup
    */
@@ -262,6 +267,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     loading,
     checkAuth,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -106,19 +106,16 @@ const updateUser = async (req, res) => {
     updateQuery += " WHERE id = ?";
     queryParams.push(req.params.id);
 
-    // await db.query(updateQuery, queryParams);
+    await db.query(updateQuery, queryParams);
 
-    // res.json({
-    //   id: req.params.id,
-    //   email,
-    //   nama,
-    //   username,
-    //   telp,
-    //   role,
-    // });
-    const [result] = await db.query(updateQuery, queryParams);
-    console.log("UPDATE PARAMS:", queryParams);
-    console.log("AFFECTED ROWS:", result.affectedRows);
+    res.json({
+      id: req.params.id,
+      email,
+      nama,
+      username,
+      telp,
+      role,
+    });
 
     if (result.affectedRows === 0) {
       return res.status(400).json({

@@ -50,7 +50,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Simple but effective response interceptor
@@ -68,7 +68,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export const authService = {
@@ -86,6 +86,15 @@ export const authService = {
   getProfile: async () => {
     return api.get("/auth/profile");
   },
+  updateProfile: (data: {
+    email: string;
+    nama: string;
+    username: string;
+    telp: string;
+    role?: string;
+  }) => api.patch("/auth/profile", data),
+  changePassword: (data: { oldPassword: string; newPassword: string }) =>
+    api.patch(`/auth/password`, data),
   register: async (data: RegisterData) => {
     return api.post("/auth/register", data);
   },
@@ -111,7 +120,7 @@ export const alatService = {
   restore: (id: string) => api.patch(`/alat/${id}/restore`),
   updateMaintenance: (
     id: string,
-    data: { isMaintenanceActive: boolean; maintenanceStatus?: string }
+    data: { isMaintenanceActive: boolean; maintenanceStatus?: string },
   ) => api.patch(`/alat/${id}/maintenance`, data),
 };
 
@@ -144,7 +153,7 @@ export const usersService = {
   }) => api.post("/users", data),
   update: (
     id: string,
-    data: Partial<{ name: string; email: string; roleId: number }>
+    data: Partial<{ name: string; email: string; roleId: number }>,
   ) => api.put(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),
   restore: (id: string) => api.patch(`/users/${id}/restore`),
@@ -153,7 +162,7 @@ export const usersService = {
     data: {
       oldPassword: string;
       newPassword: string;
-    }
+    },
   ) => api.patch(`/users/${id}/password`, data),
 };
 
@@ -232,7 +241,7 @@ export const enhancedEquipmentService = {
     } catch (error) {
       console.error(
         "❌ Enhanced Equipment: Complete maintenance error:",
-        error
+        error,
       );
       throw error;
     }
@@ -244,7 +253,7 @@ export const enhancedEquipmentService = {
       maintenanceDate?: string;
       maintenanceInterval?: number;
       isMaintenanceActive?: boolean;
-    }
+    },
   ) => {
     try {
       const response = await api.put(`/alat/${id}/maintenance`, data);

@@ -332,6 +332,70 @@ const getProfile = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // dari JWT / session
+    const { email, nama, username, telp } = req.body;
+
+    const [emailCheck] = await db.query(
+      "SELECT id FROM m_user WHERE email = ? AND id != ? AND isDeleted = 0",
+      [email, userId],
+    );
+
+    if (emailCheck.length > 0) {
+      return res.status(400).json({ message: "Email sudah digunakan" });
+    }
+
+    const [result] = await db.query(
+      `UPDATE m_user
+       SET email = ?, nama = ?, username = ?, telp = ?, updatedDtm = NOW()
+       WHERE id = ?`,
+      [email, nama, username, telp, userId],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ message: "Data tidak berubah" });
+    }
+
+    res.json({ message: "Profile berhasil diperbarui" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+
+    const [rows] = await db.query(
+      "SELECT password FROM m_user WHERE id = ? AND isDeleted = 0",
+      [userId],
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, rows[0].password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Password lama salah" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      "UPDATE m_user SET password = ?, updatedDtm = NOW() WHERE id = ?",
+      [hashed, userId],
+    );
+
+    res.json({ message: "Password berhasil diubah" });
+  } catch (error) {
+    console.error("changePassword error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -339,4 +403,6 @@ module.exports = {
   getProfile,
   forgotPassword,
   resetPassword,
+  updateProfile,
+  changePassword,
 };

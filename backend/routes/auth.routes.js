@@ -18,6 +18,8 @@ router.post("/reset-password", authController.resetPassword);
 // Protected routes (authentication required)
 router.post("/logout", authMiddleware, authController.logout);
 router.get("/profile", authMiddleware, authController.getProfile);
+router.patch("/profile", authMiddleware, authController.updateProfile);
+router.patch("/password", authMiddleware, authController.changePassword);
 
 // Token verification endpoint
 router.get("/verify", authMiddleware, (req, res) => {

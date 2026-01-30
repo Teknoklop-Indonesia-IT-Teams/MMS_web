@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/users.controller");
-
 // Debug logging
 router.use((req, res, next) => {
   next();

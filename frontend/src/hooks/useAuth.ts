@@ -25,6 +25,7 @@ export const useAuth = () => {
     login: authContext.login,
     logout: authContext.logout,
     checkAuth: authContext.checkAuth,
+    updateUser: authContext.updateUser,
     hasRole,
     hasAnyRole,
   };
