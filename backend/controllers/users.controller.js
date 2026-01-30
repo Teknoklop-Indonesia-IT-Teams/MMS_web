@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const getAllUsers = async (req, res) => {
   try {
     const [users] = await db.query(`
-      SELECT id as userId, email, petugas as name, role as roleName
+      SELECT id as id, email, nama, role as roleName
       FROM m_user 
       ORDER BY id DESC
     `);
@@ -21,7 +21,7 @@ const getUserById = async (req, res) => {
   try {
     const [user] = await db.query(
       `
-      SELECT id as userId, email, petugas as name, role as roleName
+      SELECT id as id, email, nama, role as roleName
       FROM m_user 
       WHERE id = ?
     `,
@@ -41,7 +41,7 @@ const getUserById = async (req, res) => {
 // Create new user
 const createUser = async (req, res) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, nama, role } = req.body;
 
     // Check if email already exists
     const [existingUser] = await db.query(
@@ -56,15 +56,15 @@ const createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
-      "INSERT INTO m_user (email, password, petugas, role) VALUES (?, ?, ?, ?)",
-      [email, hashedPassword, name, role || "engineer"],
+      "INSERT INTO m_user (email, password, nama, role) VALUES (?, ?, ?, ?)",
+      [email, hashedPassword, nama, role],
     );
 
     res.status(201).json({
-      userId: result.insertId,
+      id: result.insertId,
       email,
-      name,
-      role: role || "engineer",
+      nama,
+      role: role,
     });
   } catch (error) {
     console.error(error);
@@ -75,11 +75,11 @@ const createUser = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
-    const { email, name, mobile, roleId, password } = req.body;
+    const { email, nama, telp, username, role, password } = req.body;
 
     // Check if email already exists for other users
     const [existingUser] = await db.query(
-      "SELECT userId FROM tbl_users WHERE email = ? AND userId != ? AND isDeleted = 0",
+      "SELECT id FROM m_user WHERE email = ? AND id != ? AND isDeleted = 0",
       [email, req.params.id],
     );
     if (existingUser.length > 0) {
@@ -87,8 +87,14 @@ const updateUser = async (req, res) => {
     }
 
     let updateQuery =
-      "UPDATE tbl_users SET email = ?, name = ?, mobile = ?, roleId = ?, updatedDtm = NOW(), updatedBy = 1";
-    let queryParams = [email, name, mobile, roleId];
+      "UPDATE m_user SET email = ?, nama = ?, username = ?, telp = ?, updatedDtm = NOW(), updatedBy = 1";
+    let queryParams = [email, nama, username, telp];
+
+    // role hanya diupdate kalau dikirim
+    if (role) {
+      updateQuery += ", role = ?";
+      queryParams.push(role);
+    }
 
     // Only update password if provided
     if (password) {
@@ -97,17 +103,31 @@ const updateUser = async (req, res) => {
       queryParams.push(hashedPassword);
     }
 
-    updateQuery += " WHERE userId = ?";
+    updateQuery += " WHERE id = ?";
     queryParams.push(req.params.id);
 
-    await db.query(updateQuery, queryParams);
+    // await db.query(updateQuery, queryParams);
+
+    // res.json({
+    //   id: req.params.id,
+    //   email,
+    //   nama,
+    //   username,
+    //   telp,
+    //   role,
+    // });
+    const [result] = await db.query(updateQuery, queryParams);
+    console.log("UPDATE PARAMS:", queryParams);
+    console.log("AFFECTED ROWS:", result.affectedRows);
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({
+        message: "Update gagal: data sama atau user tidak ditemukan",
+      });
+    }
 
     res.json({
-      userId: req.params.id,
-      email,
-      name,
-      mobile,
-      roleId,
+      message: "Profile berhasil diperbarui",
     });
   } catch (error) {
     console.error(error);
@@ -119,7 +139,7 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     await db.query(
-      "UPDATE tbl_users SET isDeleted = 1, updatedDtm = NOW(), updatedBy = 1 WHERE userId = ?",
+      "UPDATE m_user SET isDeleted = 1, updatedDtm = NOW(), updatedBy = 1 WHERE id = ?",
       [req.params.id],
     );
     res.json({ message: "User berhasil dihapus" });
@@ -133,7 +153,7 @@ const deleteUser = async (req, res) => {
 const restoreUser = async (req, res) => {
   try {
     await db.query(
-      "UPDATE tbl_users SET isDeleted = 0, updatedDtm = NOW(), updatedBy = 1 WHERE userId = ?",
+      "UPDATE m_user SET isDeleted = 0, updatedDtm = NOW(), updatedBy = 1 WHERE id = ?",
       [req.params.id],
     );
     res.json({ message: "User berhasil dipulihkan" });
@@ -147,12 +167,12 @@ const restoreUser = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const userId = req.params.id;
+    const id = req.params.id;
 
     // Get current user
     const [users] = await db.query(
-      "SELECT password FROM tbl_users WHERE userId = ? AND isDeleted = 0",
-      [userId],
+      "SELECT password FROM m_user WHERE id = ? AND isDeleted = 0",
+      [id],
     );
     if (users.length === 0) {
       return res.status(404).json({ message: "User tidak ditemukan" });
@@ -172,8 +192,8 @@ const changePassword = async (req, res) => {
 
     // Update password
     await db.query(
-      "UPDATE tbl_users SET password = ?, updatedDtm = NOW(), updatedBy = 1 WHERE userId = ?",
-      [hashedPassword, userId],
+      "UPDATE m_user SET password = ?, updatedDtm = NOW(), updatedBy = 1 WHERE id = ?",
+      [hashedPassword, id],
     );
 
     res.json({ message: "Password berhasil diubah" });

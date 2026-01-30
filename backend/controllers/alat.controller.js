@@ -2,6 +2,7 @@ const { db } = require("../config/db.js");
 
 const getAllAlat = async (req, res) => {
   try {
+    console.log("🔍 Executing getAllAlat query...");
     // Pertama, cek struktur tabel
     const [tableInfo] = await db.query(`
       SELECT COLUMN_NAME, DATA_TYPE 
@@ -10,8 +11,26 @@ const getAllAlat = async (req, res) => {
       AND TABLE_NAME = 'm_alat'
       ORDER BY ORDINAL_POSITION
     `);
+    console.log("📊 Table structure:", tableInfo);
 
     const [alat] = await db.query("SELECT * FROM m_alat ORDER BY id DESC");
+    console.log(`📊 Found ${alat.length} equipment records`);
+
+    if (alat.length > 0) {
+      console.log("📋 First equipment record:", {
+        id: alat[0].id,
+        nama: alat[0].nama,
+        i_alat: alat[0].i_alat,
+        maintenance_fields: {
+          maintenance_date: alat[0].maintenance_date,
+          maintenance_interval_days: alat[0].maintenance_interval_days,
+          is_maintenance_active: alat[0].is_maintenance_active,
+          // Cek semua kemungkinan nama kolom
+          isMaintenanceActive: alat[0].isMaintenanceActive,
+          isMaintenance_active: alat[0].isMaintenance_active,
+        },
+      });
+    }
 
     // Calculate maintenance status for each equipment
     const alatWithSequentialId = alat.map((item, index) => {
@@ -212,6 +231,36 @@ const getAlatById = async (req, res) => {
 
 const createAlat = async (req, res) => {
   try {
+    console.log("\n========== CREATE ALAT START ==========");
+
+    // DEBUG: Log semua yang ada di request
+    console.log("📤 REQUEST DETAILS:");
+    console.log("- Headers:", {
+      "content-type": req.headers["content-type"],
+      "content-length": req.headers["content-length"],
+    });
+    console.log("- Body keys:", Object.keys(req.body));
+    console.log(
+      "- File:",
+      req.file
+        ? {
+            fieldname: req.file.fieldname,
+            originalname: req.file.originalname,
+            filename: req.file.filename,
+            path: req.file.path,
+            size: req.file.size,
+          }
+        : "NO FILE",
+    );
+
+    // Log semua body fields
+    for (const [key, value] of Object.entries(req.body)) {
+      console.log(
+        `  ${key}:`,
+        typeof value === "string" ? value.substring(0, 100) : value,
+      );
+    }
+
     const {
       nama,
       lokasi,
@@ -234,7 +283,10 @@ const createAlat = async (req, res) => {
     let i_alat = null;
 
     if (req.file) {
-      i_alat = req.file.filename;
+      i_alat = req.file.filename; // Store only the filename
+      console.log("✅ File uploaded successfully:", req.file.filename);
+    } else {
+      console.log("⚠️ No file uploaded");
     }
 
     // ========== VALIDASI DATA ==========
@@ -274,7 +326,7 @@ const createAlat = async (req, res) => {
       pelanggan || null,
       pic || null,
       email || null,
-      i_alat, // Bisa null
+      i_alat || null, // Store the blob
       maintenanceDate || new Date().toISOString().split("T")[0],
       maintenanceInterval || 90,
       is_maintenance_active,
@@ -297,7 +349,7 @@ const createAlat = async (req, res) => {
       pelanggan: pelanggan || null,
       pic: pic || null,
       email: email || null,
-      i_alat: i_alat, // Filename atau null
+      i_alat: i_alat || null, // Blob data
       maintenanceDate:
         maintenanceDate || new Date().toISOString().split("T")[0],
       maintenanceInterval: maintenanceInterval || 90,

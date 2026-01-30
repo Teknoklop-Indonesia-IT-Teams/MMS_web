@@ -3,33 +3,13 @@ const { db } = require("../config/db.js");
 // Get all roles for frontend
 const getRoles = async (req, res) => {
   try {
-    // Return static roles since we don't have tbl_roles table
-    const mappedRoles = [
-      {
-        id: 1,
-        name: "Admin",
-        value: "admin",
-      },
-      {
-        id: 2,
-        name: "Engineer",
-        value: "engineer",
-      },
-      {
-        id: 3,
-        name: "Ast_Manager",
-        value: "ast_manager",
-      },
-      {
-        id: 4,
-        name: "Manager",
-        value: "manager",
-      },
-    ];
+    const [roles] = await db.query(
+      "SELECT roleId, roleName FROM tbl_roles WHERE roleName != 'ADMIN'",
+    );
 
     res.json({
       success: true,
-      data: mappedRoles.filter((role) => role.value !== "admin"), // Don't allow signup as admin
+      data: roles,
     });
   } catch (error) {
     console.error("Get roles error:", error);
@@ -44,10 +24,10 @@ const getRoles = async (req, res) => {
 const getAllRoles = async (req, res) => {
   try {
     const roles = [
-      { roleId: 1, role: "admin" },
-      { roleId: 2, role: "engineer" },
-      { roleId: 3, role: "ast_manager" },
-      { roleId: 4, role: "manager" },
+      { roleId: 1, roleName: "admin" },
+      { roleId: 2, roleName: "manager" },
+      { roleId: 3, roleName: "ast_manager" },
+      { roleId: 4, roleName: "engineer" },
     ];
     res.json(roles);
   } catch (error) {
@@ -56,15 +36,15 @@ const getAllRoles = async (req, res) => {
   }
 };
 
-// Get role by ID
+// Get roleName by ID
 const getRoleById = async (req, res) => {
   try {
     const roleId = parseInt(req.params.id);
     const roles = {
-      1: { roleId: 1, role: "admin" },
-      2: { roleId: 2, role: "engineer" },
-      3: { roleId: 3, role: "ast_manager" },
-      4: { roleId: 4, role: "manager" },
+      1: { roleId: 1, roleName: "admin" },
+      2: { roleId: 2, roleName: "manager" },
+      3: { roleId: 3, roleName: "ast_manager" },
+      4: { roleId: 4, roleName: "engineer" },
     };
 
     if (roles[roleId]) {
@@ -78,18 +58,19 @@ const getRoleById = async (req, res) => {
   }
 };
 
-// Create new role
+// Create new roleName
 const createRole = async (req, res) => {
   try {
-    const { role } = req.body;
+    const { roleName } = req.body;
 
-    const [result] = await db.query("INSERT INTO tbl_roles (role) VALUES (?)", [
-      role,
-    ]);
+    const [result] = await db.query(
+      "INSERT INTO tbl_roles (roleName) VALUES (?)",
+      [roleName],
+    );
 
     res.status(201).json({
       roleId: result.insertId,
-      role,
+      roleName,
     });
   } catch (error) {
     console.error(error);
@@ -97,19 +78,19 @@ const createRole = async (req, res) => {
   }
 };
 
-// Update role
+// Update roleName
 const updateRole = async (req, res) => {
   try {
-    const { role } = req.body;
+    const { roleName } = req.body;
 
-    await db.query("UPDATE tbl_roles SET role = ? WHERE roleId = ?", [
-      role,
+    await db.query("UPDATE tbl_roles SET roleName = ? WHERE roleId = ?", [
+      roleName,
       req.params.id,
     ]);
 
     res.json({
       roleId: req.params.id,
-      role,
+      roleName,
     });
   } catch (error) {
     console.error(error);
@@ -117,7 +98,7 @@ const updateRole = async (req, res) => {
   }
 };
 
-// Delete role
+// Delete roleName
 const deleteRole = async (req, res) => {
   try {
     await db.query("DELETE FROM tbl_roles WHERE roleId = ?", [req.params.id]);

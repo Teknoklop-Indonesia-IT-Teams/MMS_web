@@ -10,6 +10,7 @@ import { isAppStillInitializing } from "../utils/authUtils";
 import { AppStateManager } from "../utils/appState";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const VITE_API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000; // Reduced from 60s to 10s
 
 // ABSOLUTE PROTECTION: Navigation/Refresh Detection - STRONGEST protection
@@ -242,7 +243,7 @@ if (typeof window !== "undefined") {
 }
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: VITE_API_URL,
   timeout: Number(API_TIMEOUT), // Use environment variable
   headers: {
     "Content-Type": "application/json",
@@ -255,28 +256,6 @@ const api = axios.create({
     return status >= 200 && status < 500; // Handle all responses
   },
 });
-
-// Request interceptor to add authentication token
-api.interceptors.request.use(
-  (config) => {
-    // Try multiple token sources for enhanced compatibility
-    const token =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("accessToken") ||
-      localStorage.getItem("token");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.log("⚠️ API: No auth token found for request");
-    }
-    return config;
-  },
-  (error) => {
-    console.error("❌ API: Request interceptor error:", error);
-    return Promise.reject(error);
-  },
-);
 
 // Optimistic Locking Manager untuk mencegah race conditions
 class OptimisticLockingManager {
@@ -605,7 +584,9 @@ export const alatService = {
 
     // For FormData, don't set Content-Type header - let browser set it automatically
     const headers =
-      data instanceof FormData ? {} : { "Content-Type": "application/json" };
+      data instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : { "Content-Type": "application/json" };
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
@@ -792,7 +773,10 @@ export interface Role {
 }
 
 export const rolesService = {
-  getAll: () => api.get<Role[]>("/roles"),
+  getAll: async () => {
+    const res = await api.get<{ success: boolean; data: Role[] }>("/roles");
+    return res.data.data; // ⬅️ PENTING
+  },
   getById: (id: string) => api.get<Role>(`/roles/${id}`),
   create: (data: Omit<Role, "roleId">) => api.post<Role>("/roles", data),
   update: (id: string, data: Partial<Role>) =>
@@ -802,20 +786,21 @@ export const rolesService = {
 
 // Users service
 export interface User {
-  userId: number;
+  id: number;
   email: string;
-  name: string;
-  mobile: string;
-  roleId: number;
+  nama: string;
+  username: string;
+  telp: string;
+  role: string;
   isDeleted: number;
   createdDtm: string;
   updatedDtm?: string;
-  roleName?: string;
+  // roleName?: string;
 }
 
 export const usersService = {
   getAll: () => api.get<User[]>("/users"),
-  getById: (id: string) => api.get<User>(`/users/${id}`),
+  getUserById: (id: string) => api.get<User>(`/users/${id}`),
   create: (data: {
     email: string;
     password: string;
@@ -823,7 +808,7 @@ export const usersService = {
     mobile: string;
     roleId: number;
   }) => api.post<User>("/users", data),
-  update: (id: string, data: Partial<User>) =>
+  update: (id: number, data: Partial<User>) =>
     api.put<User>(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),
   restore: (id: string) => api.patch(`/users/${id}/restore`),

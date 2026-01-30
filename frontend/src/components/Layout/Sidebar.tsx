@@ -111,19 +111,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
       {/* User Info Footer */}
       {user && (
-        <div className="p-4 border-t border-gray-700">
-          <div className="text-sm">
-            <div className="text-white font-medium">{user.nama}</div>
-            <div className="text-gray-400 text-xs">{user.username}</div>
-            <div
-              className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${getRoleBadgeColor(
-                user.role,
-              )}`}
-            >
-              {user.role}
+        <NavLink to="/profile">
+          <div className="p-4 border-t border-gray-700">
+            <div className="text-sm">
+              <div className="text-white font-medium">{user.nama}</div>
+              {/* <div className="text-gray-400 text-xs">{user.username}</div> */}
+              <div
+                className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${getRoleBadgeColor(
+                  user.role,
+                )}`}
+              >
+                {user.role}
+              </div>
             </div>
           </div>
-        </div>
+        </NavLink>
       )}
     </div>
   );

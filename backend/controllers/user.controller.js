@@ -3,29 +3,29 @@ const db = require("../config/db");
 const getAllUsers = async (req, res) => {
   try {
     const [users] = await db.query(
-      "SELECT id, nama, email, role, username, telp FROM m_user ORDER BY id ASC",
+      "SELECT id, nama, email, role, usernama, telp FROM m_user ORDER BY id ASC",
     );
     // Map to exact format as requested
     const mappedUsers = users.map((user) => {
       let roleId, roleName;
 
-      // Set role based on user id or name
+      // Set role based on user id or nama
       if (user.id === 1 || user.nama === "Revan Ardian") {
         roleId = 1;
-        roleName = "System Administrator";
+        roleName = "Admin";
       } else if (user.id === 2 || user.nama === "Achmad Rofiuddin") {
         roleId = 2;
         roleName = "Manager";
       } else if (user.id === 3 || user.nama === "Fayyadh") {
         roleId = 3;
-        roleName = "Employee";
+        roleName = "Ast Manager";
       } else {
-        roleId = 3;
-        roleName = "Employee";
+        roleId = 4;
+        roleName = "Engineer";
       }
 
       return {
-        userId: user.id,
+        id: user.id,
         email:
           user.email ||
           (user.id === 1
@@ -35,8 +35,8 @@ const getAllUsers = async (req, res) => {
               : user.id === 3
                 ? "employee@bewithdhanu.in"
                 : `user${user.id}@bewithdhanu.in`),
-        name: user.petugas,
-        mobile: "9890098900",
+        nama: user.nama,
+        telp: "9890098900",
         roleId: roleId,
         isDeleted: 0,
         createdDtm:
@@ -67,11 +67,11 @@ const getAllUsers = async (req, res) => {
 
 const getUserById = async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
 
     const [users] = await db.query(
-      "SELECT id, petugas, email FROM m_user WHERE id = ?",
-      [userId],
+      "SELECT id, nama, email FROM m_user WHERE id = ?",
+      [id],
     );
 
     if (users.length === 0) {
@@ -81,22 +81,22 @@ const getUserById = async (req, res) => {
     const user = users[0];
     let roleId, roleName;
 
-    if (user.id === 1 || user.petugas === "Revan Ardian") {
+    if (user.id === 1 || user.nama === "Revan Ardian") {
       roleId = 1;
-      roleName = "System Administrator";
-    } else if (user.id === 2 || user.petugas === "Achmad Rofiuddin") {
+      roleName = "Admin";
+    } else if (user.id === 2 || user.nama === "Achmad Rofiuddin") {
       roleId = 2;
       roleName = "Manager";
-    } else if (user.id === 3 || user.petugas === "Fayyadh") {
+    } else if (user.id === 3 || user.nama === "Fayyadh") {
       roleId = 3;
-      roleName = "Employee";
+      roleName = "Ast Manager";
     } else {
-      roleId = 3;
-      roleName = "Employee";
+      roleId = 4;
+      roleName = "Engineer";
     }
 
     const result = {
-      userId: user.id,
+      id: user.id,
       email:
         user.email ||
         (user.id === 1
@@ -106,8 +106,8 @@ const getUserById = async (req, res) => {
             : user.id === 3
               ? "employee@bewithdhanu.in"
               : `user${user.id}@bewithdhanu.in`),
-      name: user.petugas,
-      mobile: "9890098900",
+      nama: user.nama,
+      telp: "9890098900",
       roleId: roleId,
       isDeleted: 0,
       createdDtm:
@@ -138,34 +138,37 @@ const getUserById = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { name, email, mobile, roleId } = req.body;
+    const { nama, email, telp, role } = req.body;
 
-    if (!name) {
+    if (!nama) {
       return res.status(400).json({ message: "Name is required" });
     }
 
     const [result] = await db.query(
       "INSERT INTO m_user (petugas, email) VALUES (?, ?)",
-      [name, email || null],
+      [nama, email || null],
     );
 
     let roleName;
     switch (roleId) {
       case 1:
-        roleName = "System Administrator";
+        roleName = "Admin";
         break;
       case 2:
         roleName = "Manager";
         break;
+      case 3:
+        roleName = "Ast Manager";
+        break;
       default:
-        roleName = "Employee";
+        roleName = "Engineer";
     }
 
     res.status(201).json({
-      userId: result.insertId,
+      id: result.insertId,
       email: email || `user${result.insertId}@bewithdhanu.in`,
-      name: name,
-      mobile: mobile || "9890098900",
+      nama: nama,
+      telp: telp || "9890098900",
       roleId: roleId || 3,
       isDeleted: 0,
       createdDtm: new Date().toISOString(),
@@ -180,17 +183,17 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { name, email, mobile, roleId } = req.body;
-    const userId = parseInt(req.params.id);
+    const { nama, email, telp, roleId } = req.body;
+    const id = parseInt(req.params.id);
 
-    if (!name) {
+    if (!nama) {
       return res.status(400).json({ message: "Name is required" });
     }
 
     // Check if user exists
     const [existingUsers] = await db.query(
       "SELECT id FROM m_user WHERE id = ?",
-      [userId],
+      [id],
     );
 
     if (existingUsers.length === 0) {
@@ -199,28 +202,31 @@ const updateUser = async (req, res) => {
 
     // Update user
     await db.query("UPDATE m_user SET petugas = ?, email = ? WHERE id = ?", [
-      name,
+      nama,
       email || null,
-      userId,
+      id,
     ]);
 
     let roleName;
     switch (roleId) {
       case 1:
-        roleName = "System Administrator";
+        roleName = "Admin";
         break;
       case 2:
         roleName = "Manager";
         break;
+      case 3:
+        roleName = "Ast Manager";
+        break;
       default:
-        roleName = "Employee";
+        roleName = "Engineer";
     }
 
     res.json({
-      userId: userId,
-      email: email || `user${userId}@bewithdhanu.in`,
-      name: name,
-      mobile: mobile || "9890098900",
+      id: id,
+      email: email || `user${id}@bewithdhanu.in`,
+      nama: nama,
+      telp: telp || "9890098900",
       roleId: roleId || 3,
       isDeleted: 0,
       createdDtm: new Date().toISOString(),
@@ -235,9 +241,9 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
 
-    await db.query("DELETE FROM m_user WHERE id = ?", [userId]);
+    await db.query("DELETE FROM m_user WHERE id = ?", [id]);
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {

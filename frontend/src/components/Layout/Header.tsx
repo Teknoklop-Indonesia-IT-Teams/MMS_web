@@ -89,14 +89,15 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
                   <User size={16} className="text-blue-500" />
                 </div>
                 <div className="hidden text-left sm:block">
-                  <div className="text-sm font-medium">{user.nama}</div>
-                  <div
+                  <div className="text-sm font-medium">Hai {user.nama}!</div>
+
+                  {/* <div
                     className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(
                       user.role,
                     )}`}
                   >
                     {user.role}
-                  </div>
+                  </div> */}
                 </div>
                 <ChevronDown
                   size={16}
@@ -106,17 +107,10 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
                 />
               </button>
 
-              {/* Debug indicator */}
-              {showUserMenu && (
-                <div className="absolute right-0 p-1 mt-1 text-xs text-black bg-yellow-200 rounded">
-                  Dropdown should be visible
-                </div>
-              )}
-
               {/* Dropdown Menu */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-h-[100px]">
-                  <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                  {/* <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {user.nama}
                     </div>
@@ -130,9 +124,17 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
                     >
                       {user.role}
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="p-2">
+                  <div className="p-2 space-y-2">
+                    <a
+                      href="/profile"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center w-full px-3 py-2 space-x-2 text-sm text-left text-gray-700 rounded-md dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <User size={16} />
+                      <span>Profile</span>
+                    </a>
                     <button
                       onClick={handleLogout}
                       data-testid="logout-button"
@@ -148,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
           )}
 
           <div className="hidden text-right sm:block">
-            <div className="text-sm font-semibold sm:text-lg">MMS Trial</div>
+            <div className="text-sm font-semibold sm:text-lg">MMS</div>
           </div>
         </div>
       </div>

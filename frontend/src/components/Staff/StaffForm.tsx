@@ -8,6 +8,7 @@ interface StaffFormProps {
   onSave: (
     userData: Omit<UserType, "id" | "created_at" | "updated_at"> & {
       email?: string;
+      telp?: string;
     },
   ) => void;
   onCancel: () => void;
@@ -39,15 +40,10 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.nama.trim()) {
-      newErrors.nama = "Nama wajib diisi";
-    }
+    if (!formData.nama.trim()) newErrors.nama = "Nama wajib diisi";
+    if (!formData.role.trim()) newErrors.role = "Role wajib dipilih";
 
-    if (!formData.role.trim()) {
-      newErrors.role = "Role wajib dipilih";
-    }
-
-    if (formData.email && formData.email.trim()) {
+    if (formData.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         newErrors.email = "Format email tidak valid";
@@ -60,150 +56,86 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Prepare data to send
-      const dataToSend = {
-        nama: formData.nama,
-        role: formData.role,
-        username: formData.username.toLowerCase().replace(/\s+/g, ""),
-        email: formData.email.trim() || undefined, // Include email in the data
-        telp: formData.telp.trim() || undefined, // Include telp in the data
-      };
-      onSave(dataToSend);
-    }
+    if (!validateForm()) return;
+
+    onSave({
+      nama: formData.nama,
+      role: formData.role,
+      username: formData.username.toLowerCase().replace(/\s+/g, ""),
+      email: formData.email || undefined,
+      telp: formData.telp || undefined,
+    });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl transform transition-all">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-5">
+      <div className="w-full sm:max-w-lg bg-white sm:rounded-xl shadow-2xl h-[95vh] sm:h-auto overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-xl">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-              <User className="h-6 w-6 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-white">
-              {user ? "Edit Petugas" : "Tambah Petugas Baru"}
+        <div className="flex items-center justify-between px-4 py-3 sm:p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+          <div className="flex items-center gap-2">
+            <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            <h2 className="text-base sm:text-xl font-bold text-white">
+              {user ? "Edit Petugas" : "Tambah Petugas"}
             </h2>
           </div>
           <button
             onClick={onCancel}
-            className="text-white hover:text-gray-200 transition-colors p-1 rounded-lg hover:bg-white hover:bg-opacity-20"
+            className="text-white hover:bg-white/20 p-1 rounded-lg"
           >
-            <X size={24} />
+            <X size={22} />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="space-y-6">
-            {/* Nama Petugas */}
-            <div className="space-y-2">
-              <label
-                htmlFor="nama"
-                className="flex items-center text-sm font-semibold text-gray-700"
-              >
-                <User className="h-4 w-4 mr-2 text-blue-500" />
-                Nama Petugas
-              </label>
-              <input
-                type="text"
-                id="nama"
-                name="nama"
-                value={formData.nama}
-                onChange={(e) =>
-                  setFormData({ ...formData, nama: e.target.value })
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.nama ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="Masukkan nama petugas"
-              />
-              {errors.nama && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <span className="mr-1">⚠️</span>
-                  {errors.nama}
-                </p>
-              )}
-            </div>
+        {/* Form Body */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto px-4 py-4 sm:p-6"
+        >
+          <div className="space-y-4">
+            {/* Nama */}
+            <FormInput
+              label="Nama Petugas"
+              icon={<User size={16} />}
+              value={formData.nama}
+              error={errors.nama}
+              onChange={(v: string) => setFormData({ ...formData, nama: v })}
+              placeholder="Nama petugas"
+            />
 
-            {/* Email Petugas */}
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="flex items-center text-sm font-semibold text-gray-700"
-              >
-                <Mail className="h-4 w-4 mr-2 text-blue-500" />
-                Email Petugas
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.email ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="Masukkan email petugas (untuk notifikasi)"
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <span className="mr-1">⚠️</span>
-                  {errors.email}
-                </p>
-              )}
-            </div>
+            {/* Email */}
+            <FormInput
+              label="Email"
+              icon={<Mail size={16} />}
+              value={formData.email}
+              error={errors.email}
+              onChange={(v: string) => setFormData({ ...formData, email: v })}
+              placeholder="Email (opsional)"
+              type="email"
+            />
 
-            <div className="space-y-2">
-              <label
-                htmlFor="username"
-                className="flex items-center text-sm font-semibold text-gray-700"
-              >
-                <UserCheck className="h-4 w-4 mr-2 text-blue-500" />
-                Username Petugas
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.username
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300"
-                }`}
-                placeholder="Masukkan username petugas"
-              />
-              {errors.username && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <span className="mr-1">⚠️</span>
-                  {errors.username}
-                </p>
-              )}
-            </div>
+            {/* Username */}
+            <FormInput
+              label="Username"
+              icon={<UserCheck size={16} />}
+              value={formData.username}
+              onChange={(v: string) =>
+                setFormData({ ...formData, username: v })
+              }
+              placeholder="Username"
+            />
 
-            <div className="space-y-2">
-              <label
-                htmlFor="role"
-                className="flex items-center text-sm font-semibold text-gray-700"
-              >
-                <PaintRoller className="h-4 w-4 mr-2 text-blue-500" />
-                Role Petugas
+            {/* Role */}
+            <div className="space-y-1">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <PaintRoller size={16} className="text-blue-500" />
+                Role
               </label>
               <select
-                id="role"
-                name="role"
                 value={formData.role}
                 onChange={(e) =>
                   setFormData({ ...formData, role: e.target.value })
                 }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                   errors.role ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}
               >
@@ -214,55 +146,33 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
                 <option value={ROLES.ENGINEER}>Engineer</option>
               </select>
               {errors.role && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <span className="mr-1">⚠️</span>
-                  {errors.role}
-                </p>
+                <p className="text-xs text-red-500">{errors.role}</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <label
-                htmlFor="telp"
-                className="flex items-center text-sm font-semibold text-gray-700"
-              >
-                <Phone className="h-4 w-4 mr-2 text-blue-500" />
-                No. Telepon
-              </label>
-              <input
-                type="number"
-                id="telp"
-                name="telp"
-                value={formData.telp}
-                onChange={(e) =>
-                  setFormData({ ...formData, telp: e.target.value })
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.telp ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="Masukkan telp petugas"
-              />
-              {errors.telp && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <span className="mr-1">⚠️</span>
-                  {errors.telp}
-                </p>
-              )}
-            </div>
+            {/* Telp */}
+            <FormInput
+              label="No. Telepon"
+              icon={<Phone size={16} />}
+              value={formData.telp}
+              onChange={(v: string) => setFormData({ ...formData, telp: v })}
+              placeholder="08xxxxxxxx"
+              type="number"
+            />
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-8">
+          {/* Action Buttons */}
+          <div className="mt-6 flex flex-col gap-3">
             <button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold active:scale-95"
             >
-              {user ? "Update Petugas" : "Simpan Petugas"}
+              {user ? "Update" : "Simpan"}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
+              className="w-full bg-gray-500 text-white py-3 rounded-lg font-semibold active:scale-95"
             >
               Batal
             </button>
@@ -272,5 +182,33 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
     </div>
   );
 };
+
+/* Reusable Input */
+const FormInput = ({
+  label,
+  icon,
+  value,
+  onChange,
+  placeholder,
+  error,
+  type = "text",
+}: any) => (
+  <div className="space-y-1">
+    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+      <span className="text-blue-500">{icon}</span>
+      {label}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
+        error ? "border-red-500 bg-red-50" : "border-gray-300"
+      }`}
+    />
+    {error && <p className="text-xs text-red-500">{error}</p>}
+  </div>
+);
 
 export default StaffForm;

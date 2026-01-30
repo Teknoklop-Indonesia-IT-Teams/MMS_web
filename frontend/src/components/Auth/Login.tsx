@@ -78,8 +78,8 @@ const Login: React.FC = () => {
       showSuccess(
         `Welcome back, ${user.name}!`,
         `Logged in as ${user.role}. Token valid for ${Math.round(
-          expiresIn / 3600
-        )} hours.`
+          expiresIn / 3600,
+        )} hours.`,
       );
 
       // Show success animation dengan urutan yang benar
@@ -389,7 +389,7 @@ const Login: React.FC = () => {
           {/* Sign Up Link - Always clickable */}
           <div className="mt-6 text-center space-y-3">
             {/* Forgot Password Link */}
-            <div>
+            {/* <div>
               <button
                 type="button"
                 className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
@@ -397,7 +397,7 @@ const Login: React.FC = () => {
               >
                 Forgot password?
               </button>
-            </div>
+            </div> */}
 
             {/* Sign Up Link */}
             <p className="text-sm text-gray-600">

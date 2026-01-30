@@ -10,6 +10,7 @@ const storage = multer.diskStorage({
     // Pastikan folder uploads ada
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
+      console.log("📁 Created uploads directory:", uploadPath);
     }
 
     cb(null, uploadPath);
@@ -25,12 +26,19 @@ const storage = multer.diskStorage({
     const safeName = originalName.replace(/[^a-zA-Z0-9]/g, "_");
     const filename = `${safeName}_${timestamp}_${random}${ext}`;
 
+    console.log("📝 Generated filename:", {
+      original: file.originalname,
+      saved: filename,
+      extension: ext,
+    });
+
     cb(null, filename);
   },
 });
 
 // File filter dengan support HEIC/HEIF
 const fileFilter = (req, file, cb) => {
+  console.log("🔍 Checking file:", file.originalname);
   const allowedExtensions = [
     ".jpg",
     ".jpeg",
@@ -64,8 +72,12 @@ const fileFilter = (req, file, cb) => {
 
   const ext = path.extname(file.originalname).toLowerCase();
   const mime = file.mimetype.toLowerCase();
+
+  console.log("📊 File info:", { ext, mime, size: file.size });
+
   // Check by extension
   if (allowedExtensions.includes(ext)) {
+    console.log("✅ Allowed by extension:", ext);
     return cb(null, true);
   }
 

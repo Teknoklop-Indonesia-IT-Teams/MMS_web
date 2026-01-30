@@ -10,18 +10,19 @@ import { usePageLifecycle } from "./hooks/usePageLifecycle";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import AuthRedirect from "./components/Auth/AuthRedirect";
 import LayoutWrapper from "./components/Layout/LayoutWrapper";
+import UsersProfile from "./components/Users/UsersProfile";
 
 // Lazy load ALL components for maximum code splitting
 const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
 const StaffList = lazy(() => import("./components/Staff/StaffList"));
 const EquipmentTable = lazy(
-  () => import("./components/Equipment/EquipmentTable")
+  () => import("./components/Equipment/EquipmentTable"),
 );
 const SimpleEquipmentDetail = lazy(
-  () => import("./components/Equipment/SimpleEquipmentDetail")
+  () => import("./components/Equipment/SimpleEquipmentDetail"),
 );
 const PublicEquipmentDetail = lazy(
-  () => import("./components/Equipment/PublicEquipmentDetail")
+  () => import("./components/Equipment/PublicEquipmentDetail"),
 );
 
 // Auth components
@@ -110,6 +111,17 @@ function App() {
                       <ProtectedRoute>
                         <LayoutWrapper>
                           <StaffList />
+                        </LayoutWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <LayoutWrapper>
+                          <UsersProfile />
                         </LayoutWrapper>
                       </ProtectedRoute>
                     }

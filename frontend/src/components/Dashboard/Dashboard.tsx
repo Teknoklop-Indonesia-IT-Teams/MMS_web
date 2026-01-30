@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Filter } from "lucide-react";
+import {
+  Filter,
+  BarChart,
+  MapPinned,
+  History,
+  ChevronDown,
+} from "lucide-react";
 import DeviceCard from "./DeviceCard";
 import MaintenanceDashboard from "./MaintenanceDashboard";
 import { useDashboardData } from "../../hooks/useLazyEquipment";
@@ -9,6 +15,7 @@ import { PERMISSIONS } from "../../constants/roles";
 
 const Dashboard: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Use lazy loading dashboard data - only fetch when dashboard is opened
@@ -100,10 +107,12 @@ const Dashboard: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-4 items-start justify-between mb-4 md:flex-row md:items-center">
           <div>
             <h1 className="flex items-center text-2xl font-bold text-gray-800 dark:text-gray-200">
-              <span className="mr-2">📊</span>
+              <span className="mr-2">
+                <BarChart />
+              </span>
               Dashboard
               {!hasFullAccess && (
                 <span className="px-2 py-1 ml-3 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
@@ -114,30 +123,46 @@ const Dashboard: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400">Control panel</p>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center px-4 py-2 space-x-2 transition-colors duration-200 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600">
-              <Filter size={20} className="text-gray-500 dark:text-gray-400" />
-              <select
-                value={selectedFilter}
-                onChange={(e) => setSelectedFilter(e.target.value)}
-                className="border-none bg-transparent focus:outline-none text-gray-900 dark:text-gray-100 dark:[&>option]:bg-gray-800 dark:[&>option]:text-gray-100 [&>option]:bg-white [&>option]:text-gray-900"
+          <div className="flex items-center w-full px-4 py-2 space-x-2 transition-colors duration-200 bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto dark:bg-gray-800 dark:border-gray-600 justify-between">
+            <Filter size={20} className="text-gray-500 dark:text-gray-400" />
+            <div className="relative flex-grow">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="w-full flex items-center justify-between px-3 py-2 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
-                <option
-                  value="all"
-                  className="text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-100"
-                >
-                  Semua Jenis
-                </option>
-                {deviceTypes.map((type) => (
-                  <option
-                    key={type}
-                    value={type}
-                    className="text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-100"
+                <span>
+                  {selectedFilter === "all" ? "Semua Jenis" : selectedFilter}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 ml-2 transition-transform ${showDropdown ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                  <button
+                    onClick={() => {
+                      setSelectedFilter("all");
+                      setShowDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg transition-colors text-gray-900 dark:text-gray-100"
                   >
-                    {type}
-                  </option>
-                ))}
-              </select>
+                    Semua Jenis
+                  </button>
+                  {deviceTypes.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        setSelectedFilter(type);
+                        setShowDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-gray-900 dark:text-gray-100"
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -170,7 +195,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-3">
         <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            📊 Status Peralatan
+            Status Peralatan
             {hasActiveFilter && (
               <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                 {selectedFilter}
@@ -240,7 +265,8 @@ const Dashboard: React.FC = () => {
 
         <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            📍 Peralatan Berdasarkan Lokasi
+            <MapPinned />{" "}
+            <span className="ml-2">Peralatan Berdasarkan Lokasi</span>
             {hasActiveFilter && (
               <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                 {selectedFilter}
@@ -297,7 +323,7 @@ const Dashboard: React.FC = () => {
 
         <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            🔄 Aktivitas Terbaru
+            <History /> <span className="ml-2">Aktivitas Terbaru</span>
             {hasActiveFilter && (
               <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                 {selectedFilter}

@@ -40,6 +40,17 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
+    const [roles] = await db.query(
+      "SELECT roleId, roleName FROM tbl_roles WHERE id = ?",
+      [role],
+    );
+
+    if (roles.length === 0) {
+      return res.status(400).json({ message: "Role tidak valid" });
+    }
+
+    const roleData = roles[0]; // { id, role_name }
+
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -50,14 +61,7 @@ const register = async (req, res) => {
     // Insert user into m_user
     const [result] = await db.query(
       "INSERT INTO m_user (email, password, nama, role, username, telp) VALUES (?, ?, ?, ?, ?, ?)",
-      [
-        email,
-        hashedPassword,
-        nama,
-        role === 1 ? "admin" : "engineer",
-        username,
-        telp,
-      ],
+      [email, hashedPassword, nama, roleData.roleId, username, telp],
     );
 
     // Send notification email to admin
@@ -123,7 +127,7 @@ const login = async (req, res) => {
     const tokenPayload = {
       userId: user.id,
       email: user.email,
-      role: user.role || "engineer",
+      role: user.role,
       nama: user.nama,
       username: user.username,
       telp: user.telp,
@@ -154,7 +158,7 @@ const login = async (req, res) => {
         userId: user.id,
         nama: user.nama,
         email: user.email,
-        role: user.role || "engineer",
+        role: user.role,
         username: user.username,
         telp: user.telp,
       },
@@ -318,7 +322,7 @@ const getProfile = async (req, res) => {
       userId: user.id,
       nama: user.nama,
       email: user.email,
-      role: user.role || "engineer",
+      role: user.role,
       username: user.username,
       telp: user.telp,
     });

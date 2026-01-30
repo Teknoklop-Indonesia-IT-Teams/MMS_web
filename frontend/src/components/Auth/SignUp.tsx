@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,7 +12,6 @@ import {
 import { useToast } from "../../hooks/useToast";
 import { Role } from "../../services/api";
 import { ROLES } from "../../constants/roles";
-
 interface SignUpForm {
   nama: string;
   username: string;
@@ -22,7 +21,11 @@ interface SignUpForm {
   telp: string;
   role: string;
 }
-
+interface RoleItem {
+  id: number;
+  name: string;
+  value: string;
+}
 const SignUp: React.FC = () => {
   const [formData, setFormData] = useState<SignUpForm>({
     nama: "",
@@ -33,12 +36,48 @@ const SignUp: React.FC = () => {
     telp: "",
     role: "",
   });
+
+  const [roles, setRoles] = useState<RoleItem[]>([]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
+
+  // useEffect(() => {
+  //   const fetchRoles = async () => {
+  //     try {
+  //       const res = await fetch(`${import.meta.env.VITE_API_URL}/roles`);
+  //       const json = await res.json();
+
+  //       if (json.success && Array.isArray(json.data)) {
+  //         setRoles(json.data);
+  //         console.log("roles data:", json.data);
+  //       } else {
+  //         setRoles([]);
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //       setRoles([]);
+  //     }
+  //   };
+
+  //   fetchRoles();
+  // }, []);
+  useEffect(() => {
+    if (roles.length > 0) {
+      const engineerRole = roles.find((r) => r.value === "engineer");
+
+      if (engineerRole) {
+        setFormData((prev) => ({
+          ...prev,
+          role: engineerRole.id.toString(),
+        }));
+      }
+    }
+  }, [roles]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -136,7 +175,6 @@ const SignUp: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4">
@@ -284,28 +322,38 @@ const SignUp: React.FC = () => {
 
             {/* Role */}
             <div>
-              <label
+              {/* <label
                 htmlFor="role"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Select Role
               </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                <option value="">Pilih Role</option>
-                <option value={ROLES.ADMIN}>Admin</option>
-                <option value={ROLES.MANAGER}>Manager</option>
-                <option value={ROLES.AST_MANAGER}>Asisten Manager</option>
-                <option value={ROLES.ENGINEER}>Engineer</option>
-              </select>
+              <div className="relative"> */}
+              {/* <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Pilih Role</option>
+
+                  {roles.map((role) => {
+                    console.log(
+                      "ROLES",
+                      roles.map((e) => e.name),
+                    );
+
+                    return (
+                      <option key={role.id} value={role.id}>
+                        {role.value}
+                      </option>
+                    );
+                  })}
+                </select> */}
+              <input type="hidden" name="role" value={formData.role} />
             </div>
+            {/* </div> */}
 
             {/* Password */}
             <div>

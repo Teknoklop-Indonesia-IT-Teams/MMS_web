@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Pencil, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, AlertCircle, UsersRound } from "lucide-react";
 import toast from "react-hot-toast";
 import { User } from "../../types";
 import { staffService } from "../../services/enhancedServices";
@@ -53,7 +53,7 @@ const StaffList: React.FC = () => {
           (staff: StaffResponse) => ({
             id: staff.id,
             nama: staff.nama || "",
-            role: staff.role || undefined || "staff",
+            role: staff.role || "engineer",
             username: staff.username || "",
             email: staff.email || undefined,
             telp: staff.telp || undefined,
@@ -147,7 +147,7 @@ const StaffList: React.FC = () => {
         const apiData = {
           nama: userData.nama,
           email: userData.email || undefined,
-          role: userData.role || "engineer",
+          role: userData.role,
           username: userData.username,
           telp: userData.telp,
         };
@@ -224,19 +224,21 @@ const StaffList: React.FC = () => {
     <div className="p-6">
       <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-lg dark:bg-gray-800">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+        <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h1 className="flex items-center text-2xl font-bold text-gray-800 dark:text-gray-200">
+              <span className="mr-2">
+                <UsersRound />
+              </span>
               Data Petugas
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Kelola data petugas sistem dan email untuk testing
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">List Petugas</p>
           </div>
+
           {canManageStaff && (
             <button
               onClick={handleAddUser}
-              className="flex items-center gap-2 px-4 py-2 text-white transition-colors duration-200 bg-blue-600 rounded-lg dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800"
+              className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-white transition-colors duration-200 bg-blue-600 rounded-lg dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800"
             >
               <Plus className="w-4 h-4" />
               Tambah Petugas
