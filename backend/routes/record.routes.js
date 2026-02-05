@@ -8,6 +8,7 @@ const router = express.Router();
 // router.use(authMiddleware);
 
 router.get("/", recordController.getAllRecords);
+router.get("/equipment/:id", recordController.getRecordByEquipmentId);
 router.get("/:id", recordController.getRecordById);
 router.post("/", recordController.createRecord);
 router.put("/:id", recordController.updateRecord);

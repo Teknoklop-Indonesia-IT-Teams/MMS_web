@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { X, Plus, Pencil, Trash2 } from "lucide-react";
+import { X, Plus, Pencil, Trash2, BookOpen } from "lucide-react";
 import { Equipment, Record } from "../../types";
 import { recordService, staffService } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
@@ -46,17 +46,28 @@ export default function EquipmentDetail({
 
   const { showSuccess } = useToast();
 
+  // const fetchRecords = useCallback(async () => {
+  //   try {
+  //     const response = await recordService.getByEquipmentId(equipment.id);
+  //     setRecords(response.data);
+  //   } catch (error) {
+  //     console.error("Error fetching records:", error);
+  //   }
+  // }, [equipment.id]);
   const fetchRecords = useCallback(async () => {
     try {
-      const response = await recordService.getAll();
-      const equipmentRecords = response.data.filter(
-        (record: Record) => record.id_m_alat === equipment.id.toString(),
-      );
-      setRecords(equipmentRecords);
+      console.log("Equipment ID:", equipment.id);
+
+      const response = await recordService.getByEquipmentId(equipment.id);
+
+      console.log("Records from API:", response.data);
+
+      setRecords(response.data);
     } catch (error) {
-      console.error("Error fetching records:", error);
+      console.error(error);
     }
   }, [equipment.id]);
+
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -77,6 +88,12 @@ export default function EquipmentDetail({
     }
   }, []);
 
+  const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
+
+  const toggleRecordDetail = (recordId: number) => {
+    setExpandedRecordId(expandedRecordId === recordId ? null : recordId);
+  };
+
   useEffect(() => {
     void fetchRecords();
     void fetchStaff();
@@ -96,7 +113,7 @@ export default function EquipmentDetail({
 
     try {
       const newRecord = {
-        id_m_alat: equipment.id.toString(),
+        id_m_alat: equipment.id,
         tanggal: formData.tanggal,
         deskripsi: formData.deskripsi,
         awal: formData.awal,
@@ -131,10 +148,16 @@ export default function EquipmentDetail({
     }
   }
 
-  function handleDeleteRecord(recordId: number) {
+  async function handleDeleteRecord(recordId: number) {
     if (window.confirm("Apakah Anda yakin ingin menghapus record ini?")) {
-      setRecords((prev) => prev.filter((record) => record.id !== recordId));
-      showSuccess("Record berhasil dihapus");
+      try {
+        await recordService.delete(recordId);
+        await fetchRecords();
+        showSuccess("Record berhasil dihapus");
+      } catch (error) {
+        console.error("Error deleting record:", error);
+        alert("Gagal menghapus record. Silakan coba lagi.");
+      }
     }
   }
 
@@ -182,11 +205,10 @@ export default function EquipmentDetail({
                     Status
                   </label>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      equipment.status === "Garansi"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}
                   >
                     {equipment.status}
                   </span>
@@ -220,7 +242,7 @@ export default function EquipmentDetail({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
                   Gambar
                 </label>
                 <div className="relative w-full h-64">
@@ -228,7 +250,7 @@ export default function EquipmentDetail({
                     <ImageDisplay
                       src={equipment.i_alat}
                       alt={`${equipment.nama} Image`}
-                      className="w-full h-full rounded-lg border shadow-sm"
+                      className="w-full h-full border rounded-lg shadow-sm"
                       onError={() =>
                         console.log(`Image failed: ${equipment.i_alat}`)
                       }
@@ -237,7 +259,7 @@ export default function EquipmentDetail({
                       }
                     />
                   ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 border-2 border-gray-300 border-dashed rounded-lg">
                       <svg
                         className="w-16 h-16 mb-3 text-gray-400"
                         fill="none"
@@ -254,7 +276,7 @@ export default function EquipmentDetail({
                       <span className="text-sm text-gray-500">
                         No Image Available
                       </span>
-                      <span className="text-xs text-gray-400 mt-1">
+                      <span className="mt-1 text-xs text-gray-400">
                         Image will appear here
                       </span>
                     </div>
@@ -503,36 +525,86 @@ export default function EquipmentDetail({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {records.map((record) => (
-                    <tr key={record.id}>
-                      <td className="px-4 py-4 text-sm text-gray-900">
-                        {record.tanggal}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-900">
-                        {record.deskripsi}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-900">
-                        {record.awal}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-900">
-                        {record.tindakan}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-900">
-                        {record.keterangan}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex space-x-1">
-                          <button className="p-1 text-white bg-blue-600 rounded hover:bg-blue-700">
-                            <Pencil size={12} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRecord(record.id)}
-                            className="p-1 text-white bg-red-600 rounded hover:bg-red-700"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <React.Fragment key={record.id}>
+                      <tr>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {record.tanggal}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {record.deskripsi}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {record.awal}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {record.tindakan}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          {record.keterangan}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={() => toggleRecordDetail(record.id)}
+                              className={`p-1 text-white rounded transition-colors ${expandedRecordId === record.id
+                                ? 'bg-blue-700'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                                }`}
+                            >
+                              <BookOpen size={12} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRecord(record.id)}
+                              className="p-1 text-white bg-red-600 rounded hover:bg-red-700"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expandable Detail Row */}
+                      {expandedRecordId === record.id && (
+                        <tr className="bg-gray-50">
+                          <td colSpan={6} className="px-4 py-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">
+                                  Tambahan
+                                </label>
+                                <p className="mt-1 text-sm text-gray-900">
+                                  {record.tambahan || '-'}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">
+                                  Kondisi Akhir
+                                </label>
+                                <p className="mt-1 text-sm text-gray-900">
+                                  {record.akhir || '-'}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">
+                                  Rencana Berikutnya
+                                </label>
+                                <p className="mt-1 text-sm text-gray-900">
+                                  {record.berikutnya || '-'}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">
+                                  Petugas
+                                </label>
+                                <p className="mt-1 text-sm text-gray-900">
+                                  {record.petugas || '-'}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

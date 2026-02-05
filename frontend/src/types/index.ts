@@ -72,7 +72,7 @@ export interface Record {
   i_panel?: string | null;
   i_alat?: string | null;
   i_sensor?: string | null;
-  id_m_alat: string;
+  id_m_alat: number;
   tanggal: string;
 }
 
