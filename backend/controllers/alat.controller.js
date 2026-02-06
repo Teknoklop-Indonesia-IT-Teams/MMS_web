@@ -711,6 +711,20 @@ const testMaintenance = async (req, res) => {
   }
 };
 
+const addMaintenanceActivity = async (req, res) => {
+  const { activity, note } = req.body;
+  const image = req.file?.filename;
+
+  await db.query(
+    `INSERT INTO m_activity
+     (id_alat, activity, note, image)
+     VALUES (?, ?, ?, ?)`,
+    [req.params.id, activity, note, image],
+  );
+
+  res.json({ message: "Aktivitas maintenance ditambahkan" });
+};
+
 // Public method for QR code access - tidak perlu auth
 const getPublicAlatById = async (req, res) => {
   try {
@@ -805,4 +819,5 @@ module.exports = {
   completeMaintenance,
   testMaintenance,
   getPublicAlatById,
+  addMaintenanceActivity,
 };

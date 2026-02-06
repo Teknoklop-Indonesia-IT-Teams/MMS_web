@@ -57,6 +57,15 @@ export interface Equipment {
     | "good";
   maintenanceStatusText?: string;
   nextMaintenanceDate?: string;
+  maintenanceActivities?: MaintenanceActivity[];
+}
+
+export interface MaintenanceActivity {
+  id: number;
+  equipment_id: number;
+  activity: string;
+  note?: string;
+  created_at: string;
 }
 
 export interface Record {

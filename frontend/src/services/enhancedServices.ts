@@ -20,7 +20,7 @@ export const alatService = {
     } catch (error) {
       console.error(
         `❌ Equipment Service: Error fetching equipment ${id}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -43,7 +43,7 @@ export const alatService = {
     } catch (error) {
       console.error(
         `❌ Equipment Service: Error updating equipment ${id}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -56,7 +56,7 @@ export const alatService = {
     } catch (error) {
       console.error(
         `❌ Equipment Service: Error deleting equipment ${id}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -70,7 +70,7 @@ export const alatService = {
     } catch (error) {
       console.error(
         `❌ Equipment Service: Error stopping maintenance ${id}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -83,7 +83,7 @@ export const alatService = {
     } catch (error) {
       console.error(
         `❌ Equipment Service: Error completing maintenance ${id}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -95,18 +95,18 @@ export const alatService = {
       maintenanceDate?: string;
       maintenanceInterval?: number;
       isMaintenanceActive?: boolean;
-    }
+    },
   ) => {
     try {
       const response = await enhancedEquipmentService.updateMaintenanceSettings(
         id,
-        data
+        data,
       );
       return response;
     } catch (error) {
       console.error(
         `❌ Equipment Service: Error updating maintenance ${id}:`,
-        error
+        error,
       );
       throw error;
     }

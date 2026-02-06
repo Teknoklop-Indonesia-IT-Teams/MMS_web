@@ -57,6 +57,15 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     i_alat: "",
   });
 
+  useEffect(() => {
+    if (formData.instalasi && !equipment) {
+      setFormData((prev) => ({
+        ...prev,
+        maintenanceDate: formData.instalasi,
+      }));
+    }
+  }, [formData.instalasi]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string>("");
   const [imageLoading, setImageLoading] = useState(false);
@@ -338,7 +347,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                Instalasi <span className="text-red-500">*</span>
+                Tanggal Instalasi (BAST)<span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -422,7 +431,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               }
               className="mr-2"
             />
-            <label className="text-sm font-medium text-gray-700">Remot</label>
+            <label className="text-sm font-medium text-gray-700">Remote</label>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -613,7 +622,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
               {formData.isMaintenanceActive && (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
+                  {/* <div>
                     <label className="block mb-1 text-sm font-medium text-gray-700">
                       Tanggal Terakhir Maintenance
                     </label>
@@ -628,7 +637,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                  </div>
+                  </div> */}
 
                   <div>
                     <label className="block mb-1 text-sm font-medium text-gray-700">

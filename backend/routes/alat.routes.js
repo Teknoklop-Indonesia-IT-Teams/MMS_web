@@ -35,6 +35,11 @@ router.delete("/:id", alatController.deleteAlat);
 router.post("/:id/stop-maintenance", alatController.stopMaintenance);
 router.post("/:id/complete-maintenance", alatController.completeMaintenance);
 router.put("/:id/maintenance", alatController.updateMaintenanceSettings);
+router.post(
+  "/:id/maintenance-activity",
+  upload.single("image"),
+  alatController.addMaintenanceActivity,
+);
 
 // ========== DEBUG ROUTE ==========
 router.post("/debug-upload", upload.single("i_alat"), (req, res) => {

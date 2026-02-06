@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Equipment } from "../../types";
+import { alatService } from "../../services/api";
 
 interface MaintenanceStatusProps {
   equipment: Equipment;
@@ -10,6 +11,12 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
   equipment,
   showDetails = false,
 }) => {
+  const [showActivityModal, setShowActivityModal] = useState(false);
+
+  const [activity, setActivity] = useState("");
+  const [note, setNote] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+
   // Tentukan apakah maintenance aktif (handle semua kemungkinan)
   const isMaintenanceActive = (() => {
     const value = equipment.isMaintenanceActive;
@@ -54,6 +61,7 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
     if (showDetails) {
       return (
         <div
+          onClick={() => setShowActivityModal(true)}
           className={`p-4 rounded-lg border-2 ${colors.bg} ${colors.border}`}
         >
           <div className="flex items-center justify-between mb-2">
@@ -103,6 +111,82 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
       <div className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
         <span className="w-2 h-2 mr-2 bg-gray-400 rounded-full"></span>
         Tidak Aktif
+      </div>
+    );
+  }
+
+  const handleSaveActivity = async () => {
+    if (!activity.trim()) return;
+
+    const formData = new FormData();
+    formData.append("activity", activity);
+    formData.append("note", note);
+    if (image) formData.append("image", image);
+
+    await alatService.addMaintenanceActivity(equipment.id.toString(), formData);
+
+    setActivity("");
+    setNote("");
+    setImage(null);
+    setShowActivityModal(false);
+
+    refreshEquipment();
+  };
+
+  {
+    showActivityModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md p-4">
+          <h3 className="text-lg font-semibold mb-3">
+            Tambah Aktivitas Maintenance
+          </h3>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Aktivitas</label>
+              <input
+                value={activity}
+                onChange={(e) => setActivity(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Contoh: Kalibrasi sensor"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Catatan</label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Catatan tambahan (opsional)"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Gambar</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              onClick={() => setShowActivityModal(false)}
+              className="px-3 py-2 text-sm border rounded-md"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleSaveActivity}
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md"
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -231,7 +315,7 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
           </span>
         </div>
 
-        <div className={`text-sm ${colors.text} space-y-1`}>
+        {/* <div className={`text-sm ${colors.text} space-y-1`}>
           <div>
             <span className="font-medium">Terakhir Maintenance:</span>{" "}
             {equipment.maintenanceDate
@@ -250,6 +334,35 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
             <span className="font-medium">Interval:</span>{" "}
             {equipment.maintenanceInterval || 90} hari
           </div>
+        </div> */}
+        <div className={`text-sm ${colors.text} space-y-2`}>
+          <div>
+            <span className="font-medium">Periode Maintenance:</span>{" "}
+            {equipment.maintenanceDate
+              ? `${new Date(equipment.maintenanceDate).toLocaleDateString("id-ID")} – ${
+                  equipment.nextMaintenanceDate
+                    ? new Date(
+                        equipment.nextMaintenanceDate,
+                      ).toLocaleDateString("id-ID")
+                    : "-"
+                }`
+              : "-"}
+          </div>
+
+          <div>
+            <span className="font-medium">Aktivitas Maintenance:</span>
+            <ul className="mt-1 list-disc list-inside">
+              {equipment.maintenanceActivities?.length ? (
+                equipment.maintenanceActivities.map((act) => (
+                  <li key={act.id}>{act.activity}</li>
+                ))
+              ) : (
+                <li className="italic text-gray-500">
+                  Belum ada aktivitas tercatat
+                </li>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
     );
@@ -266,3 +379,6 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
 };
 
 export default MaintenanceStatus;
+function refreshEquipment() {
+  throw new Error("Function not implemented.");
+}

@@ -36,7 +36,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
       setIsLoading(true);
 
       const response = await alatService.completeMaintenance(
-        equipment.id.toString()
+        equipment.id.toString(),
       );
 
       toast.success("Maintenance berhasil diselesaikan!");
@@ -89,7 +89,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
       setIsLoading(true);
       await alatService.updateMaintenanceSettings(
         equipment.id.toString(),
-        settings
+        settings,
       );
       toast.success("Pengaturan maintenance berhasil diupdate!");
       setShowSettings(false);
@@ -185,7 +185,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {Boolean(equipment.isMaintenanceActive) && (
+      {/* {Boolean(equipment.isMaintenanceActive) && (
         <button
           onClick={handleCompleteMaintenance}
           disabled={isLoading}
@@ -194,7 +194,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
           <CheckCircle size={16} />
           <span>Selesai Maintenance</span>
         </button>
-      )}
+      )} */}
 
       <button
         onClick={() => setShowSettings(true)}

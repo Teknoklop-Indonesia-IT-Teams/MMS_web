@@ -650,6 +650,22 @@ export const alatService = {
       api.put(`/alat/${id}/maintenance`, data),
     );
   },
+  addMaintenanceActivity: (id: string, data: FormData) => {
+    AppStateManager.startCriticalOperation(`add-maintenance-activity-${id}`);
+
+    const operationKey = `maintenance-activity-${id}-${Date.now()}`;
+
+    return optimisticLockManager
+      .executeWithLock(operationKey, () =>
+        api.post(`/alat/${id}/maintenance-activity`, data, {
+          // jangan set manual boundary
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }),
+      )
+      .finally(() => AppStateManager.endCriticalOperation());
+  },
 };
 
 export const recordService = {

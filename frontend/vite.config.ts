@@ -72,7 +72,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://api-mms.teknoklop.com",
+        target: "http://localhost:3001",
         changeOrigin: true,
       },
     },
