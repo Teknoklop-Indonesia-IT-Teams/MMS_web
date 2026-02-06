@@ -38,6 +38,7 @@ import { maintenanceReminderService } from "../../services/maintenanceReminderSe
 import { useAuth } from "../../hooks/useAuthSimple";
 import { PERMISSIONS } from "../../constants/roles";
 import ImageDisplay, { SimpleImageDisplay } from "../Common/ImageDisplay";
+import QRCodeDisplay from "../Common/QRCodeDisplay";
 
 const EquipmentTable: React.FC = () => {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
@@ -53,6 +54,8 @@ const EquipmentTable: React.FC = () => {
     null,
   );
   const [showQR, setShowQR] = useState<Equipment | null>(null);
+  const [showQRDisplay, setShowQRDisplay] = useState<Equipment | null>(null);
+
   const [emailCheckDone, setEmailCheckDone] = useState(false); // Track apakah email check sudah dilakukan
 
   // Get user permissions
@@ -185,7 +188,7 @@ const EquipmentTable: React.FC = () => {
         ),
       },
       {
-        header: "Remot",
+        header: "Remote",
         accessorKey: "remot",
         size: 80,
         cell: ({ getValue }) => (
@@ -319,7 +322,14 @@ const EquipmentTable: React.FC = () => {
             <button
               onClick={() => setShowQR(row.original)}
               className="p-2 text-white transition-colors bg-gray-600 rounded-md shadow-sm hover:bg-gray-700"
-              title="QR Code"
+              title="QR Code For Maintenance"
+            >
+              <QrCode size={16} />
+            </button>
+            <button
+              onClick={() => setShowQRDisplay(row.original)}
+              className="p-2 text-white transition-colors bg-[#187498] rounded-md shadow-sm hover:bg-[#36AE7C]"
+              title="QR Code For Public"
             >
               <QrCode size={16} />
             </button>
@@ -635,6 +645,12 @@ const EquipmentTable: React.FC = () => {
 
       {showQR && (
         <QRCodeModal equipment={showQR} onClose={() => setShowQR(null)} />
+      )}
+      {showQRDisplay && (
+        <QRCodeDisplay
+          equipment={showQRDisplay}
+          onClose={() => setShowQRDisplay(null)}
+        />
       )}
     </div>
   );

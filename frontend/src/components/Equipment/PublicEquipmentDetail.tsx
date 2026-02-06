@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { AlertCircle, MapPin, QrCode } from "lucide-react";
 import { Equipment } from "../../types";
+import { alatService } from "../../services/apiSimple";
 
 /**
  * Public Equipment Detail - Accessible without authentication
@@ -23,30 +24,20 @@ const PublicEquipmentDetail: React.FC = () => {
 
       try {
         setLoading(true);
-        // Gunakan endpoint public untuk QR code access
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/alat/public/${id}`,
-        );
+        setError(null);
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("Alat tidak ditemukan");
-          } else {
-            setError("Gagal memuat data alat");
-          }
-          return;
-        }
+        const response = await alatService.getAlatById(id);
 
-        const data = await response.json();
+        // response.data SUDAH Equipment
+        setEquipment(response.data.data);
+      } catch (err: any) {
+        console.error("❌ Public QR: Error fetching equipment:", err);
 
-        if (data.success && data.data) {
-          setEquipment(data.data);
+        if (err.response?.status === 404) {
+          setError("Alat tidak ditemukan");
         } else {
-          setError("Data alat tidak tersedia");
+          setError("Gagal memuat data alat");
         }
-      } catch (error) {
-        console.error("❌ Public QR: Error fetching equipment:", error);
-        setError("Gagal memuat data alat");
       } finally {
         setLoading(false);
       }
@@ -113,14 +104,15 @@ const PublicEquipmentDetail: React.FC = () => {
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
+    if (!status) return "text-gray-600 bg-gray-100";
+
     switch (status.toLowerCase()) {
       case "normal":
-        return "text-green-600 bg-green-100";
       case "garansi":
-        return "text-green-600 bg-green-100"; // Garansi aktif = hijau
+        return "text-green-600 bg-green-100";
       case "habis":
-        return "text-red-600 bg-red-100"; // Garansi habis = merah
+        return "text-red-600 bg-red-100";
       case "maintenance":
         return "text-yellow-600 bg-yellow-100";
       case "error":

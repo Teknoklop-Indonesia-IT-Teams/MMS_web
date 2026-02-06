@@ -105,6 +105,8 @@ export const alatService = {
     const response = await api.get<Alat[]>("/alat");
     return response;
   },
+  getAlatById: (id: string) =>
+    api.get<{ success: boolean; data: Equipment }>(`/alat/public/${id}`),
   getById: (id: string) => api.get<Alat>(`/alat/${id}`),
   create: (data: Partial<Alat> | FormData) => {
     const headers =
