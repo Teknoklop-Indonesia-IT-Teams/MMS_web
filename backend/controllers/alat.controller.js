@@ -147,8 +147,8 @@ const getAllAlat = async (req, res) => {
       }
 
       return {
-        id: sequentialId,
-        originalId: item.id,
+        id: item.id,
+        displayId: sequentialId,
         nama: item.nama || "",
         lokasi: item.lokasi || "",
         jenis: item.jenis || "",
@@ -211,9 +211,10 @@ const getAlatById = async (req, res) => {
     }
 
     const originalId = allAlat[arrayIndex].id;
+    const id = parseInt(req.params.id);
 
     const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
-      originalId,
+      id,
     ]);
 
     if (alat.length === 0) {

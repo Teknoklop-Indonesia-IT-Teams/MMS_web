@@ -671,6 +671,7 @@ export const alatService = {
 export const recordService = {
   getAll: () => api.get<Record[]>("/record"),
   getById: (id: string) => api.get<Record>(`/record/${id}`),
+  getByEquipmentId: (equipmentId: number) => api.get<Record[]>(`/record/equipment/${equipmentId}`),
   create: (data: Omit<Record, "id">) => {
     AppStateManager.startCriticalOperation("Create record");
 
@@ -698,7 +699,7 @@ export const recordService = {
       })
       .finally(() => AppStateManager.endCriticalOperation());
   },
-  delete: (id: string) => {
+  delete: (id: number) => {
     AppStateManager.startCriticalOperation("Delete record");
     return api
       .delete(`/record/${id}`)

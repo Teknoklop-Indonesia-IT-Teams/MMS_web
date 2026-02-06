@@ -53,6 +53,22 @@ const getRecordById = async (req, res) => {
   }
 };
 
+const getRecordByEquipmentId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [records] = await db.query(
+      "SELECT * FROM m_record WHERE id_m_alat = ?",
+      [id]
+    );
+
+    res.json(records);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 const createRecord = async (req, res) => {
   try {
     const {
@@ -194,6 +210,7 @@ const deleteRecord = async (req, res) => {
 module.exports = {
   getAllRecords,
   getRecordById,
+  getRecordByEquipmentId,
   createRecord,
   updateRecord,
   deleteRecord,

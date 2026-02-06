@@ -11,6 +11,7 @@ const config = {
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  port: 3307,
   charset: "utf8mb4",
 };
 
