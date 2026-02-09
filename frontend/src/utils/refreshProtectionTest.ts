@@ -40,6 +40,8 @@ if (typeof window !== "undefined") {
 // Show initial status
 if (typeof window !== "undefined") {
   setTimeout(() => {
-    window.debugRefreshProtection();
+    if (typeof window.debugRefreshProtection === "function") {
+      window.debugRefreshProtection();
+    }
   }, 1000);
 }

@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400">Control panel</p>
           </div>
 
-          <div className="flex items-center w-full px-4 py-2 space-x-2 transition-colors duration-200 bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto dark:bg-gray-800 dark:border-gray-600 justify-between">
+          <div className="flex items-center w-full px-4 py-2 space-x-2  bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto dark:bg-gray-800 dark:border-gray-600 justify-between">
             <Filter size={20} className="text-gray-500 dark:text-gray-400" />
             <div className="relative flex-grow">
               <button
@@ -193,7 +193,7 @@ const Dashboard: React.FC = () => {
       <MaintenanceDashboard equipment={filteredEquipment} />
 
       <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-3">
-        <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
             Status Peralatan
             {hasActiveFilter && (
@@ -263,7 +263,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
             <MapPinned />{" "}
             <span className="ml-2">Peralatan Berdasarkan Lokasi</span>
@@ -321,7 +321,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <div className="p-6  bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
             <History /> <span className="ml-2">Aktivitas Terbaru</span>
             {hasActiveFilter && (
