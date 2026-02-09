@@ -121,6 +121,7 @@ const EquipmentTable: React.FC = () => {
 
   const handleDeleteEquipment = useCallback(
     async (id: number) => {
+      // ✅ Cari equipment berdasarkan database ID
       const equipmentItem = equipment.find((e: Equipment) => e.id === id);
       const equipmentName = equipmentItem ? equipmentItem.nama : `ID ${id}`;
 
@@ -129,6 +130,7 @@ const EquipmentTable: React.FC = () => {
         async () => {
           const loadingToastId = showLoadingToast("Menghapus alat...");
           try {
+            // ✅ Kirim database ID ke backend
             await alatService.delete(id.toString());
             await fetchEquipment();
             showSuccessToast(
@@ -146,7 +148,7 @@ const EquipmentTable: React.FC = () => {
           }
         },
         () => {
-          // User cancelled - no action needed
+          // User cancelled
         },
         "Tindakan ini tidak dapat dibatalkan",
       );
@@ -269,7 +271,7 @@ const EquipmentTable: React.FC = () => {
               <SimpleImageDisplay
                 src={imageFilename || ""}
                 alt={`Equipment ${equipment.nama}`}
-                className="w-full h-full rounded-md border"
+                className="w-full h-full border rounded-md"
               />
             </div>
           );
@@ -312,6 +314,7 @@ const EquipmentTable: React.FC = () => {
             )}
             {canDeleteEquipment && (
               <button
+                // ✅ KIRIM DATABASE ID LANGSUNG
                 onClick={() => handleDeleteEquipment(row.original.id)}
                 className="p-2 text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-700"
                 title="Hapus Alat"
@@ -470,7 +473,7 @@ const EquipmentTable: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowDropdown((prev) => !prev)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="flex items-center justify-between w-full px-3 py-2 text-gray-900 transition-colors bg-white border border-gray-300 rounded-lg dark:text-gray-100 dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 >
                   <span>{typeFilter === "" ? "Semua Jenis" : typeFilter}</span>
                   <ChevronDown
@@ -481,14 +484,14 @@ const EquipmentTable: React.FC = () => {
                 </button>
 
                 {showDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                  <div className="absolute left-0 right-0 z-10 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg top-full dark:bg-gray-700 dark:border-gray-600">
                     <button
                       type="button"
                       onClick={() => {
                         setTypeFilter("");
                         setShowDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg transition-colors text-gray-900 dark:text-gray-100"
+                      className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg dark:text-gray-100"
                     >
                       Semua Jenis
                     </button>
@@ -501,7 +504,7 @@ const EquipmentTable: React.FC = () => {
                           setTypeFilter(type);
                           setShowDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-gray-900 dark:text-gray-100"
+                        className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-100"
                       >
                         {type}
                       </button>

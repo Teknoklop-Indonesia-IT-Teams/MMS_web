@@ -9,6 +9,7 @@ const router = express.Router();
 // ========== PUBLIC ROUTES ==========
 router.get("/", alatController.getAllAlat);
 router.get("/public/:id", alatController.getPublicAlatById);
+router.get("/:id/maintenance-status", alatController.getEquipmentWithMaintenanceStatus);
 
 // ========== PROTECTED ROUTES ==========
 router.use(authMiddleware);

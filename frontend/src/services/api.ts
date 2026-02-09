@@ -5,6 +5,7 @@ import {
   Staff,
   LoginCredentials,
   RegisterData,
+  Equipment,
 } from "../types";
 import { isAppStillInitializing } from "../utils/authUtils";
 import { AppStateManager } from "../utils/appState";
@@ -576,6 +577,12 @@ export const alatService = {
     AppStateManager.startCriticalOperation(`Equipment getById ${id}`);
     return api
       .get<Alat>(`/alat/${id}`)
+      .finally(() => AppStateManager.endCriticalOperation());
+  },
+  getWithMaintenanceStatus: (id: number) => {
+    AppStateManager.startCriticalOperation(`Equipment maintenance status ${id}`);
+    return api
+      .get<Equipment>(`/alat/${id}/maintenance-status`)
       .finally(() => AppStateManager.endCriticalOperation());
   },
   create: (data: FormData | Omit<Alat, "id">) => {
