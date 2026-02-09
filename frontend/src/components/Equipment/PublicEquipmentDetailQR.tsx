@@ -8,7 +8,7 @@ import { alatService } from "../../services/apiSimple";
  * Public Equipment Detail - Accessible without authentication
  * Used for QR code scanning from external devices/browsers
  */
-const PublicEquipmentDetail: React.FC = () => {
+const PublicEquipmentDetailQR: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,8 +27,6 @@ const PublicEquipmentDetail: React.FC = () => {
         setError(null);
 
         const response = await alatService.getAlatById(id);
-
-        // response.data SUDAH Equipment
         setEquipment(response.data.data);
       } catch (err: any) {
         console.error("❌ Public QR: Error fetching equipment:", err);
@@ -305,4 +303,4 @@ const PublicEquipmentDetail: React.FC = () => {
   );
 };
 
-export default PublicEquipmentDetail;
+export default PublicEquipmentDetailQR;

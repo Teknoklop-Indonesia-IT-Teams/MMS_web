@@ -14,9 +14,9 @@ declare global {
 // Add debug info to window for easy testing
 if (typeof window !== "undefined") {
   window.debugRefreshProtection = () => {
-    console.log("=== Refresh Protection Debug Info ===");
-    console.log("Session Storage:", sessionStorage.getItem("mms-navigation-state"));
-    console.log("Protection Utils:", RaceConditionUtils);
+    // console.log("=== Refresh Protection Debug Info ===");
+    // console.log("Session Storage:", sessionStorage.getItem("mms-navigation-state"));
+    // console.log("Protection Utils:", RaceConditionUtils);
     // Tambahkan info debug lainnya sesuai kebutuhan
   };
   window.simulateFastRefresh = async () => {

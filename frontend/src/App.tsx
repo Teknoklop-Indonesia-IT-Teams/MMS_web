@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import AuthRedirect from "./components/Auth/AuthRedirect";
 import LayoutWrapper from "./components/Layout/LayoutWrapper";
 import UsersProfile from "./components/Users/UsersProfile";
+import MaintenanceEquipmentDetailQR from "./components/Equipment/MaintenanceEquipmentDetailQR";
 
 // Lazy load ALL components for maximum code splitting
 const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
@@ -21,8 +22,8 @@ const EquipmentTable = lazy(
 const SimpleEquipmentDetail = lazy(
   () => import("./components/Equipment/SimpleEquipmentDetail"),
 );
-const PublicEquipmentDetail = lazy(
-  () => import("./components/Equipment/PublicEquipmentDetail"),
+const PublicEquipmentDetailQR = lazy(
+  () => import("./components/Equipment/PublicEquipmentDetailQR"),
 );
 
 // Auth components
@@ -71,13 +72,13 @@ function App() {
                   {/*  Halaman QR Code For Public */}
                   <Route
                     path="/public/equipment/:id"
-                    element={<PublicEquipmentDetail />}
+                    element={<PublicEquipmentDetailQR />}
                   />
 
                   {/* Halaman QR Code For Login, Halamannya masih belum bisa ngubah apapun */}
                   <Route
                     path="/qr/telemetri/detail/:id"
-                    element={<PublicEquipmentDetail />}
+                    element={<MaintenanceEquipmentDetailQR />}
                   />
 
                   {/* Protected Routes */}

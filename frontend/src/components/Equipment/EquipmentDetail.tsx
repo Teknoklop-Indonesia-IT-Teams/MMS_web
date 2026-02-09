@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { X, Plus, Pencil, Trash2, BookOpen } from "lucide-react";
-import { Equipment, Record } from "../../types";
+import { Equipment, MaintenanceRecord } from "../../types";
 import { alatService, recordService, staffService } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import MaintenanceStatus from "./MaintenanceStatus";
@@ -29,7 +29,7 @@ export default function EquipmentDetail({
   onClose,
   onUpdate,
 }: EquipmentDetailProps) {
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<MaintenanceRecord[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [formData, setFormData] = useState({
@@ -54,15 +54,11 @@ export default function EquipmentDetail({
   //     console.error("Error fetching records:", error);
   //   }
   // }, [equipment.id]);
-  const [equipmentWithStatus, setEquipmentWithStatus] = useState<Equipment>(equipment);
+  const [equipmentWithStatus, setEquipmentWithStatus] =
+    useState<Equipment>(equipment);
   const fetchRecords = useCallback(async () => {
     try {
-      console.log("Equipment ID:", equipment.id);
-
       const response = await recordService.getByEquipmentId(equipment.id);
-
-      console.log("Records from API:", response.data);
-
       setRecords(response.data);
     } catch (error) {
       console.error(error);
@@ -216,10 +212,11 @@ export default function EquipmentDetail({
                     Status
                   </label>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                      }`}
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      equipment.status === "Garansi"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
                   >
                     {equipment.status}
                   </span>
@@ -301,7 +298,10 @@ export default function EquipmentDetail({
           <div className="pt-6 border-t">
             <h3 className="mb-4 text-lg font-semibold">Status Maintenance</h3>
             <div className="space-y-4">
-              <MaintenanceStatus equipment={equipmentWithStatus} showDetails={true} />
+              <MaintenanceStatus
+                equipment={equipmentWithStatus}
+                showDetails={true}
+              />
               <MaintenanceActions
                 equipment={equipment}
                 onUpdate={() => {
@@ -557,10 +557,11 @@ export default function EquipmentDetail({
                           <div className="flex space-x-1">
                             <button
                               onClick={() => toggleRecordDetail(record.id)}
-                              className={`p-1 text-white rounded transition-colors ${expandedRecordId === record.id
-                                ? 'bg-blue-700'
-                                : 'bg-blue-600 hover:bg-blue-700'
-                                }`}
+                              className={`p-1 text-white rounded transition-colors ${
+                                expandedRecordId === record.id
+                                  ? "bg-blue-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              }`}
                             >
                               <BookOpen size={12} />
                             </button>
@@ -584,7 +585,7 @@ export default function EquipmentDetail({
                                   Tambahan
                                 </label>
                                 <p className="mt-1 text-sm text-gray-900">
-                                  {record.tambahan || '-'}
+                                  {record.tambahan || "-"}
                                 </p>
                               </div>
                               <div>
@@ -592,7 +593,7 @@ export default function EquipmentDetail({
                                   Kondisi Akhir
                                 </label>
                                 <p className="mt-1 text-sm text-gray-900">
-                                  {record.akhir || '-'}
+                                  {record.akhir || "-"}
                                 </p>
                               </div>
                               <div>
@@ -600,7 +601,7 @@ export default function EquipmentDetail({
                                   Rencana Berikutnya
                                 </label>
                                 <p className="mt-1 text-sm text-gray-900">
-                                  {record.berikutnya || '-'}
+                                  {record.berikutnya || "-"}
                                 </p>
                               </div>
                               <div>
@@ -608,7 +609,7 @@ export default function EquipmentDetail({
                                   Petugas
                                 </label>
                                 <p className="mt-1 text-sm text-gray-900">
-                                  {record.petugas || '-'}
+                                  {record.petugas || "-"}
                                 </p>
                               </div>
                             </div>

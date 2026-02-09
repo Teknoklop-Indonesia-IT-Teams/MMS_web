@@ -75,7 +75,7 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
 
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Remot
+                  Remote
                 </label>
                 <p className="p-2 text-sm text-gray-900 rounded bg-gray-50">
                   {equipment.remot || "-"}
