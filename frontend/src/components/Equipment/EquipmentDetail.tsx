@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { X, Plus, Pencil, Trash2, BookOpen } from "lucide-react";
 import { Equipment, Record } from "../../types";
-import { recordService, staffService } from "../../services/api";
+import { alatService, recordService, staffService } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import MaintenanceStatus from "./MaintenanceStatus";
 import MaintenanceActions from "./MaintenanceActions";
@@ -54,6 +54,7 @@ export default function EquipmentDetail({
   //     console.error("Error fetching records:", error);
   //   }
   // }, [equipment.id]);
+  const [equipmentWithStatus, setEquipmentWithStatus] = useState<Equipment>(equipment);
   const fetchRecords = useCallback(async () => {
     try {
       console.log("Equipment ID:", equipment.id);
@@ -68,6 +69,14 @@ export default function EquipmentDetail({
     }
   }, [equipment.id]);
 
+  const fetchEquipmentStatus = useCallback(async () => {
+    try {
+      const response = await alatService.getWithMaintenanceStatus(equipment.id);
+      setEquipmentWithStatus(response.data);
+    } catch (error) {
+      console.error("Error fetching equipment status:", error);
+    }
+  }, [equipment.id]);
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -97,7 +106,8 @@ export default function EquipmentDetail({
   useEffect(() => {
     void fetchRecords();
     void fetchStaff();
-  }, [fetchRecords, fetchStaff]);
+    void fetchEquipmentStatus();
+  }, [fetchRecords, fetchStaff, fetchEquipmentStatus]);
 
   function handleAddRecord() {
     setShowAddRecord(true);
@@ -129,6 +139,7 @@ export default function EquipmentDetail({
       if (!response.data) throw new Error("Failed to save record");
 
       await fetchRecords();
+      await fetchEquipmentStatus();
       setShowAddRecord(false);
       setFormData({
         tanggal: "",
@@ -290,7 +301,7 @@ export default function EquipmentDetail({
           <div className="pt-6 border-t">
             <h3 className="mb-4 text-lg font-semibold">Status Maintenance</h3>
             <div className="space-y-4">
-              <MaintenanceStatus equipment={equipment} showDetails={true} />
+              <MaintenanceStatus equipment={equipmentWithStatus} showDetails={true} />
               <MaintenanceActions
                 equipment={equipment}
                 onUpdate={() => {

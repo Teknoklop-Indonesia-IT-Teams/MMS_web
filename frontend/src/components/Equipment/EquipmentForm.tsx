@@ -295,9 +295,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, nama: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.nama ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.nama ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.nama && (
                 <p className="mt-1 text-xs text-red-500">{errors.nama}</p>
@@ -314,9 +313,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, lokasi: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.lokasi ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.lokasi ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.lokasi && (
                 <p className="mt-1 text-xs text-red-500">{errors.lokasi}</p>
@@ -355,9 +353,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, instalasi: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.instalasi ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.instalasi ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.instalasi && (
                 <p className="mt-1 text-xs text-red-500">{errors.instalasi}</p>
@@ -374,9 +371,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, garansi: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.garansi ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.garansi ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.garansi && (
                 <p className="mt-1 text-xs text-red-500">{errors.garansi}</p>
@@ -445,9 +441,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, device: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.device ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.device ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.device && (
                 <p className="mt-1 text-xs text-red-500">{errors.device}</p>
@@ -464,9 +459,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, sensor: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.sensor ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.sensor ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.sensor && (
                 <p className="mt-1 text-xs text-red-500">{errors.sensor}</p>
@@ -483,9 +477,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, pelanggan: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.pelanggan ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.pelanggan ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.pelanggan && (
                 <p className="mt-1 text-xs text-red-500">{errors.pelanggan}</p>
@@ -501,9 +494,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, pic: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.pic ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.pic ? "border-red-500" : "border-gray-300"
+                  }`}
                 disabled={loadingStaff}
               >
                 <option value="">
@@ -593,75 +585,60 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
           </div>
 
           {/* Maintenance Settings Section */}
-          <div className="pt-6 border-t">
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Pengaturan Maintenance
-            </h3>
+          {!equipment && (
+            <div className="pt-6 border-t">
+              <h3 className="mb-4 text-lg font-semibold text-gray-800">
+                Pengaturan Maintenance
+              </h3>
 
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="maintenanceActive"
-                  checked={formData.isMaintenanceActive}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      isMaintenanceActive: e.target.checked,
-                    })
-                  }
-                  className="mr-2"
-                />
-                <label
-                  htmlFor="maintenanceActive"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Aktifkan Maintenance
-                </label>
-              </div>
-
-              {formData.isMaintenanceActive && (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {/* <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
-                      Tanggal Terakhir Maintenance
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.maintenanceDate}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          maintenanceDate: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div> */}
-
-                  <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
-                      Interval Maintenance (hari)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.maintenanceInterval}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          maintenanceInterval: parseInt(e.target.value) || 90,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      min="1"
-                      placeholder="90"
-                    />
-                  </div>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="maintenanceActive"
+                    checked={formData.isMaintenanceActive}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isMaintenanceActive: e.target.checked,
+                      })
+                    }
+                    className="mr-2"
+                  />
+                  <label
+                    htmlFor="maintenanceActive"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Aktifkan Maintenance
+                  </label>
                 </div>
-              )}
-            </div>
-          </div>
 
+                {formData.isMaintenanceActive && (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block mb-1 text-sm font-medium text-gray-700">
+                        Interval Maintenance (hari)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.maintenanceInterval}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            maintenanceInterval: parseInt(e.target.value) || 90,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        min="1"
+                        placeholder="90"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+  
           <div className="flex pt-6 space-x-3">
             <button
               type="submit"

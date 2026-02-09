@@ -3,178 +3,127 @@ const { db } = require("../config/db.js");
 const getAllAlat = async (req, res) => {
   try {
     console.log("🔍 Executing getAllAlat query...");
-    // Pertama, cek struktur tabel
-    const [tableInfo] = await db.query(`
-      SELECT COLUMN_NAME, DATA_TYPE 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA = DATABASE() 
-      AND TABLE_NAME = 'm_alat'
-      ORDER BY ORDINAL_POSITION
-    `);
-    console.log("📊 Table structure:", tableInfo);
 
-    const [alat] = await db.query("SELECT * FROM m_alat ORDER BY id DESC");
+    // Query dengan LEFT JOIN untuk dapat latest record
+    const [alat] = await db.query(`
+      SELECT 
+        a.*,
+        r.latest_tanggal
+      FROM m_alat a
+      LEFT JOIN (
+        SELECT 
+          id_m_alat,
+          MAX(tanggal) as latest_tanggal
+        FROM m_record
+        GROUP BY id_m_alat
+      ) r ON a.id = r.id_m_alat
+      ORDER BY a.id DESC
+    `);
+
     console.log(`📊 Found ${alat.length} equipment records`);
 
     if (alat.length > 0) {
       console.log("📋 First equipment record:", {
         id: alat[0].id,
         nama: alat[0].nama,
-        i_alat: alat[0].i_alat,
-        maintenance_fields: {
-          maintenance_date: alat[0].maintenance_date,
-          maintenance_interval_days: alat[0].maintenance_interval_days,
-          is_maintenance_active: alat[0].is_maintenance_active,
-          // Cek semua kemungkinan nama kolom
-          isMaintenanceActive: alat[0].isMaintenanceActive,
-          isMaintenance_active: alat[0].isMaintenance_active,
-        },
+        instalasi: alat[0].instalasi,
+        latest_tanggal: alat[0].latest_tanggal,
+        maintenance_interval_days: alat[0].maintenance_interval_days,
       });
     }
+    const today = new Date();
 
-    // Calculate maintenance status for each equipment
     const alatWithSequentialId = alat.map((item, index) => {
       const sequentialId = alat.length - index;
 
-      // Calculate maintenance status
       let maintenanceStatus = "inactive";
       let maintenanceAlertLevel = "none";
       let maintenanceDaysLeft = null;
       let nextMaintenanceDate = null;
-      let maintenanceStatusText = "";
-
-      // Check if maintenance is active and columns exist
-      // Convert to proper boolean
-      const isActive =
-        item.is_maintenance_active === 1 ||
-        item.is_maintenance_active === true ||
-        item.is_maintenance_active === "1" ||
-        (typeof item.is_maintenance_active === "string" &&
-          item.is_maintenance_active.toLowerCase() === "true");
-
-      if (isActive) {
-        if (item.maintenance_date && item.maintenance_interval_days) {
-          const today = new Date();
-          const lastMaintenanceDate = new Date(item.maintenance_date);
-          const intervalDays = parseInt(item.maintenance_interval_days) || 90;
-
-          // Calculate next maintenance date
-          nextMaintenanceDate = new Date(lastMaintenanceDate);
-          nextMaintenanceDate.setDate(
-            nextMaintenanceDate.getDate() + intervalDays,
-          );
-
-          // Calculate days left
-          const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
-          maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-          // Determine status and alert level
-          if (maintenanceDaysLeft <= 0) {
-            maintenanceStatus = "overdue";
-            maintenanceAlertLevel = "red";
-            maintenanceStatusText = "Terlambat maintenance";
-          } else if (maintenanceDaysLeft <= 14) {
-            maintenanceStatus = "urgent";
-            maintenanceAlertLevel = "red";
-            maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Urgent)`;
-          } else if (maintenanceDaysLeft <= 30) {
-            maintenanceStatus = "needed";
-            maintenanceAlertLevel = "yellow";
-            maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Diperlukan)`;
-          } else {
-            maintenanceStatus = "good";
-            maintenanceAlertLevel = "green";
-            maintenanceStatusText = `${maintenanceDaysLeft} hari lagi`;
-          }
-        } else {
-          // Equipment has maintenance active but no date set
-          maintenanceStatus = "needed";
-          maintenanceAlertLevel = "yellow";
-          maintenanceStatusText = "Maintenance belum dijadwalkan";
-          maintenanceDaysLeft = null;
+      let maintenanceStatusText = "Tidak ada jadwal maintenance";
+      let maintenanceDate = null;
+      let hasValidDate = false;
+      let dateSource = "none";
+      if (item.latest_tanggal) {
+        const recordDate = new Date(item.latest_tanggal);
+        if (!isNaN(recordDate.getTime())) {
+          maintenanceDate = recordDate;
+          hasValidDate = true;
+          dateSource = "record";
+          console.log(`✅ Equipment ${item.id} using date from RECORD:`, maintenanceDate.toISOString().split('T')[0]);
         }
-      } else if (item.maintenance_date && item.maintenance_interval_days) {
-        // Equipment is not currently under maintenance but has maintenance schedule
-        const today = new Date();
-        const lastMaintenanceDate = new Date(item.maintenance_date);
+      }
+      if (!hasValidDate && item.instalasi) {
+        const instalasiDate = new Date(item.instalasi);
+        if (!isNaN(instalasiDate.getTime())) {
+          maintenanceDate = instalasiDate;
+          hasValidDate = true;
+          dateSource = "instalasi";
+          console.log(`✅ Equipment ${item.id} using date from INSTALASI:`, maintenanceDate.toISOString().split('T')[0]);
+        }
+      }
+      if (hasValidDate) {
         const intervalDays = parseInt(item.maintenance_interval_days) || 90;
+        nextMaintenanceDate = new Date(maintenanceDate);
+        nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + intervalDays);
+        const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
+        maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-        // Check if maintenance was completed today
-        const isSameDay =
-          today.getFullYear() === lastMaintenanceDate.getFullYear() &&
-          today.getMonth() === lastMaintenanceDate.getMonth() &&
-          today.getDate() === lastMaintenanceDate.getDate();
-
-        if (isSameDay) {
-          maintenanceStatus = "selesai";
-          maintenanceAlertLevel = "blue";
-          maintenanceStatusText = "Maintenance selesai hari ini";
+        console.log(`Equipment ${item.id} - Days left:`, maintenanceDaysLeft);
+        if (maintenanceDaysLeft < 0) {
+          maintenanceStatus = "overdue";
+          maintenanceAlertLevel = "red";
+          maintenanceStatusText = "Terlambat maintenance";
+        } else if (maintenanceDaysLeft <= 7) {
+          maintenanceStatus = "urgent";
+          maintenanceAlertLevel = "red";
+          maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Urgent)`;
+        } else if (maintenanceDaysLeft <= 30) {
+          maintenanceStatus = "warning";
+          maintenanceAlertLevel = "yellow";
+          maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Diperlukan)`;
         } else {
-          // Calculate next maintenance date
-          nextMaintenanceDate = new Date(lastMaintenanceDate);
-          nextMaintenanceDate.setDate(
-            nextMaintenanceDate.getDate() + intervalDays,
-          );
-
-          // Calculate days left
-          const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
-          maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-          // Determine status
-          if (maintenanceDaysLeft <= 0) {
-            maintenanceStatus = "overdue";
-            maintenanceAlertLevel = "red";
-            maintenanceStatusText = "Terlambat maintenance";
-          } else if (maintenanceDaysLeft <= 14) {
-            maintenanceStatus = "urgent";
-            maintenanceAlertLevel = "red";
-            maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Urgent)`;
-          } else if (maintenanceDaysLeft <= 30) {
-            maintenanceStatus = "needed";
-            maintenanceAlertLevel = "yellow";
-            maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Diperlukan)`;
-          } else {
-            maintenanceStatus = "good";
-            maintenanceAlertLevel = "green";
-            maintenanceStatusText = `${maintenanceDaysLeft} hari lagi`;
-          }
+          maintenanceStatus = "good";
+          maintenanceAlertLevel = "green";
+          maintenanceStatusText = `${maintenanceDaysLeft} hari lagi`;
         }
       } else {
-        // No maintenance schedule
         maintenanceStatus = "inactive";
         maintenanceAlertLevel = "none";
         maintenanceStatusText = "Tidak ada jadwal maintenance";
       }
+      const { latest_tanggal, ...itemData } = item;
 
       return {
-        id: item.id,
+        id: itemData.id,
         displayId: sequentialId,
-        nama: item.nama || "",
-        lokasi: item.lokasi || "",
-        jenis: item.jenis || "",
-        instalasi: item.instalasi || "",
-        garansi: item.garansi || "",
-        remot: item.remot || "",
-        status: item.status || "",
-        device: item.device || "",
-        sensor: item.sensor || "",
-        pelanggan: item.pelanggan || "",
-        pic: item.pic || "",
-        email: item.email || "",
-        i_alat: item.i_alat || "",
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        // Maintenance fields
-        maintenanceDate: item.maintenance_date,
-        maintenanceInterval: item.maintenance_interval_days || 90,
-        isMaintenanceActive: Boolean(item.is_maintenance_active),
+        nama: itemData.nama || "",
+        lokasi: itemData.lokasi || "",
+        jenis: itemData.jenis || "",
+        instalasi: itemData.instalasi || "",
+        garansi: itemData.garansi || "",
+        remot: itemData.remot || "",
+        status: itemData.status || "",
+        device: itemData.device || "",
+        sensor: itemData.sensor || "",
+        pelanggan: itemData.pelanggan || "",
+        pic: itemData.pic || "",
+        email: itemData.email || "",
+        i_alat: itemData.i_alat || "",
+        created_at: itemData.created_at,
+        updated_at: itemData.updated_at,
+        maintenanceDate: hasValidDate ? maintenanceDate.toISOString().split('T')[0] : null,
+        maintenanceInterval: itemData.maintenance_interval_days || 90,
+        isMaintenanceActive: hasValidDate,
         maintenanceStatus: maintenanceStatus,
         maintenanceAlertLevel: maintenanceAlertLevel,
         maintenanceDaysLeft: maintenanceDaysLeft,
         maintenanceStatusText: maintenanceStatusText,
-        nextMaintenanceDate: nextMaintenanceDate,
+        nextMaintenanceDate: nextMaintenanceDate ? nextMaintenanceDate.toISOString().split('T')[0] : null,
+        dateSource: dateSource,
       };
     });
+
     res.json(alatWithSequentialId);
   } catch (error) {
     console.error("❌ Error in getAllAlat:", error);
@@ -245,12 +194,12 @@ const createAlat = async (req, res) => {
       "- File:",
       req.file
         ? {
-            fieldname: req.file.fieldname,
-            originalname: req.file.originalname,
-            filename: req.file.filename,
-            path: req.file.path,
-            size: req.file.size,
-          }
+          fieldname: req.file.fieldname,
+          originalname: req.file.originalname,
+          filename: req.file.filename,
+          path: req.file.path,
+          size: req.file.size,
+        }
         : "NO FILE",
     );
 
@@ -300,9 +249,9 @@ const createAlat = async (req, res) => {
     // ========== SAVE TO DATABASE ==========
     const is_maintenance_active =
       isMaintenanceActive === true ||
-      isMaintenanceActive === "true" ||
-      isMaintenanceActive === 1 ||
-      isMaintenanceActive === "1"
+        isMaintenanceActive === "true" ||
+        isMaintenanceActive === 1 ||
+        isMaintenanceActive === "1"
         ? 1
         : 0;
 
@@ -521,33 +470,59 @@ const updateAlat = async (req, res) => {
 };
 
 const deleteAlat = async (req, res) => {
-  try {
-    // Get all data first to map sequential ID to original ID
-    const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");
-    const sequentialId = parseInt(req.params.id);
+  const connection = await db.getConnection();
 
-    if (sequentialId > allAlat.length || sequentialId < 1) {
+  try {
+    await connection.beginTransaction();
+
+    const id = parseInt(req.params.id);
+
+    console.log("🗑️ Deleting alat with ID:", id);
+
+    // ✅ Cek apakah alat ada
+    const [checkAlat] = await connection.query(
+      "SELECT id, nama FROM m_alat WHERE id = ?",
+      [id]
+    );
+
+    if (checkAlat.length === 0) {
+      await connection.rollback();
       return res.status(404).json({ message: "Alat tidak ditemukan" });
     }
 
-    // CORRECT mapping: sequential ID = alat.length - index
-    // So to get index from sequential ID: index = alat.length - sequentialId
-    // But array is 0-based, so: arrayIndex = (alat.length - sequentialId)
-    const arrayIndex = allAlat.length - sequentialId;
+    console.log("✅ Found alat:", checkAlat[0].nama);
 
-    // Make sure arrayIndex is valid
-    if (arrayIndex < 0 || arrayIndex >= allAlat.length) {
-      return res.status(404).json({ message: "Index tidak valid" });
-    }
+    // ✅ Hapus child records (m_record) dulu
+    const [deleteRecordResult] = await connection.query(
+      "DELETE FROM m_record WHERE id_m_alat = ?",
+      [id]
+    );
+    console.log("🗑️ Deleted", deleteRecordResult.affectedRows, "record(s)");
 
-    const originalId = allAlat[arrayIndex].id;
+    // ✅ Baru hapus parent (m_alat)
+    const [deleteAlatResult] = await connection.query(
+      "DELETE FROM m_alat WHERE id = ?",
+      [id]
+    );
+    console.log("🗑️ Deleted alat with ID:", id);
 
-    await db.query("DELETE FROM m_alat WHERE id = ?", [originalId]);
+    await connection.commit();
 
-    res.json({ message: "Alat berhasil dihapus" });
+    res.json({
+      message: "Alat dan record terkait berhasil dihapus",
+      deletedId: id,
+      deletedRecords: deleteRecordResult.affectedRows
+    });
+
   } catch (error) {
-    console.error("Error in deleteAlat:", error);
-    res.status(500).json({ message: "Server error" });
+    await connection.rollback();
+    console.error("❌ Error in deleteAlat:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  } finally {
+    connection.release();
   }
 };
 
@@ -627,9 +602,9 @@ const updateMaintenanceSettings = async (req, res) => {
     // Convert boolean
     const processedIsMaintenanceActive =
       isMaintenanceActive === true ||
-      isMaintenanceActive === "true" ||
-      isMaintenanceActive === 1 ||
-      isMaintenanceActive === "1"
+        isMaintenanceActive === "true" ||
+        isMaintenanceActive === 1 ||
+        isMaintenanceActive === "1"
         ? 1
         : 0;
 
@@ -809,6 +784,140 @@ const getPublicAlatById = async (req, res) => {
   }
 };
 
+const getEquipmentWithMaintenanceStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get equipment data
+    const [equipment] = await db.query(
+      "SELECT * FROM m_alat WHERE id = ?",
+      [id]
+    );
+
+    if (equipment.length === 0) {
+      return res.status(404).json({ message: "Equipment tidak ditemukan" });
+    }
+
+    const alat = equipment[0];
+
+    console.log("=== DEBUG START ===");
+    console.log("Equipment ID:", id);
+    console.log("Alat instalasi:", alat.instalasi);
+    console.log("Alat interval:", alat.maintenance_interval_days);
+
+    // Get latest record for this equipment
+    const [latestRecord] = await db.query(
+      "SELECT tanggal FROM m_record WHERE id_m_alat = ? ORDER BY tanggal DESC LIMIT 1",
+      [id]
+    );
+
+    console.log("Latest record query result:", latestRecord);
+    console.log("Latest record length:", latestRecord.length);
+
+    // Calculate maintenance status
+    const today = new Date();
+    let maintenanceDate, nextMaintenanceDate, daysLeft;
+    let maintenanceStatus = "unknown";
+    let maintenanceStatusText = "Status tidak diketahui";
+    let hasValidDate = false;
+    let dateSource = "none"; // Tracking dari mana tanggal diambil
+
+    // ✅ PRIORITAS 1: Cek record terbaru dulu
+    if (latestRecord.length > 0 && latestRecord[0].tanggal) {
+      console.log("Checking latest record tanggal:", latestRecord[0].tanggal);
+
+      const recordDate = new Date(latestRecord[0].tanggal);
+      console.log("Parsed record date:", recordDate);
+      console.log("Is valid?", !isNaN(recordDate.getTime()));
+
+      if (!isNaN(recordDate.getTime())) {
+        maintenanceDate = recordDate;
+        hasValidDate = true;
+        dateSource = "record"; // ✅ Dari record
+        console.log("✅ Using date from RECORD:", maintenanceDate);
+      }
+    } else {
+      console.log("No valid record found, checking instalasi...");
+    }
+
+    // ✅ PRIORITAS 2: Jika tidak ada record, baru pakai instalasi
+    if (!hasValidDate && alat.instalasi) {
+      console.log("Checking instalasi:", alat.instalasi);
+
+      const instalasiDate = new Date(alat.instalasi);
+      console.log("Parsed instalasi date:", instalasiDate);
+      console.log("Is valid?", !isNaN(instalasiDate.getTime()));
+
+      if (!isNaN(instalasiDate.getTime())) {
+        maintenanceDate = instalasiDate;
+        hasValidDate = true;
+        dateSource = "instalasi"; // ✅ Dari instalasi
+        console.log("✅ Using date from INSTALASI:", maintenanceDate);
+      }
+    }
+
+    console.log("Final date source:", dateSource);
+    console.log("Has valid date?", hasValidDate);
+
+    // ✅ Hanya hitung jika ada tanggal yang valid
+    if (hasValidDate) {
+      const interval = parseInt(alat.maintenance_interval_days) || 90;
+      console.log("Interval:", interval, "days");
+
+      nextMaintenanceDate = new Date(maintenanceDate);
+      nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + interval);
+
+      console.log("Maintenance date:", maintenanceDate.toISOString().split('T')[0]);
+      console.log("Next maintenance date:", nextMaintenanceDate.toISOString().split('T')[0]);
+
+      // Hitung days left
+      const diffTime = nextMaintenanceDate - today;
+      daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      console.log("Days left:", daysLeft);
+
+      // Tentukan status
+      if (daysLeft < 0) {
+        maintenanceStatus = "overdue";
+        maintenanceStatusText = "Terlambat maintenance";
+      } else if (daysLeft <= 7) {
+        maintenanceStatus = "urgent";
+        maintenanceStatusText = `${daysLeft} hari lagi (Urgent)`;
+      } else if (daysLeft <= 30) {
+        maintenanceStatus = "warning";
+        maintenanceStatusText = `${daysLeft} hari lagi (Diperlukan)`;
+      } else {
+        maintenanceStatus = "good";
+        maintenanceStatusText = `${daysLeft} hari lagi`;
+      }
+
+      console.log("Status:", maintenanceStatus);
+      console.log("Status text:", maintenanceStatusText);
+    }
+
+    console.log("=== DEBUG END ===");
+
+    // Process image
+    const processedAlat = {
+      ...alat,
+      i_alat: alat.i_alat ? `data:image/jpeg;base64,${alat.i_alat}` : null,
+      maintenanceDate: hasValidDate ? maintenanceDate.toISOString().split('T')[0] : null,
+      nextMaintenanceDate: hasValidDate && nextMaintenanceDate ? nextMaintenanceDate.toISOString().split('T')[0] : null,
+      maintenanceDaysLeft: daysLeft || 0,
+      maintenanceStatus: maintenanceStatus,
+      maintenanceStatusText: maintenanceStatusText,
+      isMaintenanceActive: hasValidDate ? true : false,
+      maintenanceInterval: alat.maintenance_interval_days || 90,
+      dateSource: dateSource // ✅ Tambahkan ini untuk debug di frontend
+    };
+
+    res.json(processedAlat);
+  } catch (error) {
+    console.error("Error in getEquipmentWithMaintenanceStatus:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   getAllAlat,
   getAlatById,
@@ -821,4 +930,5 @@ module.exports = {
   testMaintenance,
   getPublicAlatById,
   addMaintenanceActivity,
+  getEquipmentWithMaintenanceStatus,
 };
