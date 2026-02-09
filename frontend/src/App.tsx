@@ -68,13 +68,13 @@ function App() {
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/unauthorized" element={<Unauthorized />} />
 
-                  {/* Public Equipment Detail (QR Code Access) */}
+                  {/*  Halaman QR Code For Public */}
                   <Route
                     path="/public/equipment/:id"
                     element={<PublicEquipmentDetail />}
                   />
 
-                  {/* QR Code Routes - Public Access */}
+                  {/* Halaman QR Code For Login, Halamannya masih belum bisa ngubah apapun */}
                   <Route
                     path="/qr/telemetri/detail/:id"
                     element={<PublicEquipmentDetail />}

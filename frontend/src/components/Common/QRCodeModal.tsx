@@ -111,7 +111,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>QR Code - ${equipment.nama}</title>
+            <title>QR Code For Maintenance- ${equipment.nama}</title>
             <style>
               body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
               .qr-container { display: inline-block; padding: 20px; border: 1px solid #ccc; }
@@ -135,7 +135,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">QR Code - {equipment.nama}</h3>
+          <h3 className="text-lg font-semibold">
+            QR Code For Maintenance - {equipment.nama}
+          </h3>
           <button
             onClick={onClose}
             className="text-gray-400 transition-colors hover:text-gray-600"

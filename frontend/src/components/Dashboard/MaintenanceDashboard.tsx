@@ -119,26 +119,26 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
           (item) =>
             item.maintenanceStatus === "selesai" ||
             (Boolean(item.isMaintenanceActive) &&
-              item.maintenanceAlertLevel === "blue")
+              item.maintenanceAlertLevel === "blue"),
         );
       case "urgent":
         return equipment.filter(
           (item) =>
             Boolean(item.isMaintenanceActive) &&
             item.maintenanceAlertLevel === "red" &&
-            item.maintenanceStatus !== "selesai"
+            item.maintenanceStatus !== "selesai",
         );
       case "warning":
         return equipment.filter(
           (item) =>
             Boolean(item.isMaintenanceActive) &&
-            item.maintenanceAlertLevel === "yellow"
+            item.maintenanceAlertLevel === "yellow",
         );
       case "normal":
         return equipment.filter(
           (item) =>
             Boolean(item.isMaintenanceActive) &&
-            item.maintenanceAlertLevel === "green"
+            item.maintenanceAlertLevel === "green",
         );
       case "inactive":
         return equipment.filter((item) => !item.isMaintenanceActive);
@@ -267,12 +267,12 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
                 {selectedCategory === "selesai"
                   ? "Maintenance Selesai"
                   : selectedCategory === "urgent"
-                  ? "Maintenance Segera"
-                  : selectedCategory === "warning"
-                  ? "Maintenance Perhatian"
-                  : selectedCategory === "normal"
-                  ? "Maintenance Normal"
-                  : "Equipment Tidak Aktif"}
+                    ? "Maintenance Segera"
+                    : selectedCategory === "warning"
+                      ? "Maintenance Perhatian"
+                      : selectedCategory === "normal"
+                        ? "Maintenance Normal"
+                        : "Equipment Tidak Aktif"}
               </h3>
               <button
                 onClick={() => setShowDetailModal(false)}
@@ -361,10 +361,10 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
                                 item.maintenanceAlertLevel === "red"
                                   ? "bg-red-100 text-red-800"
                                   : item.maintenanceAlertLevel === "yellow"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : item.maintenanceAlertLevel === "green"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : item.maintenanceAlertLevel === "green"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-gray-100 text-gray-800"
                               }`}
                             >
                               {item.maintenanceStatus}
@@ -374,7 +374,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                               <span>Maintenance Berikutnya:</span>
                               <span className="ml-2 font-medium">
-                                {item.nextMaintenanceDate}
+                                {item.nextMaintenanceDate.split("T")[0]}
                               </span>
                             </div>
                           )}

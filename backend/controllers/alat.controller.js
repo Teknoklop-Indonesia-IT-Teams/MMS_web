@@ -162,9 +162,7 @@ const getAlatById = async (req, res) => {
     const originalId = allAlat[arrayIndex].id;
     const id = parseInt(req.params.id);
 
-    const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
-      id,
-    ]);
+    const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [id]);
 
     if (alat.length === 0) {
       return res.status(404).json({ message: "Alat tidak ditemukan" });
@@ -704,22 +702,17 @@ const addMaintenanceActivity = async (req, res) => {
 // Public method for QR code access - tidak perlu auth
 const getPublicAlatById = async (req, res) => {
   try {
-    const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");
-    const sequentialId = parseInt(req.params.id);
+    const alatId = parseInt(req.params.id);
 
-    if (sequentialId > allAlat.length || sequentialId < 1) {
-      return res.status(404).json({
+    if (isNaN(alatId)) {
+      return res.status(400).json({
         success: false,
-        message: "Alat tidak ditemukan",
+        message: "ID alat tidak valid",
       });
     }
 
-    // Fix mapping: sequential ID uses reverse logic (alat.length - index)
-    const arrayIndex = allAlat.length - sequentialId;
-    const originalId = allAlat[arrayIndex].id;
-
     const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
-      originalId,
+      alatId,
     ]);
 
     if (alat.length === 0) {
@@ -729,29 +722,28 @@ const getPublicAlatById = async (req, res) => {
       });
     }
 
-    // Calculate maintenance status for public display
     const equipment = alat[0];
+
     let maintenanceStatus = "inactive";
     let nextMaintenanceDate = null;
 
-    if (equipment.is_maintenance_active) {
-      if (equipment.maintenance_date && equipment.maintenance_interval_days) {
-        const lastMaintenanceDate = new Date(equipment.maintenance_date);
-        const intervalDays =
-          parseInt(equipment.maintenance_interval_days) || 90;
+    if (
+      equipment.is_maintenance_active &&
+      equipment.maintenance_date &&
+      equipment.maintenance_interval_days
+    ) {
+      const lastMaintenanceDate = new Date(equipment.maintenance_date);
+      const intervalDays =
+        parseInt(equipment.maintenance_interval_days, 10) || 90;
 
-        nextMaintenanceDate = new Date(lastMaintenanceDate);
-        nextMaintenanceDate.setDate(
-          nextMaintenanceDate.getDate() + intervalDays,
-        );
+      nextMaintenanceDate = new Date(lastMaintenanceDate);
+      nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + intervalDays);
 
-        maintenanceStatus = "active";
-      }
+      maintenanceStatus = "active";
     }
 
-    // Create public-safe response with sequential ID
     const publicData = {
-      id: sequentialId,
+      id: equipment.id, // ✅ ID database
       nama: equipment.nama,
       lokasi: equipment.lokasi,
       jenis: equipment.jenis,
