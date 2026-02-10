@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from "react";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Trash2 } from "lucide-react";
 import { Equipment } from "../../types";
 import { staffService } from "../../services/api";
 import {
@@ -8,8 +8,6 @@ import {
   cleanupPreviewUrl,
   ConversionResult,
 } from "../../utils/autoHeicConverter";
-import { log } from "console";
-import axios from "axios";
 
 interface EquipmentFormProps {
   equipment: Equipment | null;
@@ -50,21 +48,11 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     sensor: "",
     pelanggan: "",
     pic: "",
-    // Maintenance fields
     maintenanceDate: "",
     maintenanceInterval: 90,
     isMaintenanceActive: false,
     i_alat: "",
   });
-
-  useEffect(() => {
-    if (formData.instalasi && !equipment) {
-      setFormData((prev) => ({
-        ...prev,
-        maintenanceDate: formData.instalasi,
-      }));
-    }
-  }, [formData.instalasi]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -75,6 +63,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [conversionResult, setConversionResult] =
     useState<ConversionResult | null>(null);
+  const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
+
+  
+  useEffect(() => {
+    if (formData.instalasi && !equipment) {
+      setFormData((prev) => ({
+        ...prev,
+        maintenanceDate: formData.instalasi,
+      }));
+    }
+  }, [formData.instalasi, equipment]);
 
   useEffect(() => {
     if (equipment) {
@@ -82,40 +81,55 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         nama: equipment.nama,
         lokasi: equipment.lokasi,
         jenis: equipment.jenis,
-        instalasi: equipment.instalasi,
-        garansi: equipment.garansi,
+        instalasi: equipment.instalasi?.split("T")[0] || "",
+        garansi: equipment.garansi?.split("T")[0] || "",
         remot: equipment.remot === "on",
         status: equipment.status,
         device: equipment.device,
         sensor: equipment.sensor,
         pelanggan: equipment.pelanggan,
         pic: equipment.pic,
-        // Maintenance fields
-        maintenanceDate: equipment.maintenanceDate
-          ? equipment.maintenanceDate.split("T")[0]
-          : "",
+        maintenanceDate: equipment.maintenanceDate?.split("T")[0] || "",
         maintenanceInterval: equipment.maintenanceInterval || 90,
         isMaintenanceActive: Boolean(equipment.isMaintenanceActive) || false,
         i_alat: equipment.i_alat || "",
       });
+
       if (equipment.i_alat) {
         setImagePreview(
           `${import.meta.env.VITE_URL}/uploads/${equipment.i_alat}`,
         );
       }
-      // Reset file state saat editing
+
       setSelectedFile(null);
       setIsHeicFile(false);
+      setShouldRemoveImage(false);
     } else {
-      // Reset semua state saat tambah baru
+      setFormData({
+        nama: "",
+        lokasi: "",
+        jenis: "ARR" as Equipment["jenis"],
+        instalasi: "",
+        garansi: "",
+        remot: false,
+        status: "Garansi" as Equipment["status"],
+        device: "",
+        sensor: "",
+        pelanggan: "",
+        pic: "",
+        maintenanceDate: "",
+        maintenanceInterval: 90,
+        isMaintenanceActive: false,
+        i_alat: "",
+      });
       setImagePreview("");
       setSelectedFile(null);
       setIsHeicFile(false);
       setConversionResult(null);
+      setShouldRemoveImage(false);
     }
   }, [equipment]);
 
-  // Cleanup preview URLs when component unmounts
   useEffect(() => {
     return () => {
       if (conversionResult?.previewUrl) {
@@ -124,23 +138,18 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     };
   }, [conversionResult]);
 
-  // Fetch staff data for PIC dropdown
   useEffect(() => {
     const fetchStaff = async () => {
       try {
         setLoadingStaff(true);
         const response = await staffService.getAll();
-
-        // Handle direct array response from staff API
         const staffData = Array.isArray(response)
           ? response
           : response?.data || [];
-
         const mappedStaff = (staffData as StaffApiResponse[]).map((staff) => ({
           id: staff.id,
           nama: staff.nama || staff.petugas || staff.name || "",
         }));
-
         setStaffList(mappedStaff);
       } catch (error) {
         console.error("❌ Error fetching staff:", error);
@@ -149,7 +158,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         setLoadingStaff(false);
       }
     };
-
     fetchStaff();
   }, []);
 
@@ -175,86 +183,93 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formDataToSubmit = new FormData();
-    if (validateForm()) {
-      try {
-        // Append all text fields
-        formDataToSubmit.append("nama", formData.nama);
-        formDataToSubmit.append("lokasi", formData.lokasi);
-        formDataToSubmit.append("jenis", formData.jenis);
-        formDataToSubmit.append("instalasi", formData.instalasi);
-        formDataToSubmit.append("garansi", formData.garansi);
-        formDataToSubmit.append("remot", formData.remot ? "on" : "off");
-        formDataToSubmit.append("status", formData.status);
-        formDataToSubmit.append("device", formData.device);
-        formDataToSubmit.append("sensor", formData.sensor);
-        formDataToSubmit.append("pelanggan", formData.pelanggan);
-        formDataToSubmit.append("pic", formData.pic);
-
-        formDataToSubmit.append(
-          "maintenanceDate",
-          formData.maintenanceDate || "",
-        );
-        formDataToSubmit.append(
-          "maintenanceInterval",
-          formData.maintenanceInterval.toString(),
-        );
-        formDataToSubmit.append(
-          "isMaintenanceActive",
-          formData.isMaintenanceActive.toString(),
-        );
-
-        // ========== IMAGE HANDLING LOGIC ==========
-        if (selectedFile) {
-          // Ada file baru yang dipilih
-          formDataToSubmit.append("i_alat", selectedFile);
-        } else {
-          // Tidak ada file baru
-          if (equipment) {
-            // Mode EDIT
-            if (!imagePreview && equipment.i_alat) {
-              // User menghapus gambar yang ada
-              formDataToSubmit.append("i_alat", ""); // Kirim string kosong
-              formDataToSubmit.append("removeImage", "true");
-            }
-          }
-        }
-        onSave(formDataToSubmit);
-      } catch (error) {
-        console.error("❌ Error preparing form data:", error);
-      }
-    } else {
+    if (!validateForm()) {
       console.log("❌ Form validation failed:", errors);
+      return;
+    }
+
+    try {
+      const formDataToSubmit = new FormData();
+
+      formDataToSubmit.append("nama", formData.nama);
+      formDataToSubmit.append("lokasi", formData.lokasi);
+      formDataToSubmit.append("jenis", formData.jenis);
+      formDataToSubmit.append("instalasi", formData.instalasi);
+      formDataToSubmit.append("garansi", formData.garansi);
+      formDataToSubmit.append("remot", formData.remot ? "on" : "off");
+      formDataToSubmit.append("status", formData.status);
+      formDataToSubmit.append("device", formData.device);
+      formDataToSubmit.append("sensor", formData.sensor);
+      formDataToSubmit.append("pelanggan", formData.pelanggan);
+      formDataToSubmit.append("pic", formData.pic);
+      formDataToSubmit.append("maintenanceDate", formData.maintenanceDate || "");
+      formDataToSubmit.append("maintenanceInterval", formData.maintenanceInterval.toString());
+      formDataToSubmit.append("isMaintenanceActive", formData.isMaintenanceActive.toString());
+
+      if (selectedFile) {
+        console.log("📤 Uploading new file:", selectedFile.name);
+        formDataToSubmit.append("i_alat", selectedFile);
+      } else if (shouldRemoveImage && equipment?.i_alat) {
+        console.log("🗑️ Removing image");
+        formDataToSubmit.append("removeImage", "true");
+      }
+
+      console.log("📤 FormData entries:", [...formDataToSubmit.entries()]);
+      console.log("📤 FormData yang dikirim:");
+      for (let [key, value] of formDataToSubmit.entries()) {
+        if (value instanceof File) {
+          console.log(`  - ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`  - ${key}: ${value}`);
+        }
+      }
+      onSave(formDataToSubmit);
+    } catch (error) {
+      console.error("❌ Error preparing form data:", error);
     }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageLoading(true);
-
-      try {
-        // Auto-convert HEIC if needed
-        const result = await autoConvertHeic(file);
-        setConversionResult(result);
-
-        // Set states based on conversion result
-        setIsHeicFile(result.isConverted);
-        const uploadFile = getUploadFile(result);
-        setSelectedFile(uploadFile); // Use converted file if available
-        setImagePreview(result.previewUrl);
-      } catch (error) {
-        console.error("❌ Error processing image:", error);
-        // Fallback error handling
-        setImagePreview(
-          "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkVGMkY0IiBzdHJva2U9IiNGQ0E1QTUiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iMzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjRjU5RTBCIj5QcmV2aWV3IEVycm9yPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI2IiBmaWxsPSIjNzM3Mzc0Ij5GaWxlIFVwbG9hZGVkPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI2IiBmaWxsPSIjNzM3Mzc0Ij5CdXQgUmVhZHk8L3RleHQ+Cjwvc3ZnPgo=",
-        );
-      } finally {
-        setImageLoading(false);
-      }
-    } else {
+    if (!file) {
       console.log("⚠️ No file selected");
+      return;
     }
+
+    setImageLoading(true);
+    setShouldRemoveImage(false);
+
+    try {
+      const result = await autoConvertHeic(file);
+      setConversionResult(result);
+      setIsHeicFile(result.isConverted);
+
+      const uploadFile = getUploadFile(result);
+      setSelectedFile(uploadFile);
+      setImagePreview(result.previewUrl);
+
+      console.log("✅ Image processed:", uploadFile.name);
+    } catch (error) {
+      console.error("❌ Error processing image:", error);
+      setImagePreview(
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkVGMkY0IiBzdHJva2U9IiNGQ0E1QTUiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iMzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjRjU5RTBCIj5QcmV2aWV3IEVycm9yPC90ZXh0Pgo8L3N2Zz4="
+      );
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview("");
+    setSelectedFile(null);
+    setIsHeicFile(false);
+    setShouldRemoveImage(true);
+    setConversionResult(null);
+
+    const fileInput = document.getElementById("image-upload") as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+
+    console.log("🗑️ Image marked for removal");
   };
 
   const deviceTypes: Equipment["jenis"][] = [
@@ -503,9 +518,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 </option>
                 {staffList.map((staff) => (
                   <option key={staff.id} value={staff.nama}>
-                    {equipment?.pic === staff.nama
-                      ? `${staff.nama} (Current)`
-                      : staff.nama}
+                    {staff.nama}
                   </option>
                 ))}
               </select>
@@ -519,21 +532,37 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
             <label className="block mb-1 text-sm font-medium text-gray-700">
               Gambar
             </label>
-            <div className="flex items-center space-x-4">
-              <input
-                type="file"
-                accept="image/*,.heic,.heif"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
-              />
-              <label
-                htmlFor="image-upload"
-                className="flex items-center px-4 py-2 space-x-2 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200"
-              >
-                <Upload size={16} />
-                <span>{selectedFile ? selectedFile.name : "Choose File"}</span>
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  accept="image/*,.heic,.heif"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="flex items-center px-4 py-2 space-x-2 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200"
+                >
+                  <Upload size={16} />
+                  <span>
+                    {selectedFile ? selectedFile.name : "Choose File"}
+                  </span>
+                </label>
+
+                {imagePreview && !imageLoading && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="flex items-center px-3 py-2 space-x-1 text-white transition-colors bg-red-600 rounded-md hover:bg-red-700"
+                  >
+                    <Trash2 size={14} />
+                    <span className="text-sm">Remove</span>
+                  </button>
+                )}
+              </div>
+
               {imageLoading && (
                 <div className="flex items-center space-x-2 text-blue-600">
                   <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
@@ -544,29 +573,30 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                   </span>
                 </div>
               )}
+
               {imagePreview && !imageLoading && (
-                <div className="flex flex-col items-center space-y-2">
+                <div className="flex items-start space-x-4">
                   <div className="relative">
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="object-cover w-20 h-20 border rounded-md"
+                      className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg"
                       onError={(e) => {
                         console.log("Image failed to load, showing fallback");
-                        // Show a generic image placeholder if image fails to load
                         e.currentTarget.src =
                           "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+PHBhdGggZD0iTTI1IDMwaDMwdjIwSDI1VjMweiIgZmlsbD0iIzlDQTNBRiIvPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzciIHI9IjMiIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJtMzggNDMgNS01IDcgN1Y1MEgyNXYtN2w3LTciIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4K";
                       }}
                     />
                     {isHeicFile && (
-                      <div className="absolute -top-1 -right-1 px-1 py-0.5 bg-green-500 text-white text-xs rounded-full">
+                      <div className="absolute -top-1 -right-1 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
                         HEIC
                       </div>
                     )}
                   </div>
+
                   {selectedFile && (
-                    <div className="text-center">
-                      <p className="text-xs text-gray-600 truncate max-w-20">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">
                         {selectedFile.name}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -574,7 +604,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                       </p>
                       {isHeicFile && (
                         <p className="text-xs text-green-600">
-                          HEIC file ready
+                          ✓ HEIC converted to JPEG
                         </p>
                       )}
                     </div>
@@ -584,13 +614,11 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
             </div>
           </div>
 
-          {/* Maintenance Settings Section */}
           {!equipment && (
             <div className="pt-6 border-t">
               <h3 className="mb-4 text-lg font-semibold text-gray-800">
                 Pengaturan Maintenance
               </h3>
-
               <div className="space-y-4">
                 <div className="flex items-center">
                   <input
@@ -614,31 +642,29 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 </div>
 
                 {formData.isMaintenanceActive && (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-700">
-                        Interval Maintenance (hari)
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.maintenanceInterval}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            maintenanceInterval: parseInt(e.target.value) || 90,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        min="1"
-                        placeholder="90"
-                      />
-                    </div>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      Interval Maintenance (hari)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.maintenanceInterval}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          maintenanceInterval: parseInt(e.target.value) || 90,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="1"
+                      placeholder="90"
+                    />
                   </div>
                 )}
               </div>
             </div>
           )}
-  
+
           <div className="flex pt-6 space-x-3">
             <button
               type="submit"

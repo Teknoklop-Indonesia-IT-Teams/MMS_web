@@ -95,7 +95,8 @@ const getAllAlat = async (req, res) => {
       const { latest_tanggal, ...itemData } = item;
 
       return {
-        id: itemData.id,
+        id: sequentialId,
+        originalId: itemData.id,
         displayId: sequentialId,
         nama: itemData.nama || "",
         lokasi: itemData.lokasi || "",
@@ -325,21 +326,18 @@ const createAlat = async (req, res) => {
 
 const updateAlat = async (req, res) => {
   try {
-    // Get original ID dari sequential ID
-    const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");
-    const sequentialId = parseInt(req.params.id);
+    const originalId = parseInt(req.params.id);
 
-    if (sequentialId > allAlat.length || sequentialId < 1) {
-      return res.status(404).json({ message: "Alat tidak ditemukan" });
+    if (isNaN(originalId)) {
+      return res.status(400).json({ message: "ID tidak valid" });
     }
 
-    const arrayIndex = allAlat.length - sequentialId;
-    const originalId = allAlat[arrayIndex].id;
+    // Get existing data langsung pakai originalId
+    const [existingAlat] = await db.query(
+      "SELECT * FROM m_alat WHERE id = ?",
+      [originalId]
+    );
 
-    // Get existing data
-    const [existingAlat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
-      originalId,
-    ]);
     if (existingAlat.length === 0) {
       return res.status(404).json({ message: "Alat tidak ditemukan" });
     }
@@ -347,83 +345,54 @@ const updateAlat = async (req, res) => {
     const existingData = existingAlat[0];
 
     const {
-      nama,
-      lokasi,
-      jenis,
-      instalasi,
-      garansi,
-      remot,
-      status,
-      device,
-      sensor,
-      pelanggan,
-      pic,
-      email,
-      maintenanceDate,
-      maintenanceInterval,
+      nama, lokasi, jenis, instalasi, garansi,
+      remot, status, device, sensor, pelanggan,
+      pic, email, maintenanceDate, maintenanceInterval,
       isMaintenanceActive,
     } = req.body;
 
-    // ========== HANDLE IMAGE ==========
-    let i_alat = existingData.i_alat; // Default: keep existing
-
+    let i_alat = existingData.i_alat;
     if (req.file) {
-      // Ada file baru → update dengan filename baru
       i_alat = req.file.filename;
     } else if (req.body.removeImage === "true") {
-      // Client minta hapus gambar
       i_alat = null;
     }
-    // Convert maintenance values
-    const processedMaintenanceDate =
-      maintenanceDate && maintenanceDate !== ""
-        ? maintenanceDate
-        : existingData.maintenance_date;
 
-    const processedMaintenanceInterval =
-      parseInt(maintenanceInterval) ||
-      existingData.maintenance_interval_days ||
-      90;
+    // Format dates
+    const formatDate = (dateString) => {
+      if (!dateString || dateString === '') return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+      return dateString.split('T')[0];
+    };
 
+    const processedInstalasi = formatDate(instalasi) || existingData.instalasi;
+    const processedGaransi = formatDate(garansi) || existingData.garansi;
+    const processedMaintenanceDate = formatDate(maintenanceDate) || existingData.maintenance_date;
+    const processedMaintenanceInterval = parseInt(maintenanceInterval) || existingData.maintenance_interval_days || 90;
     const processedIsMaintenanceActive =
       isMaintenanceActive !== undefined
-        ? isMaintenanceActive === true ||
-          isMaintenanceActive === "true" ||
-          isMaintenanceActive === 1 ||
-          isMaintenanceActive === "1"
-          ? 1
-          : 0
+        ? ["true", true, 1, "1"].includes(isMaintenanceActive) ? 1 : 0
         : existingData.is_maintenance_active;
 
-    // Query UPDATE
     const updateQuery = `
       UPDATE m_alat 
       SET 
-        nama = ?, 
-        lokasi = ?, 
-        jenis = ?, 
-        instalasi = ?, 
-        garansi = ?, 
-        remot = ?, 
-        status = ?, 
-        device = ?, 
-        sensor = ?, 
-        pelanggan = ?, 
-        pic = ?, 
-        email = ?, 
-        i_alat = ?,
-        maintenance_date = ?, 
+        nama = ?, lokasi = ?, jenis = ?, 
+        instalasi = ?, garansi = ?, remot = ?, 
+        status = ?, device = ?, sensor = ?, 
+        pelanggan = ?, pic = ?, email = ?, 
+        i_alat = ?, maintenance_date = ?, 
         maintenance_interval_days = ?, 
         is_maintenance_active = ?
       WHERE id = ?
     `;
 
-    const [result] = await db.query(updateQuery, [
+    const updateValues = [
       nama || existingData.nama,
       lokasi || existingData.lokasi,
       jenis || existingData.jenis,
-      instalasi || existingData.instalasi,
-      garansi || existingData.garansi,
+      processedInstalasi,
+      processedGaransi,
       remot || existingData.remot,
       status || existingData.status,
       device || existingData.device,
@@ -431,33 +400,36 @@ const updateAlat = async (req, res) => {
       pelanggan || existingData.pelanggan,
       pic || existingData.pic,
       email || existingData.email,
-      i_alat, // Hanya filename atau null
+      i_alat,
       processedMaintenanceDate,
       processedMaintenanceInterval,
       processedIsMaintenanceActive,
       originalId,
-    ]);
+    ];
+
+    const [result] = await db.query(updateQuery, updateValues);
 
     res.json({
-      id: sequentialId,
-      originalId: originalId,
+      success: true,
+      id: originalId,
       nama: nama || existingData.nama,
       lokasi: lokasi || existingData.lokasi,
       jenis: jenis || existingData.jenis,
-      instalasi: instalasi || existingData.instalasi,
-      garansi: garansi || existingData.garansi,
+      instalasi: processedInstalasi,
+      garansi: processedGaransi,
       remot: remot || existingData.remot,
       status: status || existingData.status,
       device: device || existingData.device,
       sensor: sensor || existingData.sensor,
       pelanggan: pelanggan || existingData.pelanggan,
       pic: pic || existingData.pic,
-      i_alat: i_alat || null, // Hanya filename
+      i_alat: i_alat,
       maintenanceDate: processedMaintenanceDate,
       maintenanceInterval: processedMaintenanceInterval,
       isMaintenanceActive: Boolean(processedIsMaintenanceActive),
       message: "Alat berhasil diperbarui",
     });
+
   } catch (error) {
     console.error("❌ Error updateAlat:", error);
     res.status(500).json({
@@ -466,6 +438,7 @@ const updateAlat = async (req, res) => {
     });
   }
 };
+
 
 const deleteAlat = async (req, res) => {
   const connection = await db.getConnection();
@@ -699,7 +672,6 @@ const addMaintenanceActivity = async (req, res) => {
   res.json({ message: "Aktivitas maintenance ditambahkan" });
 };
 
-// Public method for QR code access - tidak perlu auth
 const getPublicAlatById = async (req, res) => {
   try {
     const alatId = parseInt(req.params.id);
@@ -743,7 +715,7 @@ const getPublicAlatById = async (req, res) => {
     }
 
     const publicData = {
-      id: equipment.id, // ✅ ID database
+      id: equipment.id,
       nama: equipment.nama,
       lokasi: equipment.lokasi,
       jenis: equipment.jenis,
@@ -780,7 +752,6 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Get equipment data
     const [equipment] = await db.query(
       "SELECT * FROM m_alat WHERE id = ?",
       [id]
@@ -797,7 +768,6 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
     console.log("Alat instalasi:", alat.instalasi);
     console.log("Alat interval:", alat.maintenance_interval_days);
 
-    // Get latest record for this equipment
     const [latestRecord] = await db.query(
       "SELECT tanggal FROM m_record WHERE id_m_alat = ? ORDER BY tanggal DESC LIMIT 1",
       [id]
@@ -806,15 +776,13 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
     console.log("Latest record query result:", latestRecord);
     console.log("Latest record length:", latestRecord.length);
 
-    // Calculate maintenance status
     const today = new Date();
     let maintenanceDate, nextMaintenanceDate, daysLeft;
     let maintenanceStatus = "unknown";
     let maintenanceStatusText = "Status tidak diketahui";
     let hasValidDate = false;
-    let dateSource = "none"; // Tracking dari mana tanggal diambil
+    let dateSource = "none";
 
-    // ✅ PRIORITAS 1: Cek record terbaru dulu
     if (latestRecord.length > 0 && latestRecord[0].tanggal) {
       console.log("Checking latest record tanggal:", latestRecord[0].tanggal);
 
@@ -825,14 +793,13 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
       if (!isNaN(recordDate.getTime())) {
         maintenanceDate = recordDate;
         hasValidDate = true;
-        dateSource = "record"; // ✅ Dari record
+        dateSource = "record";
         console.log("✅ Using date from RECORD:", maintenanceDate);
       }
     } else {
       console.log("No valid record found, checking instalasi...");
     }
 
-    // ✅ PRIORITAS 2: Jika tidak ada record, baru pakai instalasi
     if (!hasValidDate && alat.instalasi) {
       console.log("Checking instalasi:", alat.instalasi);
 
@@ -843,7 +810,7 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
       if (!isNaN(instalasiDate.getTime())) {
         maintenanceDate = instalasiDate;
         hasValidDate = true;
-        dateSource = "instalasi"; // ✅ Dari instalasi
+        dateSource = "instalasi";
         console.log("✅ Using date from INSTALASI:", maintenanceDate);
       }
     }
@@ -851,7 +818,6 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
     console.log("Final date source:", dateSource);
     console.log("Has valid date?", hasValidDate);
 
-    // ✅ Hanya hitung jika ada tanggal yang valid
     if (hasValidDate) {
       const interval = parseInt(alat.maintenance_interval_days) || 90;
       console.log("Interval:", interval, "days");
@@ -862,13 +828,11 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
       console.log("Maintenance date:", maintenanceDate.toISOString().split('T')[0]);
       console.log("Next maintenance date:", nextMaintenanceDate.toISOString().split('T')[0]);
 
-      // Hitung days left
       const diffTime = nextMaintenanceDate - today;
       daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
       console.log("Days left:", daysLeft);
 
-      // Tentukan status
       if (daysLeft < 0) {
         maintenanceStatus = "overdue";
         maintenanceStatusText = "Terlambat maintenance";
@@ -889,7 +853,6 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
 
     console.log("=== DEBUG END ===");
 
-    // Process image
     const processedAlat = {
       ...alat,
       i_alat: alat.i_alat ? `data:image/jpeg;base64,${alat.i_alat}` : null,
@@ -900,7 +863,7 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
       maintenanceStatusText: maintenanceStatusText,
       isMaintenanceActive: hasValidDate ? true : false,
       maintenanceInterval: alat.maintenance_interval_days || 90,
-      dateSource: dateSource // ✅ Tambahkan ini untuk debug di frontend
+      dateSource: dateSource
     };
 
     res.json(processedAlat);

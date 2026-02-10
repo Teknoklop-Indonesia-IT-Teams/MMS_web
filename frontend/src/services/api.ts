@@ -68,7 +68,6 @@ setTimeout(() => {
   }
 }, 15000);
 
-// Anti-spam refresh protection
 class RefreshProtectionManager {
   private refreshTimes: number[] = [];
   private readonly MAX_REFRESHES = 2; // Maximum 2 refreshes
@@ -258,7 +257,6 @@ const api = axios.create({
   },
 });
 
-// Optimistic Locking Manager untuk mencegah race conditions
 class OptimisticLockingManager {
   private operationLocks = new Map<string, number>();
   private operationQueue = new Map<string, Promise<unknown>>();
@@ -361,7 +359,6 @@ class OptimisticLockingManager {
 
 const optimisticLockManager = new OptimisticLockingManager();
 
-// Robust logout prevention system
 class LogoutManager {
   private isLoggingOut = false;
   private logoutTimeoutId: NodeJS.Timeout | null = null;
@@ -410,20 +407,19 @@ class LogoutManager {
       return false;
     }
 
-    // Detect rapid fire requests (refresh scenario) - MUCH more permissive
+    
     if (this.requestCount > 50 && now - this.lastRequestTime < 500) {
       return false;
     }
 
-    // Race condition detection - MUCH more permissive
     if (
-      this.logout401Count > 10 && // Allow way more 401s
+      this.logout401Count > 10 &&
       now - this.lastLogoutAttempt < this.RACE_CONDITION_WINDOW
     ) {
       return false;
     }
 
-    // Only allow logout if we have a reasonable pause between attempts
+    
     if (now - this.lastLogoutAttempt < this.DEBOUNCE_TIME) {
       return false;
     }
@@ -489,17 +485,14 @@ class LogoutManager {
 
 const logoutManager = new LogoutManager();
 
-// Export logout manager untuk setup callback dari AuthContext
 export const setupLogoutCallback = (callback: () => void) => {
   logoutManager.setLogoutCallback(callback);
 };
 
-// Export method to extend initialization period from components
 export const extendLogoutProtection = (ms: number) => {
   logoutManager.extendInitialization(ms);
 };
 
-// Response interceptor to handle token expiration with robust logout management
 api.interceptors.response.use(
   (response) => {
     // Reset counters on successful response
@@ -553,123 +546,120 @@ api.interceptors.response.use(
   },
 );
 
-// Page reload detection is now handled by LogoutManager's initialization period
-
+// Alat Service
 export const alatService = {
   getAll: async () => {
-    // Mark as critical operation to prevent logout during fetch
     AppStateManager.startCriticalOperation("Equipment fetch");
-
     try {
-      // Minimal cache strategy for performance
       const response = await api.get<Alat[]>(`/alat?_v=${Date.now()}`, {
-        headers: {
-          "Cache-Control": "no-cache",
-        },
+        headers: { "Cache-Control": "no-cache" },
       });
-
       return { data: response.data || [] };
     } finally {
       AppStateManager.endCriticalOperation();
     }
   },
+
   getById: (id: string) => {
     AppStateManager.startCriticalOperation(`Equipment getById ${id}`);
     return api
       .get<Alat>(`/alat/${id}`)
       .finally(() => AppStateManager.endCriticalOperation());
   },
+
   getWithMaintenanceStatus: (id: number) => {
     AppStateManager.startCriticalOperation(`Equipment maintenance status ${id}`);
     return api
       .get<Equipment>(`/alat/${id}/maintenance-status`)
       .finally(() => AppStateManager.endCriticalOperation());
   },
+
   create: (data: FormData | Omit<Alat, "id">) => {
     AppStateManager.startCriticalOperation("Equipment create");
     const operationKey = `create-alat-${Date.now()}`;
 
-    // For FormData, don't set Content-Type header - let browser set it automatically
-    const headers =
-      data instanceof FormData
-        ? { "Content-Type": "multipart/form-data" }
-        : { "Content-Type": "application/json" };
+    const config = data instanceof FormData
+      ? {
+        headers: { 'Content-Type': undefined },
+        transformRequest: [(data: FormData) => data],
+      }
+      : { headers: { "Content-Type": "application/json" } };
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.post<Alat>("/alat", data, { headers }),
+        api.post<Alat>("/alat", data, config)
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
+
   update: (id: string, data: FormData | Partial<Alat>) => {
     AppStateManager.startCriticalOperation(`Equipment update ${id}`);
     const operationKey = `update-alat-${id}`;
 
-    if (typeof data === "object" && data instanceof FormData) {
-      console.log("CEK", [...data.entries()]);
+    if (data instanceof FormData) {
+      console.log("📤 Sending FormData:", [...data.entries()]);
+    } else {
+      console.log("📤 Sending JSON:", data);
     }
-    console.log("CEK 2", typeof data);
-    console.log("CEK 2.1", data instanceof FormData);
 
-    // For FormData, don't set Content-Type header - let browser set it automatically
-    const headers =
-      data instanceof FormData
-        ? { "Content-Type": "multipart/form-data" }
-        : { "Content-Type": "application/json" };
+    // ✅ FIX: Tambah transformRequest untuk FormData
+    const config = data instanceof FormData
+      ? {
+        headers: { 'Content-Type': undefined }, // Hapus Content-Type
+        transformRequest: [(data: FormData) => data], // Bypass transformer
+      }
+      : { headers: { "Content-Type": "application/json" } };
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.put<Alat>(`/alat/${id}`, data, { headers }),
+        api.put<Alat>(`/alat/${id}`, data, config)
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
+
   delete: (id: string) => {
     AppStateManager.startCriticalOperation(`Equipment delete ${id}`);
     const operationKey = `delete-alat-${id}`;
-
     return optimisticLockManager
       .executeWithLock(operationKey, () => api.delete(`/alat/${id}`))
       .finally(() => AppStateManager.endCriticalOperation());
   },
-  // Maintenance functions dengan Optimistic Locking
+
   stopMaintenance: (id: string) => {
     const operationKey = `stop-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.post(`/alat/${id}/stop-maintenance`),
+      api.post(`/alat/${id}/stop-maintenance`)
     );
   },
+
   completeMaintenance: (id: string) => {
     const operationKey = `complete-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.post(`/alat/${id}/complete-maintenance`),
+      api.post(`/alat/${id}/complete-maintenance`)
     );
   },
+
   updateMaintenanceSettings: (
     id: string,
     data: {
       maintenanceDate?: string;
       maintenanceInterval?: number;
       isMaintenanceActive?: boolean;
-    },
+    }
   ) => {
     const operationKey = `update-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.put(`/alat/${id}/maintenance`, data),
+      api.put(`/alat/${id}/maintenance`, data)
     );
   },
+
   addMaintenanceActivity: (id: string, data: FormData) => {
     AppStateManager.startCriticalOperation(`add-maintenance-activity-${id}`);
-
     const operationKey = `maintenance-activity-${id}-${Date.now()}`;
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.post(`/alat/${id}/maintenance-activity`, data, {
-          // jangan set manual boundary
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }),
+        api.post(`/alat/${id}/maintenance-activity`, data)
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
@@ -710,6 +700,48 @@ export const recordService = {
     AppStateManager.startCriticalOperation("Delete record");
     return api
       .delete(`/record/${id}`)
+      .finally(() => AppStateManager.endCriticalOperation());
+  },
+};
+
+export const recordCorrectiveService = {
+  getAll: () => api.get<Record[]>("/record/corrective"),
+
+  getById: (id: string) => api.get<Record>(`/record/corrective/${id}`),
+
+  getByEquipmentId: (equipmentId: number) =>
+    api.get<Record[]>(`/record/corrective/equipment/${equipmentId}`),
+
+  create: (data: Omit<Record, "id">) => {
+    AppStateManager.startCriticalOperation("Create corrective record");
+
+    return api
+      .post<Record>("/record/corrective", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 60000, // 60 seconds for image upload
+      })
+      .finally(() => AppStateManager.endCriticalOperation());
+  },
+
+  update: (id: string, data: Partial<Record>) => {
+    AppStateManager.startCriticalOperation("Update corrective record");
+
+    return api
+      .put<Record>(`/record/corrective/${id}`, data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 60000,
+      })
+      .finally(() => AppStateManager.endCriticalOperation());
+  },
+
+  delete: (id: number) => {
+    AppStateManager.startCriticalOperation("Delete corrective record");
+    return api
+      .delete(`/record/corrective/${id}`)
       .finally(() => AppStateManager.endCriticalOperation());
   },
 };

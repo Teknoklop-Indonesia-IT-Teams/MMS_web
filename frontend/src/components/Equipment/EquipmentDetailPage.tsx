@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Equipment } from "../../types";
 import { alatService } from "../../services/enhancedServices";
-import EquipmentDetail from "./EquipmentDetail";
+import EquipmentDetail from "./EquipmentPreventiveDetail";
 import { showErrorToast } from "../../utils/toast";
 
 const EquipmentDetailPage: React.FC = () => {

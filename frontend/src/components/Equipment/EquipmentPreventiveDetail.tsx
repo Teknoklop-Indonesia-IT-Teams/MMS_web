@@ -99,6 +99,10 @@ export default function EquipmentDetail({
 
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
 
+  const formatDate = (datetime: string) => {
+    return datetime ? datetime.split('T')[0] : '';
+  };
+
   const toggleRecordDetail = (recordId: number) => {
     setExpandedRecordId(expandedRecordId === recordId ? null : recordId);
   };
@@ -228,13 +232,13 @@ export default function EquipmentDetail({
                   <label className="block text-sm font-medium text-gray-700">
                     Instalasi
                   </label>
-                  <p className="text-gray-900">{equipment.instalasi}</p>
+                  <p className="text-gray-900">{formatDate(equipment.instalasi)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Garansi
                   </label>
-                  <p className="text-gray-900">{equipment.garansi}</p>
+                  <p className="text-gray-900">{formatDate(equipment.garansi)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -539,7 +543,7 @@ export default function EquipmentDetail({
                     <React.Fragment key={record.id}>
                       <tr>
                         <td className="px-4 py-4 text-sm text-gray-900">
-                          {record.tanggal}
+                          {formatDate(record.tanggal)}
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-900">
                           {record.deskripsi}

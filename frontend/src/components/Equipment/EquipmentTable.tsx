@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -18,6 +18,7 @@ import {
   Pencil,
   Wrench,
   ChevronDown,
+  History,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Equipment } from "../../types";
@@ -29,7 +30,8 @@ import {
   showConfirmationToast,
 } from "../../utils/toast";
 import EquipmentForm from "./EquipmentForm";
-import EquipmentDetail from "./EquipmentDetail";
+import EquipmentDetail from "./EquipmentPreventiveDetail";
+import EquipmentCorrectiveDetail from "./EquipmentCorrectiveDetail";
 import EquipmentDescriptionModal from "./EquipmentDescriptionModal";
 import QRCodeModal from "../Common/QRCodeModal";
 import MaintenanceStatus from "./MaintenanceStatus";
@@ -49,6 +51,7 @@ const EquipmentTable: React.FC = () => {
     null,
   );
   const [showDetail, setShowDetail] = useState<Equipment | null>(null);
+  const [showCorrectiveDetail, setShowCorrectiveDetail] = useState<Equipment | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDescription, setShowDescription] = useState<Equipment | null>(
     null,
@@ -56,21 +59,14 @@ const EquipmentTable: React.FC = () => {
   const [showQR, setShowQR] = useState<Equipment | null>(null);
   const [showQRDisplay, setShowQRDisplay] = useState<Equipment | null>(null);
 
-  const [emailCheckDone, setEmailCheckDone] = useState(false); // Track apakah email check sudah dilakukan
-
-  // Get user permissions
+  const [emailCheckDone, setEmailCheckDone] = useState(false);
   const { hasAnyRole } = useAuth();
   const canEditEquipment = hasAnyRole([...PERMISSIONS.DASHBOARD_FULL_ACCESS]);
   const canDeleteEquipment = hasAnyRole([...PERMISSIONS.DASHBOARD_FULL_ACCESS]);
-
-  // Initialize Maintenance Email service
-  // const initializeEmailService = useCallback(() => {
-  //   MaintenanceEmailService.init();
-  // }, []);
-
-  // useEffect(() => {
-  //   initializeEmailService();
-  // }, [initializeEmailService]);
+  const [dropdownEquipment, setDropdownEquipment] = useState<{
+    equipment: Equipment;
+    position: { top: number; left: number };
+  } | null>(null);
 
   const fetchEquipment = useCallback(async () => {
     try {
@@ -95,33 +91,27 @@ const EquipmentTable: React.FC = () => {
 
   useEffect(() => {
     fetchEquipment();
-
-    // Cleanup session pada unmount untuk mencegah spam lintas halaman
-    // return () => {
-    //   MaintenanceEmailService.clearSessionProcessed();
-    // };
   }, [fetchEquipment]);
 
-  // TERPISAH: Email checking hanya dilakukan SEKALI setelah equipment di-load
-  // useEffect(() => {
-  //   if (equipment.length > 0 && !emailCheckDone) {
-  //     const checkEmailsOnce = async () => {
-  //       await MaintenanceEmailService.processMaintenanceNotifications(
-  //         equipment,
-  //       );
-  //       setEmailCheckDone(true);
-  //     };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (dropdownEquipment && !target.closest('.dropdown-menu-container')) {
+        setDropdownEquipment(null);
+      }
+    };
 
-  //     // Delay untuk memastikan tidak bentrok dengan proses lain
-  //     const emailTimeout = setTimeout(checkEmailsOnce, 1000);
+    if (dropdownEquipment !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
 
-  //     return () => clearTimeout(emailTimeout);
-  //   }
-  // }, [equipment, emailCheckDone]); // Depends on equipment dan emailCheckDone
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownEquipment]);
 
   const handleDeleteEquipment = useCallback(
     async (id: number) => {
-      // ✅ Cari equipment berdasarkan database ID
       const equipmentItem = equipment.find((e: Equipment) => e.id === id);
       const equipmentName = equipmentItem ? equipmentItem.nama : `ID ${id}`;
 
@@ -130,7 +120,6 @@ const EquipmentTable: React.FC = () => {
         async () => {
           const loadingToastId = showLoadingToast("Menghapus alat...");
           try {
-            // ✅ Kirim database ID ke backend
             await alatService.delete(id.toString());
             await fetchEquipment();
             showSuccessToast(
@@ -148,7 +137,6 @@ const EquipmentTable: React.FC = () => {
           }
         },
         () => {
-          // User cancelled
         },
         "Tindakan ini tidak dapat dibatalkan",
       );
@@ -165,7 +153,6 @@ const EquipmentTable: React.FC = () => {
         cell: ({ row, table }) => {
           const pageIndex = table.getState().pagination.pageIndex;
           const pageSize = table.getState().pagination.pageSize;
-
           return pageIndex * pageSize + row.index + 1;
         },
       },
@@ -212,17 +199,14 @@ const EquipmentTable: React.FC = () => {
           const originalStatus = getValue<string>() || "";
           const status = originalStatus.toLowerCase().trim();
 
-          // Use a map untuk memastikan semua kemungkinan status tercakup
           const statusColorMap: { [key: string]: string } = {
             garansi: "bg-green-100 text-green-800 border border-green-200",
             operasional: "bg-blue-100 text-blue-800 border border-blue-200",
             normal: "bg-blue-100 text-blue-800 border border-blue-200",
             aktif: "bg-blue-100 text-blue-800 border border-blue-200",
-            maintenance:
-              "bg-yellow-100 text-yellow-800 border border-yellow-200",
+            maintenance: "bg-yellow-100 text-yellow-800 border border-yellow-200",
             perbaikan: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-            pemeliharaan:
-              "bg-yellow-100 text-yellow-800 border border-yellow-200",
+            pemeliharaan: "bg-yellow-100 text-yellow-800 border border-yellow-200",
             rusak: "bg-red-100 text-red-800 border border-red-200",
             error: "bg-red-100 text-red-800 border border-red-200",
             bermasalah: "bg-red-100 text-red-800 border border-red-200",
@@ -256,7 +240,6 @@ const EquipmentTable: React.FC = () => {
         accessorKey: "pic",
         size: 130,
       },
-      // Di kolom gambar, perbaiki menjadi:
       {
         header: "Gambar",
         accessorKey: "i_alat",
@@ -264,7 +247,6 @@ const EquipmentTable: React.FC = () => {
         cell: ({ row }) => {
           const equipment = row.original;
           const imageFilename = equipment.i_alat;
-          // Gunakan SimpleImageDisplay untuk table (lebih ringan)
           return (
             <div className="w-12 h-12">
               <SimpleImageDisplay
@@ -286,60 +268,81 @@ const EquipmentTable: React.FC = () => {
         header: "Actions",
         id: "actions",
         size: 340,
-        cell: ({ row }) => (
-          <div className="flex space-x-1">
-            <button
-              onClick={() => handleViewDetail(row.original)}
-              className="p-2 text-white transition-colors bg-blue-500 rounded-md shadow-sm hover:bg-blue-600"
-              title="Lihat Detail Info Alat"
-            >
-              <Eye size={16} />
-            </button>
-            <button
-              onClick={() => setShowDetail(row.original)}
-              className="p-2 text-white transition-colors bg-purple-600 rounded-md shadow-sm hover:bg-purple-700"
-              title="Lihat Record Maintenance"
-            >
-              <FileText size={16} />
-            </button>
-            {canEditEquipment && (
+        cell: ({ row }) => {
+          const buttonRef = useRef<HTMLButtonElement>(null);
+
+          const handleDropdownClick = (e: React.MouseEvent) => {
+            e.stopPropagation();
+
+            if (buttonRef.current) {
+              const rect = buttonRef.current.getBoundingClientRect();
+              setDropdownEquipment({
+                equipment: row.original,
+                position: {
+                  top: rect.bottom + 4,
+                  left: rect.left
+                }
+              });
+            }
+          };
+
+          return (
+            <div className="flex space-x-1">
               <button
-                onClick={() => handleEditEquipment(row.original)}
-                className="p-2 text-white transition-colors bg-green-600 rounded-md shadow-sm hover:bg-green-700"
-                title="Edit Alat"
+                onClick={() => handleViewDetail(row.original)}
+                className="p-2 text-white transition-colors bg-blue-500 rounded-md shadow-sm hover:bg-blue-600"
+                title="Lihat Detail Info Alat"
               >
-                <Pencil size={16} />
+                <Eye size={16} />
               </button>
-            )}
-            {canDeleteEquipment && (
+
               <button
-                // ✅ KIRIM DATABASE ID LANGSUNG
-                onClick={() => handleDeleteEquipment(row.original.id)}
-                className="p-2 text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-700"
-                title="Hapus Alat"
+                ref={buttonRef}
+                onClick={handleDropdownClick}
+                className="p-2 text-white transition-colors bg-purple-600 rounded-md shadow-sm hover:bg-purple-700"
+                title="Lihat Record Maintenance"
               >
-                <Trash2 size={16} />
+                <FileText size={16} />
               </button>
-            )}
-            <button
-              onClick={() => setShowQR(row.original)}
-              className="p-2 text-white transition-colors bg-gray-600 rounded-md shadow-sm hover:bg-gray-700"
-              title="QR Code For Maintenance"
-            >
-              <QrCode size={16} />
-            </button>
-            <button
-              onClick={() => setShowQRDisplay(row.original)}
-              className="p-2 text-white transition-colors bg-[#187498] rounded-md shadow-sm hover:bg-[#36AE7C]"
-              title="QR Code For Public"
-            >
-              <QrCode size={16} />
-            </button>
-          </div>
-        ),
+
+              {canEditEquipment && (
+                <button
+                  onClick={() => handleEditEquipment(row.original)}
+                  className="p-2 text-white transition-colors bg-green-600 rounded-md shadow-sm hover:bg-green-700"
+                  title="Edit Alat"
+                >
+                  <Pencil size={16} />
+                </button>
+              )}
+              {canDeleteEquipment && (
+                <button
+                  onClick={() => handleDeleteEquipment(row.original.id)}
+                  className="p-2 text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-700"
+                  title="Hapus Alat"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <button
+                onClick={() => setShowQR(row.original)}
+                className="p-2 text-white transition-colors bg-gray-600 rounded-md shadow-sm hover:bg-gray-700"
+                title="QR Code For Maintenance"
+              >
+                <QrCode size={16} />
+              </button>
+              <button
+                onClick={() => setShowQRDisplay(row.original)}
+                className="p-2 text-white transition-colors bg-[#187498] rounded-md shadow-sm hover:bg-[#36AE7C]"
+                title="QR Code For Public"
+              >
+                <QrCode size={16} />
+              </button>
+            </div>
+          );
+        },
       },
     ],
-    [handleDeleteEquipment, canEditEquipment, canDeleteEquipment],
+    [handleDeleteEquipment, canEditEquipment, canDeleteEquipment]
   );
 
   const filteredData = useMemo(() => {
@@ -389,12 +392,21 @@ const EquipmentTable: React.FC = () => {
     const isEdit = !!selectedEquipment;
     const action = isEdit ? "memperbarui" : "menambahkan";
     const loadingToastId = showLoadingToast(`Sedang ${action} alat...`);
+
     try {
       if (selectedEquipment) {
+        const idToUpdate = selectedEquipment.originalId || selectedEquipment.id;
+
+        console.log("🔄 Updating equipment:");
+        console.log("  - Sequential ID:", selectedEquipment.id);
+        console.log("  - Original ID:", selectedEquipment.originalId);
+        console.log("  - Using ID:", idToUpdate);
+
         await alatService.update(
-          selectedEquipment.id.toString(),
+          idToUpdate.toString(),
           equipmentData,
         );
+
         showSuccessToast(
           "Alat berhasil diperbarui!",
           `Data alat telah diperbarui`,
@@ -406,11 +418,12 @@ const EquipmentTable: React.FC = () => {
           `Alat baru telah ditambahkan ke sistem`,
         );
       }
+
       await fetchEquipment();
       setIsFormOpen(false);
       setSelectedEquipment(null);
     } catch (error) {
-      console.error("Error saving equipment:", error);
+      console.error("❌ Error saving equipment:", error);
       showErrorToast(
         `Gagal ${action} alat`,
         "Terjadi kesalahan saat menyimpan data alat",
@@ -619,6 +632,38 @@ const EquipmentTable: React.FC = () => {
         </div>
       </div>
 
+      {/* Di bagian return, setelah semua modal */}
+      {dropdownEquipment && (
+        <div
+          className="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-lg w-52 dark:bg-gray-700 dark:border-gray-600 dropdown-menu-container"
+          style={{
+            top: `${dropdownEquipment.position.top}px`,
+            left: `${dropdownEquipment.position.left}px`
+          }}
+        >
+          <button
+            onClick={() => {
+              setShowDetail(dropdownEquipment.equipment);
+              setDropdownEquipment(null);
+            }}
+            className="flex items-center w-full px-4 py-2 text-sm text-left text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 first:rounded-t-md"
+          >
+            <History size={14} className="mr-2" />
+            Preventive Maintenance
+          </button>
+          <button
+            onClick={() => {
+              setShowCorrectiveDetail(dropdownEquipment.equipment);
+              setDropdownEquipment(null);
+            }}
+            className="flex items-center w-full px-4 py-2 text-sm text-left text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 last:rounded-b-md"
+          >
+            <Wrench size={14} className="mr-2" />
+            Corrective Maintenance
+          </button>
+        </div>
+      )}
+
       {isFormOpen && (
         <EquipmentForm
           equipment={selectedEquipment}
@@ -634,6 +679,13 @@ const EquipmentTable: React.FC = () => {
         <EquipmentDetail
           equipment={showDetail}
           onClose={() => setShowDetail(null)}
+        />
+      )}
+
+      {showCorrectiveDetail && (
+        <EquipmentCorrectiveDetail
+          equipment={showCorrectiveDetail}
+          onClose={() => setShowCorrectiveDetail(null)}
         />
       )}
 
@@ -654,6 +706,7 @@ const EquipmentTable: React.FC = () => {
         />
       )}
     </div>
+
   );
 };
 

@@ -13,7 +13,6 @@ router.get("/:id/maintenance-status", alatController.getEquipmentWithMaintenance
 
 // ========== PROTECTED ROUTES ==========
 router.use(authMiddleware);
-
 router.get("/:id", alatController.getAlatById);
 
 // CREATE dengan UPLOAD GAMBAR
@@ -27,7 +26,13 @@ router.post(
 // UPDATE dengan UPLOAD GAMBAR
 router.put(
   "/:id",
-  upload.single("i_alat"), // ← MIDDLEWARE UPLOAD DI SINI
+  (req, res, next) => {
+    next();
+  },
+  upload.single("i_alat"),
+  (req, res, next) => {
+    next();
+  },
   autoHeicConverter,
   alatController.updateAlat,
 );
