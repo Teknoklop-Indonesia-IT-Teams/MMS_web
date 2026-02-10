@@ -227,14 +227,14 @@ const Dashboard: React.FC = () => {
         : stats.maintenanceActive,
     },
     {
-      name: "Alert Merah",
+      name: "Segera (≤ 14 Hari)",
       value: hasActiveFilter
         ? filteredEquipment.filter((e) => e.maintenanceAlertLevel === "red")
             .length
         : stats.alertCounts.red,
     },
     {
-      name: "Alert Kuning",
+      name: "Perhatian (≤ 30 Hari)",
       value: hasActiveFilter
         ? filteredEquipment.filter((e) => e.maintenanceAlertLevel === "yellow")
             .length
@@ -248,6 +248,8 @@ const Dashboard: React.FC = () => {
         : stats.alertCounts.blue,
     },
   ];
+
+  const statusColors = ["#f87171", "#fb923c", "#fbbf24", "#60a5fa"];
 
   // Show loading state
   if (loading && !isDataLoaded) {
@@ -360,7 +362,7 @@ const Dashboard: React.FC = () => {
             <div>
               <h3 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
                 <History className="mr-2" />
-                History Maintenance
+                History Maintenance Preventive
                 {hasActiveFilter && (
                   <span className="px-2 py-1 ml-2 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                     {selectedFilter}
@@ -368,7 +370,7 @@ const Dashboard: React.FC = () => {
                 )}
               </h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Riwayat perawatan dan maintenance peralatan
+                Riwayat perawatan dan maintenance peralatan secara berkala
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -593,7 +595,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Semua History Maintenance
+                  Semua History Maintenance Preventive
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Total {filteredMaintenanceRecords.length} records
@@ -802,7 +804,10 @@ const Dashboard: React.FC = () => {
               </span>
             )}
           </h3>
-          <StatusBarChart statusChartData={statusChartData} />
+          <StatusBarChart
+            statusChartData={statusChartData}
+            colors={statusColors}
+          />
         </div>
 
         <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
