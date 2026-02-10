@@ -95,9 +95,9 @@ const getAllAlat = async (req, res) => {
       const { latest_tanggal, ...itemData } = item;
 
       return {
-        id: sequentialId,
-        originalId: itemData.id,
+        id: item.id,
         displayId: sequentialId,
+        originalId: itemData.id,
         nama: itemData.nama || "",
         lokasi: itemData.lokasi || "",
         jenis: itemData.jenis || "",
@@ -163,7 +163,9 @@ const getAlatById = async (req, res) => {
     const originalId = allAlat[arrayIndex].id;
     const id = parseInt(req.params.id);
 
-    const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [id]);
+    const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
+      id,
+    ]);
 
     if (alat.length === 0) {
       return res.status(404).json({ message: "Alat tidak ditemukan" });

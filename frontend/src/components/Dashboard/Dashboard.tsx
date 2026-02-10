@@ -15,7 +15,7 @@ import {
 import DeviceCard from "./DeviceCard";
 import MaintenanceDashboard from "./MaintenanceDashboard";
 import { useDashboardData } from "../../hooks/useLazyEquipment";
-import { Equipment, MaintenanceRecord } from "../../types";
+import { Equipment, PreRecord } from "../../types";
 import { useAuth } from "../../hooks/useAuth";
 import { PERMISSIONS } from "../../constants/roles";
 import { alatService, recordService } from "../../services/api";
@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
 
   // State untuk history maintenance
   const [maintenanceRecords, setMaintenanceRecords] = useState<
-    MaintenanceRecord[]
+    PreRecord[]
   >([]);
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [loadingRecords, setLoadingRecords] = useState<boolean>(false);
@@ -166,7 +166,7 @@ const Dashboard: React.FC = () => {
   );
 
   // Get status color berdasarkan kondisi
-  const getStatusColor = (record: MaintenanceRecord) => {
+  const getStatusColor = (record: PreRecord) => {
     if (
       record.keterangan?.toLowerCase().includes("selesai") ||
       record.keterangan?.toLowerCase().includes("success")
@@ -267,7 +267,7 @@ const Dashboard: React.FC = () => {
     <div className="p-6">
       {/* Header Section */}
       <div className="mb-6">
-        <div className="flex flex-col gap-4 items-start justify-between mb-4 md:flex-row md:items-center">
+        <div className="flex flex-col items-start justify-between gap-4 mb-4 md:flex-row md:items-center">
           <div>
             <h1 className="flex items-center text-2xl font-bold text-gray-800 dark:text-gray-200">
               <span className="mr-2">
@@ -283,12 +283,12 @@ const Dashboard: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400">Control panel</p>
           </div>
 
-          <div className="flex items-center w-full px-4 py-2 space-x-2 bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto dark:bg-gray-800 dark:border-gray-600 justify-between">
+          <div className="flex items-center justify-between w-full px-4 py-2 space-x-2 bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto dark:bg-gray-800 dark:border-gray-600">
             <Filter size={20} className="text-gray-500 dark:text-gray-400" />
             <div className="relative flex-grow">
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-full flex items-center justify-between px-3 py-2 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center justify-between w-full px-3 py-2 text-gray-900 transition-colors rounded dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <span>
                   {selectedFilter === "all" ? "Semua Jenis" : selectedFilter}
@@ -299,13 +299,13 @@ const Dashboard: React.FC = () => {
               </button>
 
               {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                <div className="absolute left-0 right-0 z-10 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg top-full dark:bg-gray-700 dark:border-gray-600">
                   <button
                     onClick={() => {
                       setSelectedFilter("all");
                       setShowDropdown(false);
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg transition-colors text-gray-900 dark:text-gray-100"
+                    className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg dark:text-gray-100"
                   >
                     Semua Jenis
                   </button>
@@ -316,7 +316,7 @@ const Dashboard: React.FC = () => {
                         setSelectedFilter(type);
                         setShowDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-gray-900 dark:text-gray-100"
+                      className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-100"
                     >
                       {type}
                     </button>
@@ -438,7 +438,7 @@ const Dashboard: React.FC = () => {
                   const petugasName = record.petugas;
                   return (
                     <React.Fragment key={record.id}>
-                      <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 dark:text-gray-100">
                             <div className="font-medium">
@@ -460,13 +460,13 @@ const Dashboard: React.FC = () => {
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
                                   {equipment.jenis}
                                 </div>
-                                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                   {equipment.lokasi || "-"} |{" "}
                                   {equipment.device || "-"}
                                 </div>
                               </div>
                             ) : (
-                              <div className="text-sm text-gray-400 italic">
+                              <div className="text-sm italic text-gray-400">
                                 Equipment #{record.id_m_alat}
                               </div>
                             );
@@ -475,7 +475,7 @@ const Dashboard: React.FC = () => {
 
                         <td className="px-6 py-4">
                           <div className="max-w-xs">
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            <div className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">
                               {record.deskripsi}
                             </div>
                           </div>
@@ -506,52 +506,52 @@ const Dashboard: React.FC = () => {
                       {expandedRecordId === record.id && (
                         <tr className="bg-blue-50 dark:bg-gray-900">
                           <td colSpan={6} className="px-6 py-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                               <div>
-                                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                   <AlertCircle size={14} className="mr-1.5" />
                                   Kondisi Awal
                                 </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                   {record.awal || "-"}
                                 </p>
                               </div>
                               <div>
-                                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                   <Wrench size={14} className="mr-1.5" />
                                   Tindakan
                                 </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                   {record.tindakan || "-"}
                                 </p>
                               </div>
                               {record.tambahan && (
                                 <div>
-                                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Tindakan Tambahan
                                   </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                     {record.tambahan}
                                   </p>
                                 </div>
                               )}
                               {record.akhir && (
                                 <div>
-                                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Kondisi Akhir
                                   </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                     {record.akhir}
                                   </p>
                                 </div>
                               )}
                               {record.berikutnya && (
                                 <div className="md:col-span-2">
-                                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                     <CheckCircle size={14} className="mr-1.5" />
                                     Rencana Berikutnya
                                   </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                     {record.berikutnya}
                                   </p>
                                 </div>
@@ -569,14 +569,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {filteredMaintenanceRecords.length > 5 && (
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Menampilkan 10 dari {filteredMaintenanceRecords.length} records
               </p>
               <button
                 onClick={() => setShowRecordsModal(true)}
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 transition-colors rounded-md bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
               >
                 Lihat Semua
                 <ChevronDown size={16} className="ml-1.5" />
@@ -601,7 +601,7 @@ const Dashboard: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowRecordsModal(false)}
-                className="p-2 text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 text-gray-400 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <svg
                   className="w-6 h-6"
@@ -657,7 +657,7 @@ const Dashboard: React.FC = () => {
                     const petugasName = record.petugas;
                     return (
                       <React.Fragment key={record.id}>
-                        <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900 dark:text-gray-100">
                               <div className="font-medium">
@@ -679,13 +679,13 @@ const Dashboard: React.FC = () => {
                                   <div className="text-xs text-gray-500 dark:text-gray-400">
                                     {equipment.jenis}
                                   </div>
-                                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                  <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                     {equipment.lokasi || "-"} |{" "}
                                     {equipment.device || "-"}
                                   </div>
                                 </div>
                               ) : (
-                                <div className="text-sm text-gray-400 italic">
+                                <div className="text-sm italic text-gray-400">
                                   Equipment #{record.id_m_alat}
                                 </div>
                               );
@@ -694,7 +694,7 @@ const Dashboard: React.FC = () => {
 
                           <td className="px-6 py-4">
                             <div className="max-w-xs">
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                              <div className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">
                                 {record.deskripsi}
                               </div>
                             </div>
@@ -725,55 +725,55 @@ const Dashboard: React.FC = () => {
                         {expandedRecordId === record.id && (
                           <tr className="bg-blue-50 dark:bg-gray-900">
                             <td colSpan={6} className="px-6 py-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                     <AlertCircle size={14} className="mr-1.5" />
                                     Kondisi Awal
                                   </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                     {record.awal || "-"}
                                   </p>
                                 </div>
                                 <div>
-                                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                     <Wrench size={14} className="mr-1.5" />
                                     Tindakan
                                   </h4>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                     {record.tindakan || "-"}
                                   </p>
                                 </div>
                                 {record.tambahan && (
                                   <div>
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                       Tindakan Tambahan
                                     </h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                       {record.tambahan}
                                     </p>
                                   </div>
                                 )}
                                 {record.akhir && (
                                   <div>
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                       Kondisi Akhir
                                     </h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                       {record.akhir}
                                     </p>
                                   </div>
                                 )}
                                 {record.berikutnya && (
                                   <div className="md:col-span-2">
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                    <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                       <CheckCircle
                                         size={14}
                                         className="mr-1.5"
                                       />
                                       Rencana Berikutnya
                                     </h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
                                       {record.berikutnya}
                                     </p>
                                   </div>
@@ -822,7 +822,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-6  bg-white rounded-lg shadow-md dark:bg-gray-800">
+        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
             <History /> <span className="ml-2">Aktivitas Terbaru</span>
             {hasActiveFilter && (

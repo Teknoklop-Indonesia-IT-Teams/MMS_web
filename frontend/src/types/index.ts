@@ -33,42 +33,33 @@ export interface Equipment {
   email?: string;
   i_alat?: string;
   keterangan?: string;
-  // Maintenance fields
   maintenanceDate?: string;
   maintenanceInterval?: number;
-  isMaintenanceActive?: boolean | number; // Can be 0/1 from database or true/false
+  isMaintenanceActive?: boolean | number;
   maintenanceDaysLeft?: number | null;
   maintenanceStatus?:
-    | "active"
-    | "inactive"
-    | "selesai"
-    | "overdue"
-    | "urgent"
-    | "needed"
-    | "good";
+  | "active"
+  | "inactive"
+  | "selesai"
+  | "overdue"
+  | "urgent"
+  | "needed"
+  | "good";
   maintenanceAlertLevel?:
-    | "green"
-    | "yellow"
-    | "red"
-    | "blue"
-    | "none"
-    | "urgent"
-    | "warning"
-    | "good";
+  | "green"
+  | "yellow"
+  | "red"
+  | "blue"
+  | "none"
+  | "urgent"
+  | "warning"
+  | "good";
   maintenanceStatusText?: string;
   nextMaintenanceDate?: string;
   maintenanceActivities?: MaintenanceActivity[];
 }
 
-export interface MaintenanceActivity {
-  id: number;
-  equipment_id: number;
-  activity: string;
-  note?: string;
-  created_at: string;
-}
-
-export interface MaintenanceRecord {
+export interface PreRecord {
   id: number;
   deskripsi: string;
   awal: string;
@@ -83,6 +74,31 @@ export interface MaintenanceRecord {
   i_sensor?: string | null;
   id_m_alat: number;
   tanggal: string;
+}
+
+export interface CorRecord {
+  id: number;
+  deskripsi: string;
+  awal: string;
+  tindakan: string;
+  tambahan: string;
+  akhir: string;
+  berikutnya: string;
+  keterangan: string;
+  petugas: string;
+  i_panel?: string | null;
+  i_alat?: string | null;
+  i_sensor?: string | null;
+  id_m_alat: number;
+  tanggal: string;
+}
+
+export interface MaintenanceActivity {
+  id: number;
+  equipment_id: number;
+  activity: string;
+  note?: string;
+  created_at: string;
 }
 
 export interface DashboardStats {

@@ -1,7 +1,8 @@
 import axios from "axios";
 import {
   Equipment as Alat,
-  MaintenanceRecord,
+  PreRecord,
+  CorRecord,
   Staff,
   LoginCredentials,
   RegisterData,
@@ -521,8 +522,6 @@ api.interceptors.response.use(
       if (inCriticalOperation) {
         return Promise.reject(error);
       }
-
-      // ADDITIONAL FAST REFRESH PROTECTION
       if (isNavigating) {
         return Promise.reject(error);
       }
@@ -531,7 +530,6 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // Check if we're in the danger zone (first 30 seconds after page load)
       const timeSincePageLoad = Date.now() - pageLoadTime;
       if (timeSincePageLoad < 30000) {
         return Promise.reject(error);
@@ -668,18 +666,18 @@ export const alatService = {
 };
 
 export const recordService = {
-  getAll: () => api.get<MaintenanceRecord[]>("/record"),
-  getById: (id: string) => api.get<MaintenanceRecord>(`/record/${id}`),
+  getAll: () => api.get<PreRecord[]>("/record"),
+  getById: (id: string) => api.get<PreRecord>(`/record/${id}`),
   getByEquipmentId: (equipmentId: number) =>
-    api.get<MaintenanceRecord[]>(`/record/equipment/${equipmentId}`),
-  create: (data: Omit<MaintenanceRecord, "id">) => {
+    api.get<PreRecord[]>(`/record/equipment/${equipmentId}`),
+  create: (data: Omit<PreRecord, "id">) => {
     AppStateManager.startCriticalOperation("Create record");
 
     // Log the size of the request to help with debugging
     const totalSize = JSON.stringify(data).length;
 
     return api
-      .post<MaintenanceRecord>("/record", data, {
+      .post<PreRecord>("/record", data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -687,11 +685,11 @@ export const recordService = {
       })
       .finally(() => AppStateManager.endCriticalOperation());
   },
-  update: (id: string, data: Partial<MaintenanceRecord>) => {
+  update: (id: string, data: Partial<PreRecord>) => {
     AppStateManager.startCriticalOperation("Update record");
 
     return api
-      .put<MaintenanceRecord>(`/record/${id}`, data, {
+      .put<PreRecord>(`/record/${id}`, data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -708,18 +706,18 @@ export const recordService = {
 };
 
 export const recordCorrectiveService = {
-  getAll: () => api.get<Record[]>("/record/corrective"),
+  getAll: () => api.get<CorRecord[]>("/record/corrective"),
 
-  getById: (id: string) => api.get<Record>(`/record/corrective/${id}`),
+  getById: (id: string) => api.get<CorRecord>(`/record/corrective/${id}`),
 
   getByEquipmentId: (equipmentId: number) =>
-    api.get<Record[]>(`/record/corrective/equipment/${equipmentId}`),
+    api.get<CorRecord[]>(`/record/corrective/equipment/${equipmentId}`),
 
-  create: (data: Omit<Record, "id">) => {
+  create: (data: Omit<CorRecord, "id">) => {
     AppStateManager.startCriticalOperation("Create corrective record");
 
     return api
-      .post<Record>("/record/corrective", data, {
+      .post<CorRecord>("/record/corrective", data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -728,11 +726,11 @@ export const recordCorrectiveService = {
       .finally(() => AppStateManager.endCriticalOperation());
   },
 
-  update: (id: string, data: Partial<Record>) => {
+  update: (id: string, data: Partial<CorRecord>) => {
     AppStateManager.startCriticalOperation("Update corrective record");
 
     return api
-      .put<Record>(`/record/corrective/${id}`, data, {
+      .put<CorRecord>(`/record/corrective/${id}`, data, {
         headers: {
           "Content-Type": "application/json",
         },

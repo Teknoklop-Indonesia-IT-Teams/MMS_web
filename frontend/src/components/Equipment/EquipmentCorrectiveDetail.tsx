@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { X, Plus, Trash2, BookOpen } from "lucide-react";
-import { Equipment, Record } from "../../types";
+import { Equipment, CorRecord } from "../../types";
 import { recordCorrectiveService, staffService } from "../../services/api"; // ✅ Ganti recordService
 import { useToast } from "../../hooks/useToast";
 import ImageDisplay from "../Common/ImageDisplay";
@@ -27,7 +27,7 @@ export default function EquipmentCorrectiveDetail({
   onClose,
   onUpdate,
 }: EquipmentDetailProps) {
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<CorRecord[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [formData, setFormData] = useState({

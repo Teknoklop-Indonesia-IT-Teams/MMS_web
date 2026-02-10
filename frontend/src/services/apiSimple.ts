@@ -2,7 +2,7 @@ import axios from "axios";
 import {
   Equipment as Alat,
   Equipment,
-  MaintenanceRecord,
+  PreRecord as MaintenanceRecord,
   Staff,
   LoginCredentials,
   RegisterData,

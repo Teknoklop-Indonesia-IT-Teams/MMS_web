@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { AlertCircle, MapPin, QrCode, BookOpen, Plus } from "lucide-react";
-import { Equipment, MaintenanceRecord } from "../../types";
+import { Equipment, PreRecord } from "../../types";
 import { recordService, staffService } from "../../services/api";
 import { alatService } from "../../services/apiSimple";
 
@@ -19,7 +19,7 @@ interface StaffResponse {
 const MaintenanceEquipmentDetailQR: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
-  const [records, setRecords] = useState<MaintenanceRecord[]>([]);
+  const [records, setRecords] = useState<PreRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [recordsLoading, setRecordsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -222,9 +222,9 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
-          <QrCode className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
+      <div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
+        <div className="max-w-md p-8 mx-auto text-center bg-white rounded-lg shadow-lg">
+          <QrCode className="w-16 h-16 mx-auto mb-4 text-blue-600 animate-pulse" />
           <p className="text-gray-600">Memuat data alat dari QR Code...</p>
         </div>
       </div>
@@ -233,24 +233,24 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen p-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
-            <div className="inline-flex items-center gap-2 text-gray-600 text-sm">
+            <div className="inline-flex items-center gap-2 text-sm text-gray-600">
               <QrCode size={16} />
               <span>Akses melalui QR Code</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center gap-3 text-red-600 mb-4">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
               <AlertCircle size={24} className="flex-shrink-0" />
               <h1 className="text-xl font-bold">Error</h1>
             </div>
-            <p className="text-gray-700 mb-4">{error}</p>
+            <p className="mb-4 text-gray-700">{error}</p>
             <div className="text-sm text-gray-500">
               <p>Pastikan:</p>
-              <ul className="list-disc list-inside mt-2 space-y-1">
+              <ul className="mt-2 space-y-1 list-disc list-inside">
                 <li>QR Code masih valid</li>
                 <li>Koneksi internet stabil</li>
                 <li>Alat masih terdaftar di sistem</li>
@@ -264,10 +264,10 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
 
   if (!equipment) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen p-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center gap-3 text-gray-600 mb-4">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
+            <div className="flex items-center gap-3 mb-4 text-gray-600">
               <QrCode size={24} />
               <h1 className="text-xl font-bold">Data Tidak Tersedia</h1>
             </div>
@@ -279,12 +279,12 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen p-4 bg-gray-50">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-gray-600 text-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
               <QrCode size={16} />
               <span>Diakses melalui QR Code</span>
             </div>
@@ -292,7 +292,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
               {new Date().toLocaleString("id-ID")}
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">
             Detail Record Maintenance Alat - {equipment.nama}
           </h1>
           <p className="text-gray-600">
@@ -303,7 +303,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
         {/* Main Content */}
         <div className="grid gap-6">
           {/* Status Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">
                 Status Saat Ini
@@ -319,33 +319,33 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
           </div>
 
           {/* Equipment Info */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900">
               Informasi Alat
             </h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-gray-600">
                     Nama Alat
                   </label>
-                  <p className="text-gray-900 font-medium">{equipment.nama}</p>
+                  <p className="font-medium text-gray-900">{equipment.nama}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-gray-600">
                     Kode Alat
                   </label>
-                  <p className="text-gray-900 font-mono">
+                  <p className="font-mono text-gray-900">
                     {equipment.device || "N/A"}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin
                     size={16}
-                    className="text-gray-400 mt-1 flex-shrink-0"
+                    className="flex-shrink-0 mt-1 text-gray-400"
                   />
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-gray-600">
                       Lokasi
                     </label>
                     <p className="text-gray-900">{equipment.lokasi}</p>
@@ -354,19 +354,19 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-gray-600">
                     Jenis
                   </label>
                   <p className="text-gray-900">{equipment.jenis}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-gray-600">
                     Device
                   </label>
                   <p className="text-gray-900">{equipment.device || "N/A"}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-gray-600">
                     Garansi
                   </label>
                   <div className="space-y-1">
@@ -385,10 +385,10 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-gray-600">
                     PIC (Person In Charge)
                   </label>
-                  <p className="text-gray-900 font-medium">
+                  <p className="font-medium text-gray-900">
                     {equipment.pic || "Belum ditentukan"}
                   </p>
                 </div>
@@ -397,13 +397,13 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
           </div>
 
           {/* Maintenance Info */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900">
               Informasi Maintenance
             </h2>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-600">
                   Maintenance Terakhir
                 </label>
                 <p className="text-gray-900">
@@ -411,7 +411,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-600">
                   Maintenance Selanjutnya
                 </label>
                 <p className="text-gray-900">
@@ -420,7 +420,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="p-6 bg-white rounded-lg shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">
                 History Maintenance
@@ -436,7 +436,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                 {/* Tombol Tambah Record - Opsional untuk public */}
                 <button
                   onClick={handleAddRecord}
-                  className="flex items-center px-3 py-1 space-x-1 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 text-sm"
+                  className="flex items-center px-3 py-1 space-x-1 text-sm text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
                   title="Tambah Record Maintenance"
                 >
                   <Plus size={14} />
@@ -447,7 +447,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
 
             {/* Form Tambah Record */}
             {showAddRecord && (
-              <div className="p-4 mb-4 rounded-lg bg-gray-50 border border-gray-200">
+              <div className="p-4 mb-4 border border-gray-200 rounded-lg bg-gray-50">
                 <h3 className="mb-3 font-medium text-gray-700">
                   Tambah Record Maintenance
                 </h3>
@@ -626,7 +626,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                     />
                   </div>
 
-                  <div className="flex space-x-3 pt-2">
+                  <div className="flex pt-2 space-x-3">
                     <button
                       type="submit"
                       className="px-4 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
@@ -646,13 +646,13 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
             )}
 
             {recordsLoading ? (
-              <div className="text-center py-8">
+              <div className="py-8 text-center">
                 <div className="w-8 h-8 mx-auto mb-3 border-b-2 border-blue-600 rounded-full animate-spin"></div>
                 <p className="text-gray-500">Memuat history maintenance...</p>
               </div>
             ) : records.length === 0 ? (
-              <div className="text-center py-8">
-                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <div className="py-8 text-center">
+                <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p className="text-gray-500">
                   Belum ada history maintenance untuk alat ini
                 </p>
@@ -725,7 +725,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                             <td colSpan={6} className="px-4 py-4">
                               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1">
+                                  <label className="block mb-1 text-xs font-medium text-gray-500 uppercase">
                                     Tambahan
                                   </label>
                                   <p className="text-sm text-gray-900 whitespace-pre-line">
@@ -733,7 +733,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                                   </p>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1">
+                                  <label className="block mb-1 text-xs font-medium text-gray-500 uppercase">
                                     Kondisi Akhir
                                   </label>
                                   <p className="text-sm text-gray-900 whitespace-pre-line">
@@ -741,7 +741,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                                   </p>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1">
+                                  <label className="block mb-1 text-xs font-medium text-gray-500 uppercase">
                                     Rencana Berikutnya
                                   </label>
                                   <p className="text-sm text-gray-900 whitespace-pre-line">
@@ -749,7 +749,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                                   </p>
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1">
+                                  <label className="block mb-1 text-xs font-medium text-gray-500 uppercase">
                                     Petugas
                                   </label>
                                   <p className="text-sm text-gray-900">
@@ -777,7 +777,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-sm text-center text-gray-500">
           <p>© 2025 Maintenance Management System</p>
           <p>{equipment.nama}</p>
         </div>

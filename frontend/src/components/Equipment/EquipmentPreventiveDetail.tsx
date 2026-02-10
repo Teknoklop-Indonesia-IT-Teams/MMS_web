@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { X, Plus, Pencil, Trash2, BookOpen } from "lucide-react";
-import { Equipment, MaintenanceRecord } from "../../types";
+import { Equipment, PreRecord } from "../../types";
 import { alatService, recordService, staffService } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import MaintenanceStatus from "./MaintenanceStatus";
@@ -29,7 +29,7 @@ export default function EquipmentDetail({
   onClose,
   onUpdate,
 }: EquipmentDetailProps) {
-  const [records, setRecords] = useState<MaintenanceRecord[]>([]);
+  const [records, setRecords] = useState<PreRecord[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [formData, setFormData] = useState({
