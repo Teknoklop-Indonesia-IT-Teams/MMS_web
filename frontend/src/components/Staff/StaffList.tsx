@@ -189,7 +189,7 @@ const StaffList: React.FC = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="p-6 bg-white rounded-lg shadow-lg">
+        <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
           <div className="flex items-center justify-center h-64">
             <div className="w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin"></div>
             <span className="ml-3 text-gray-600">Memuat data petugas...</span>
@@ -222,7 +222,7 @@ const StaffList: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="p-6 transition-colors duration-200 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+      <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
         {/* Header */}
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
@@ -238,7 +238,7 @@ const StaffList: React.FC = () => {
           {canManageStaff && (
             <button
               onClick={handleAddUser}
-              className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-white transition-colors duration-200 bg-blue-600 rounded-lg dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800"
+              className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800"
             >
               <Plus className="w-4 h-4" />
               Tambah Petugas
@@ -249,7 +249,7 @@ const StaffList: React.FC = () => {
         {/* Data Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="transition-colors duration-200 bg-gray-50 dark:bg-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
                   ID
@@ -274,7 +274,7 @@ const StaffList: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="transition-colors duration-200 bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+            <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
               {users.length === 0 ? (
                 <tr>
                   <td
@@ -288,7 +288,7 @@ const StaffList: React.FC = () => {
                 users.map((user, index) => (
                   <tr
                     key={user.id}
-                    className="transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">
                       {index + 1}
@@ -323,14 +323,14 @@ const StaffList: React.FC = () => {
                         <>
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="p-1 mr-3 text-blue-600 transition-colors duration-200 rounded dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                            className="p-1 mr-3 text-blue-600 rounded dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
                             title="Edit petugas"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user.id)}
-                            className="p-1 text-red-600 transition-colors rounded hover:text-red-900"
+                            className="p-1 text-red-600 rounded hover:text-red-900"
                             title="Hapus petugas"
                           >
                             <Trash2 className="w-4 h-4" />

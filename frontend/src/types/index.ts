@@ -68,7 +68,7 @@ export interface MaintenanceActivity {
   created_at: string;
 }
 
-export interface Record {
+export interface MaintenanceRecord {
   id: number;
   deskripsi: string;
   awal: string;

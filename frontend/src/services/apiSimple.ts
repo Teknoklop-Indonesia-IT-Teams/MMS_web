@@ -2,7 +2,7 @@ import axios from "axios";
 import {
   Equipment as Alat,
   Equipment,
-  Record,
+  MaintenanceRecord,
   Staff,
   LoginCredentials,
   RegisterData,
@@ -127,11 +127,12 @@ export const alatService = {
 };
 
 export const recordService = {
-  getAll: () => api.get<Record[]>("/record"),
-  getById: (id: string) => api.get<Record>(`/record/${id}`),
-  create: (data: Partial<Record>) => api.post<Record>("/record", data),
-  update: (id: string, data: Partial<Record>) =>
-    api.put<Record>(`/record/${id}`, data),
+  getAll: () => api.get<MaintenanceRecord[]>("/record"),
+  getById: (id: string) => api.get<MaintenanceRecord>(`/record/${id}`),
+  create: (data: Partial<MaintenanceRecord>) =>
+    api.post<MaintenanceRecord>("/record", data),
+  update: (id: string, data: Partial<MaintenanceRecord>) =>
+    api.put<MaintenanceRecord>(`/record/${id}`, data),
   delete: (id: string) => api.delete(`/record/${id}`),
 };
 

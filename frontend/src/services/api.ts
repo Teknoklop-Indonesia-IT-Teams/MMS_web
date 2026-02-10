@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
   Equipment as Alat,
-  Record,
+  MaintenanceRecord,
   Staff,
   LoginCredentials,
   RegisterData,
@@ -568,7 +568,9 @@ export const alatService = {
   },
 
   getWithMaintenanceStatus: (id: number) => {
-    AppStateManager.startCriticalOperation(`Equipment maintenance status ${id}`);
+    AppStateManager.startCriticalOperation(
+      `Equipment maintenance status ${id}`,
+    );
     return api
       .get<Equipment>(`/alat/${id}/maintenance-status`)
       .finally(() => AppStateManager.endCriticalOperation());
@@ -666,17 +668,18 @@ export const alatService = {
 };
 
 export const recordService = {
-  getAll: () => api.get<Record[]>("/record"),
-  getById: (id: string) => api.get<Record>(`/record/${id}`),
-  getByEquipmentId: (equipmentId: number) => api.get<Record[]>(`/record/equipment/${equipmentId}`),
-  create: (data: Omit<Record, "id">) => {
+  getAll: () => api.get<MaintenanceRecord[]>("/record"),
+  getById: (id: string) => api.get<MaintenanceRecord>(`/record/${id}`),
+  getByEquipmentId: (equipmentId: number) =>
+    api.get<MaintenanceRecord[]>(`/record/equipment/${equipmentId}`),
+  create: (data: Omit<MaintenanceRecord, "id">) => {
     AppStateManager.startCriticalOperation("Create record");
 
     // Log the size of the request to help with debugging
     const totalSize = JSON.stringify(data).length;
 
     return api
-      .post<Record>("/record", data, {
+      .post<MaintenanceRecord>("/record", data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -684,11 +687,11 @@ export const recordService = {
       })
       .finally(() => AppStateManager.endCriticalOperation());
   },
-  update: (id: string, data: Partial<Record>) => {
+  update: (id: string, data: Partial<MaintenanceRecord>) => {
     AppStateManager.startCriticalOperation("Update record");
 
     return api
-      .put<Record>(`/record/${id}`, data, {
+      .put<MaintenanceRecord>(`/record/${id}`, data, {
         headers: {
           "Content-Type": "application/json",
         },

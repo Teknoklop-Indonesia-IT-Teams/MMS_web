@@ -182,10 +182,11 @@ const EquipmentTable: React.FC = () => {
         size: 80,
         cell: ({ getValue }) => (
           <span
-            className={`px-2 py-1 text-sm font-medium rounded ${getValue<boolean>()
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-              }`}
+            className={`px-2 py-1 text-sm font-medium rounded ${
+              getValue<boolean>()
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
           >
             {getValue<boolean>() ? "On" : "Off"}
           </span>
@@ -451,7 +452,7 @@ const EquipmentTable: React.FC = () => {
           {canEditEquipment && (
             <button
               onClick={handleAddEquipment}
-              className="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-green-600 rounded-lg dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800"
+              className="flex items-center px-4 py-2 space-x-2 text-white bg-green-600 rounded-lg dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800"
             >
               <Plus size={20} />
               <span>Tambah Alat</span>
@@ -460,7 +461,7 @@ const EquipmentTable: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-hidden transition-colors duration-200 bg-white rounded-lg shadow-md dark:bg-gray-800">
+      <div className="overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -477,7 +478,7 @@ const EquipmentTable: React.FC = () => {
                   value={globalFilter ?? ""}
                   onChange={(e) => setGlobalFilter(e.target.value)}
                   placeholder="Cari alat..."
-                  className="w-full px-3 py-2 pl-10 pr-4 text-gray-900 transition-colors duration-200 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="w-full px-3 py-2 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
               </div>
 
@@ -489,8 +490,9 @@ const EquipmentTable: React.FC = () => {
                 >
                   <span>{typeFilter === "" ? "Semua Jenis" : typeFilter}</span>
                   <ChevronDown
-                    className={`w-4 h-4 ml-2 transition-transform ${showDropdown ? "rotate-180" : ""
-                      }`}
+                    className={`w-4 h-4 ml-2 transition-transform ${
+                      showDropdown ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
@@ -529,31 +531,31 @@ const EquipmentTable: React.FC = () => {
 
         <div className="overflow-auto max-h-[70vh]">
           <table className="w-full text-base">
-            <thead className="sticky top-0 transition-colors duration-200 shadow-sm bg-gray-50 dark:bg-gray-700">
+            <thead className="sticky top-0 shadow-sm bg-gray-50 dark:bg-gray-700">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-3 text-sm font-medium tracking-wider text-left text-gray-500 uppercase transition-colors duration-200 cursor-pointer dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                      className="px-4 py-3 text-sm font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody className="transition-colors duration-200 bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+            <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
