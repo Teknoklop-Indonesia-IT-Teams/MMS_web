@@ -185,7 +185,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {/* {Boolean(equipment.isMaintenanceActive) && (
+      {Boolean(equipment.isMaintenanceActive) && (
         <button
           onClick={handleCompleteMaintenance}
           disabled={isLoading}
@@ -194,7 +194,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
           <CheckCircle size={16} />
           <span>Selesai Maintenance</span>
         </button>
-      )} */}
+      )}
 
       <button
         onClick={() => setShowSettings(true)}
@@ -205,7 +205,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
         <span>Pengaturan</span>
       </button>
 
-      {Boolean(equipment.isMaintenanceActive) && (
+      {/* {Boolean(equipment.isMaintenanceActive) && (
         <button
           onClick={handleStopMaintenance}
           disabled={isLoading}
@@ -214,7 +214,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
           <StopCircle size={16} />
           <span>Stop Maintenance</span>
         </button>
-      )}
+      )} */}
     </div>
   );
 };
