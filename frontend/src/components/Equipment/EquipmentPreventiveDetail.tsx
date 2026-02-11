@@ -49,8 +49,8 @@ export default function EquipmentDetail({
     useState<Equipment>(equipment);
 
   const isMaintenanceActive = (() => {
-    // ✅ GUNAKAN maintenanceEnabled (variabel baru)
-    const value = equipmentWithStatus.maintenanceEnabled;
+    const value = equipmentWithStatus.isMaintenanceActive;
+    // const value = equipmentWithStatus.maintenanceEnabled;
 
     if (
       value === false ||
@@ -60,7 +60,6 @@ export default function EquipmentDetail({
     ) {
       return false;
     }
-
     if (
       value === true ||
       value === 1 ||
@@ -69,7 +68,6 @@ export default function EquipmentDetail({
     ) {
       return true;
     }
-
     return false;
   })();
 
@@ -334,29 +332,31 @@ export default function EquipmentDetail({
           </div>
 
           <div className="pt-6 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Related Records</h3>
-              {/* Only show "Tambah Record" button if maintenance is NOT completed (not 'false') */}
-              {isMaintenanceActive && (
+            {isMaintenanceActive ? (
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Related Records</h3>
                 <button
                   onClick={handleAddRecord}
-                  className="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+                  className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                 >
                   <Plus size={16} />
                   <span>Tambah Record</span>
                 </button>
-              )}
-            </div>
-
-            {/* Info message when maintenance is completed */}
-            {!isMaintenanceActive && (
-              <div className="p-4 mb-4 text-sm text-blue-800 bg-blue-100 rounded-lg">
-                <p className="font-medium">ℹ️ Maintenance telah selesai</p>
-                <p className="mt-1">
-                  Record tidak dapat ditambahkan karena maintenance untuk peralatan ini sudah diselesaikan.
-                  Aktifkan kembali maintenance melalui "Pengaturan" jika diperlukan.
-                </p>
               </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Related Records</h3>
+                </div>
+
+                <div className="p-4 mb-4 text-sm text-blue-800 bg-blue-100 rounded-lg">
+                  <p className="font-medium">ℹ️ Maintenance telah selesai</p>
+                  <p className="mt-1">
+                    Record tidak dapat ditambahkan karena maintenance untuk peralatan ini sudah diselesaikan.
+                    Aktifkan kembali maintenance melalui "Pengaturan" jika diperlukan.
+                  </p>
+                </div>
+              </>
             )}
 
             {showAddRecord && (
