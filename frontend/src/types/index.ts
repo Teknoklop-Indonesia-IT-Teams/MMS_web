@@ -58,7 +58,7 @@ export interface Equipment {
   nextMaintenanceDate?: string;
   maintenanceActivities?: MaintenanceActivity[];
   hasValidDate?: boolean;
-  maintenanceEnabled?: boolean | number | undefined;
+  // maintenanceEnabled?: boolean | number | undefined;
   dateSource?: "record" | "instalasi" | "none";
 }
 
@@ -72,9 +72,7 @@ export interface PreRecord {
   berikutnya: string;
   keterangan: string;
   petugas: string;
-  i_panel?: string | null;
   i_alat?: string | null;
-  i_sensor?: string | null;
   id_m_alat: number;
   tanggal: string;
 }
@@ -89,9 +87,7 @@ export interface CorRecord {
   berikutnya: string;
   keterangan: string;
   petugas: string;
-  i_panel?: string | null;
   i_alat?: string | null;
-  i_sensor?: string | null;
   id_m_alat: number;
   tanggal: string;
 }

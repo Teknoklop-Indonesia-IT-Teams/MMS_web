@@ -408,7 +408,7 @@ class LogoutManager {
       return false;
     }
 
-    
+
     if (this.requestCount > 50 && now - this.lastRequestTime < 500) {
       return false;
     }
@@ -420,7 +420,7 @@ class LogoutManager {
       return false;
     }
 
-    
+
     if (now - this.lastLogoutAttempt < this.DEBOUNCE_TIME) {
       return false;
     }
@@ -670,18 +670,19 @@ export const recordService = {
   getById: (id: string) => api.get<PreRecord>(`/record/${id}`),
   getByEquipmentId: (equipmentId: number) =>
     api.get<PreRecord[]>(`/record/equipment/${equipmentId}`),
-  create: (data: Omit<PreRecord, "id">) => {
+  create: (data: Omit<PreRecord, "id"> | FormData) => {
     AppStateManager.startCriticalOperation("Create record");
 
-    // Log the size of the request to help with debugging
-    const totalSize = JSON.stringify(data).length;
+    const isFormData = data instanceof FormData;
 
     return api
       .post<PreRecord>("/record", data, {
         headers: {
-          "Content-Type": "application/json",
+          ...(isFormData
+            ? {} 
+            : { "Content-Type": "application/json" }),
         },
-        timeout: 60000, // 60 seconds for image upload
+        timeout: 60000, // 60 detik untuk upload gambar
       })
       .finally(() => AppStateManager.endCriticalOperation());
   },

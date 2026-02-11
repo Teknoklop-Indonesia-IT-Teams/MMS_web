@@ -71,6 +71,12 @@ const getRecordByEquipmentId = async (req, res) => {
 };
 
 const createRecord = async (req, res) => {
+  console.log("===== CREATE RECORD DEBUG =====");
+  console.log("BODY:", req.body);
+  console.log("FILE:", req.file);
+  console.log("FILES:", req.files);
+  console.log("Content-Type:", req.headers["content-type"]);
+
   try {
     const {
       deskripsi,
@@ -81,31 +87,43 @@ const createRecord = async (req, res) => {
       berikutnya,
       keterangan,
       petugas,
-      i_alat,
       id_m_alat,
       tanggal,
     } = req.body;
 
-    // Validate required fields
     if (!id_m_alat || !tanggal || !deskripsi) {
       return res.status(400).json({
         message: "id_m_alat, tanggal, and deskripsi are required",
       });
     }
 
-    // Process image data (remove data:image prefix if present)
-    const processImage = (base64String) => {
-      if (!base64String) return null;
-      if (base64String.startsWith("data:image")) {
-        return base64String.split(",")[1];
-      }
-      return base64String;
-    };
+    // 🔥 Ambil filename dari multer
+    let imagePath = null;
 
-    const processed_i_alat = processImage(i_alat);
+    if (req.file) {
+      console.log("📂 File uploaded:");
+      console.log(" - filename:", req.file.filename);
+      console.log(" - path:", req.file.path);
+      console.log(" - mimetype:", req.file.mimetype);
+      console.log(" - size:", req.file.size);
+
+      imagePath = `/uploads/${req.file.filename}`;
+      console.log("✅ Image path saved to DB:", imagePath);
+    } else {
+      console.log("⚠️ No file uploaded");
+    }
+
+    console.log("📦 Final values before insert:", {
+      deskripsi,
+      id_m_alat,
+      tanggal,
+      imagePath,
+    });
 
     const [result] = await db.query(
-      "INSERT INTO m_record (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      `INSERT INTO m_record 
+      (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         deskripsi,
         awal,
@@ -115,7 +133,7 @@ const createRecord = async (req, res) => {
         berikutnya,
         keterangan,
         petugas,
-        processed_i_alat,
+        imagePath,
         id_m_alat,
         tanggal,
       ]
@@ -124,6 +142,7 @@ const createRecord = async (req, res) => {
     res.status(201).json({
       id: result.insertId,
       ...req.body,
+      i_alat: imagePath,
     });
   } catch (error) {
     console.error(error);
@@ -345,7 +364,7 @@ const updateCorrectiveRecord = async (req, res) => {
       id_m_alat,
       tanggal,
     } = req.body;
-    
+
     const processImage = (base64String) => {
       if (!base64String) return null;
       if (base64String.startsWith("data:image")) {

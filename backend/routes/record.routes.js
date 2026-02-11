@@ -1,5 +1,6 @@
 const express = require("express");
 const recordController = require("../controllers/record.controller.js");
+const upload = require("../middleware/upload");
 // const { authMiddleware } = require("../middleware/auth.middleware.js");
 
 const router = express.Router();
@@ -11,7 +12,11 @@ const router = express.Router();
 router.get("/", recordController.getAllRecords);
 router.get("/equipment/:id", recordController.getRecordByEquipmentId);
 router.get("/:id", recordController.getRecordById);
-router.post("/", recordController.createRecord);
+router.post(
+    "/",
+    upload.single("i_alat"),
+    recordController.createRecord
+);
 router.put("/:id", recordController.updateRecord);
 router.delete("/:id", recordController.deleteRecord);
 
