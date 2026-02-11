@@ -60,7 +60,7 @@ const getRecordByEquipmentId = async (req, res) => {
 
     const [records] = await db.query(
       "SELECT * FROM m_record WHERE id_m_alat = ?",
-      [id]
+      [id],
     );
 
     res.json(records);
@@ -136,7 +136,7 @@ const createRecord = async (req, res) => {
         imagePath,
         id_m_alat,
         tanggal,
-      ]
+      ],
     );
 
     res.status(201).json({
@@ -198,7 +198,7 @@ const updateRecord = async (req, res) => {
         id_m_alat,
         tanggal,
         req.params.id,
-      ]
+      ],
     );
 
     res.json({
@@ -245,9 +245,10 @@ const getAllCorrectiveRecords = async (req, res) => {
 
 const getCorrectiveRecordById = async (req, res) => {
   try {
-    const [records] = await db.query("SELECT * FROM m_record_corrective WHERE id = ?", [
-      req.params.id,
-    ]);
+    const [records] = await db.query(
+      "SELECT * FROM m_record_corrective WHERE id = ?",
+      [req.params.id],
+    );
     if (records.length === 0) {
       return res.status(404).json({ message: "Record tidak ditemukan" });
     }
@@ -278,7 +279,7 @@ const getCorrectiveRecordByEquipmentId = async (req, res) => {
 
     const [records] = await db.query(
       "SELECT * FROM m_record_corrective WHERE id_m_alat = ?",
-      [id]
+      [id],
     );
 
     res.json(records);
@@ -334,7 +335,7 @@ const createCorrectiveRecord = async (req, res) => {
         processed_i_alat,
         id_m_alat,
         tanggal,
-      ]
+      ],
     );
 
     res.status(201).json({
@@ -394,7 +395,7 @@ const updateCorrectiveRecord = async (req, res) => {
         id_m_alat,
         tanggal,
         req.params.id,
-      ]
+      ],
     );
 
     res.json({
@@ -409,7 +410,9 @@ const updateCorrectiveRecord = async (req, res) => {
 
 const deleteCorrectiveRecord = async (req, res) => {
   try {
-    await db.query("DELETE FROM m_record_corrective WHERE id = ?", [req.params.id]);
+    await db.query("DELETE FROM m_record_corrective WHERE id = ?", [
+      req.params.id,
+    ]);
     res.json({ message: "Record berhasil dihapus" });
   } catch (error) {
     console.error(error);
