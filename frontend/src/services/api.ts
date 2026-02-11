@@ -408,7 +408,6 @@ class LogoutManager {
       return false;
     }
 
-    
     if (this.requestCount > 50 && now - this.lastRequestTime < 500) {
       return false;
     }
@@ -420,7 +419,6 @@ class LogoutManager {
       return false;
     }
 
-    
     if (now - this.lastLogoutAttempt < this.DEBOUNCE_TIME) {
       return false;
     }
@@ -578,16 +576,17 @@ export const alatService = {
     AppStateManager.startCriticalOperation("Equipment create");
     const operationKey = `create-alat-${Date.now()}`;
 
-    const config = data instanceof FormData
-      ? {
-        headers: { 'Content-Type': undefined },
-        transformRequest: [(data: FormData) => data],
-      }
-      : { headers: { "Content-Type": "application/json" } };
+    const config =
+      data instanceof FormData
+        ? {
+            headers: { "Content-Type": undefined },
+            transformRequest: [(data: FormData) => data],
+          }
+        : { headers: { "Content-Type": "application/json" } };
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.post<Alat>("/alat", data, config)
+        api.post<Alat>("/alat", data, config),
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
@@ -603,16 +602,17 @@ export const alatService = {
     }
 
     // ✅ FIX: Tambah transformRequest untuk FormData
-    const config = data instanceof FormData
-      ? {
-        headers: { 'Content-Type': undefined }, // Hapus Content-Type
-        transformRequest: [(data: FormData) => data], // Bypass transformer
-      }
-      : { headers: { "Content-Type": "application/json" } };
+    const config =
+      data instanceof FormData
+        ? {
+            headers: { "Content-Type": undefined }, // Hapus Content-Type
+            transformRequest: [(data: FormData) => data], // Bypass transformer
+          }
+        : { headers: { "Content-Type": "application/json" } };
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.put<Alat>(`/alat/${id}`, data, config)
+        api.put<Alat>(`/alat/${id}`, data, config),
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },
@@ -628,14 +628,14 @@ export const alatService = {
   stopMaintenance: (id: string) => {
     const operationKey = `stop-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.post(`/alat/${id}/stop-maintenance`)
+      api.post(`/alat/${id}/stop-maintenance`),
     );
   },
 
   completeMaintenance: (id: string) => {
     const operationKey = `complete-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.post(`/alat/${id}/complete-maintenance`)
+      api.post(`/alat/${id}/complete-maintenance`),
     );
   },
 
@@ -645,11 +645,11 @@ export const alatService = {
       maintenanceDate?: string;
       maintenanceInterval?: number;
       isMaintenanceActive?: boolean;
-    }
+    },
   ) => {
     const operationKey = `update-maintenance-${id}`;
     return optimisticLockManager.executeWithLock(operationKey, () =>
-      api.put(`/alat/${id}/maintenance`, data)
+      api.put(`/alat/${id}/maintenance`, data),
     );
   },
 
@@ -659,7 +659,7 @@ export const alatService = {
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
-        api.post(`/alat/${id}/maintenance-activity`, data)
+        api.post(`/alat/${id}/maintenance-activity`, data),
       )
       .finally(() => AppStateManager.endCriticalOperation());
   },

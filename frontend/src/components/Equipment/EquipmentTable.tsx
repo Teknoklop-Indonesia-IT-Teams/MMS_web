@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -51,7 +57,8 @@ const EquipmentTable: React.FC = () => {
     null,
   );
   const [showDetail, setShowDetail] = useState<Equipment | null>(null);
-  const [showCorrectiveDetail, setShowCorrectiveDetail] = useState<Equipment | null>(null);
+  const [showCorrectiveDetail, setShowCorrectiveDetail] =
+    useState<Equipment | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDescription, setShowDescription] = useState<Equipment | null>(
     null,
@@ -96,17 +103,17 @@ const EquipmentTable: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (dropdownEquipment && !target.closest('.dropdown-menu-container')) {
+      if (dropdownEquipment && !target.closest(".dropdown-menu-container")) {
         setDropdownEquipment(null);
       }
     };
 
     if (dropdownEquipment !== null) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownEquipment]);
 
@@ -136,8 +143,7 @@ const EquipmentTable: React.FC = () => {
             toast.dismiss(loadingToastId);
           }
         },
-        () => {
-        },
+        () => {},
         "Tindakan ini tidak dapat dibatalkan",
       );
     },
@@ -205,9 +211,11 @@ const EquipmentTable: React.FC = () => {
             operasional: "bg-blue-100 text-blue-800 border border-blue-200",
             normal: "bg-blue-100 text-blue-800 border border-blue-200",
             aktif: "bg-blue-100 text-blue-800 border border-blue-200",
-            maintenance: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+            maintenance:
+              "bg-yellow-100 text-yellow-800 border border-yellow-200",
             perbaikan: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-            pemeliharaan: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+            pemeliharaan:
+              "bg-yellow-100 text-yellow-800 border border-yellow-200",
             rusak: "bg-red-100 text-red-800 border border-red-200",
             error: "bg-red-100 text-red-800 border border-red-200",
             bermasalah: "bg-red-100 text-red-800 border border-red-200",
@@ -281,8 +289,8 @@ const EquipmentTable: React.FC = () => {
                 equipment: row.original,
                 position: {
                   top: rect.bottom + 4,
-                  left: rect.left
-                }
+                  left: rect.left,
+                },
               });
             }
           };
@@ -343,7 +351,7 @@ const EquipmentTable: React.FC = () => {
         },
       },
     ],
-    [handleDeleteEquipment, canEditEquipment, canDeleteEquipment]
+    [handleDeleteEquipment, canEditEquipment, canDeleteEquipment],
   );
 
   const filteredData = useMemo(() => {
@@ -396,17 +404,14 @@ const EquipmentTable: React.FC = () => {
 
     try {
       if (selectedEquipment) {
-        const idToUpdate = selectedEquipment.originalId || selectedEquipment.id;
+        const idToUpdate = selectedEquipment.id || selectedEquipment.id;
 
         console.log("🔄 Updating equipment:");
         console.log("  - Sequential ID:", selectedEquipment.id);
-        console.log("  - Original ID:", selectedEquipment.originalId);
+        console.log("  - Original ID:", selectedEquipment.id);
         console.log("  - Using ID:", idToUpdate);
 
-        await alatService.update(
-          idToUpdate.toString(),
-          equipmentData,
-        );
+        await alatService.update(idToUpdate.toString(), equipmentData);
 
         showSuccessToast(
           "Alat berhasil diperbarui!",
@@ -640,7 +645,7 @@ const EquipmentTable: React.FC = () => {
           className="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-lg w-52 dark:bg-gray-700 dark:border-gray-600 dropdown-menu-container"
           style={{
             top: `${dropdownEquipment.position.top}px`,
-            left: `${dropdownEquipment.position.left}px`
+            left: `${dropdownEquipment.position.left}px`,
           }}
         >
           <button
@@ -708,7 +713,6 @@ const EquipmentTable: React.FC = () => {
         />
       )}
     </div>
-
   );
 };
 
