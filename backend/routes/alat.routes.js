@@ -38,7 +38,6 @@ router.put(
 );
 
 router.delete("/:id", alatController.deleteAlat);
-router.post("/:id/stop-maintenance", alatController.stopMaintenance);
 router.post("/:id/complete-maintenance", alatController.completeMaintenance);
 router.put("/:id/maintenance", alatController.updateMaintenanceSettings);
 router.post(

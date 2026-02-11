@@ -21,31 +21,27 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
   const isMaintenanceActive = (() => {
     const value = equipment.isMaintenanceActive;
 
-    // Jika sudah ada status 'selesai', anggap aktif untuk status display
-    if (equipment.maintenanceStatus === "selesai") {
-      return true;
-    }
-
-    // Handle berbagai tipe data
-    if (
-      value === true ||
-      value === 1 ||
-      String(value) === "1" ||
-      String(value) === "true"
-    ) {
-      return true;
-    }
-
+    // Handle false
     if (
       value === false ||
       value === 0 ||
-      String(value) === "0" ||
-      String(value) === "false"
+      String(value).toLowerCase() === 'false' ||
+      String(value) === '0'
     ) {
       return false;
     }
 
-    // Default jika tidak ada data
+    // Handle true
+    if (
+      value === true ||
+      value === 1 ||
+      String(value).toLowerCase() === 'true' ||
+      String(value) === '1'
+    ) {
+      return true;
+    }
+
+    // Default: false
     return false;
   })();
 
@@ -82,8 +78,8 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
               <span className="font-medium">Terakhir Maintenance:</span>{" "}
               {equipment.maintenanceDate
                 ? new Date(equipment.maintenanceDate).toLocaleDateString(
-                    "id-ID",
-                  )
+                  "id-ID",
+                )
                 : "Hari ini"}
             </div>
             <div>
@@ -249,8 +245,8 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
             <span className="font-medium">Maintenance Berikutnya:</span>{" "}
             {equipment.nextMaintenanceDate
               ? new Date(equipment.nextMaintenanceDate).toLocaleDateString(
-                  "id-ID",
-                )
+                "id-ID",
+              )
               : "Belum dijadwalkan"}
           </div>
           <div>

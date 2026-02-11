@@ -1,10 +1,146 @@
 const { db } = require("../config/db.js");
 
+// const getAllAlat = async (req, res) => {
+//   try {
+//     console.log("🔍 Executing getAllAlat query...");
+
+//     // Query dengan LEFT JOIN untuk dapat latest record
+//     const [alat] = await db.query(`
+//       SELECT 
+//         a.*,
+//         r.latest_tanggal
+//       FROM m_alat a
+//       LEFT JOIN (
+//         SELECT 
+//           id_m_alat,
+//           MAX(tanggal) as latest_tanggal
+//         FROM m_record
+//         GROUP BY id_m_alat
+//       ) r ON a.id = r.id_m_alat
+//       ORDER BY a.id DESC
+//     `);
+
+//     console.log(`📊 Found ${alat.length} equipment records`);
+
+//     if (alat.length > 0) {
+//       console.log("📋 First equipment record:", {
+//         id: alat[0].id,
+//         nama: alat[0].nama,
+//         instalasi: alat[0].instalasi,
+//         latest_tanggal: alat[0].latest_tanggal,
+//         maintenance_interval_days: alat[0].maintenance_interval_days,
+//       });
+//     }
+//     const today = new Date();
+
+//     const alatWithSequentialId = alat.map((item, index) => {
+//       const sequentialId = alat.length - index;
+
+//       let maintenanceStatus = "inactive";
+//       let maintenanceAlertLevel = "none";
+//       let maintenanceDaysLeft = null;
+//       let nextMaintenanceDate = null;
+//       let maintenanceStatusText = "Tidak ada jadwal maintenance";
+//       let maintenanceDate = null;
+//       let hasValidDate = false;
+//       let dateSource = "none";
+//       if (item.latest_tanggal) {
+//         const recordDate = new Date(item.latest_tanggal);
+//         if (!isNaN(recordDate.getTime())) {
+//           maintenanceDate = recordDate;
+//           hasValidDate = true;
+//           dateSource = "record";
+//           console.log(`✅ Equipment ${item.id} using date from RECORD:`, maintenanceDate.toISOString().split('T')[0]);
+//         }
+//       }
+//       if (!hasValidDate && item.instalasi) {
+//         const instalasiDate = new Date(item.instalasi);
+//         if (!isNaN(instalasiDate.getTime())) {
+//           maintenanceDate = instalasiDate;
+//           hasValidDate = true;
+//           dateSource = "instalasi";
+//           console.log(`✅ Equipment ${item.id} using date from INSTALASI:`, maintenanceDate.toISOString().split('T')[0]);
+//         }
+//       }
+//       if (hasValidDate) {
+//         const intervalDays = parseInt(item.maintenance_interval_days) || 90;
+//         nextMaintenanceDate = new Date(maintenanceDate);
+//         nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + intervalDays);
+//         const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
+//         maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+//         console.log(`Equipment ${item.id} - Days left:`, maintenanceDaysLeft);
+//         if (maintenanceDaysLeft < 0) {
+//           maintenanceStatus = "overdue";
+//           maintenanceAlertLevel = "red";
+//           maintenanceStatusText = "Terlambat maintenance";
+//         } else if (maintenanceDaysLeft <= 7) {
+//           maintenanceStatus = "urgent";
+//           maintenanceAlertLevel = "red";
+//           maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Urgent)`;
+//         } else if (maintenanceDaysLeft <= 30) {
+//           maintenanceStatus = "warning";
+//           maintenanceAlertLevel = "yellow";
+//           maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Diperlukan)`;
+//         } else {
+//           maintenanceStatus = "good";
+//           maintenanceAlertLevel = "green";
+//           maintenanceStatusText = `${maintenanceDaysLeft} hari lagi`;
+//         }
+//       } else {
+//         maintenanceStatus = "inactive";
+//         maintenanceAlertLevel = "none";
+//         maintenanceStatusText = "Tidak ada jadwal maintenance";
+//       }
+//       const { latest_tanggal, ...itemData } = item;
+
+//       return {
+//         id: item.id,
+//         displayId: sequentialId,
+//         originalId: itemData.id,
+//         nama: itemData.nama || "",
+//         lokasi: itemData.lokasi || "",
+//         jenis: itemData.jenis || "",
+//         instalasi: itemData.instalasi || "",
+//         garansi: itemData.garansi || "",
+//         remot: itemData.remot || "",
+//         status: itemData.status || "",
+//         device: itemData.device || "",
+//         sensor: itemData.sensor || "",
+//         pelanggan: itemData.pelanggan || "",
+//         pic: itemData.pic || "",
+//         email: itemData.email || "",
+//         i_alat: itemData.i_alat || "",
+//         created_at: itemData.created_at,
+//         updated_at: itemData.updated_at,
+//         maintenanceDate: hasValidDate ? maintenanceDate.toISOString().split('T')[0] : null,
+//         maintenanceInterval: itemData.maintenance_interval_days || 90,
+//         isMaintenanceActive: hasValidDate,
+//         maintenanceStatus: maintenanceStatus,
+//         maintenanceAlertLevel: maintenanceAlertLevel,
+//         maintenanceDaysLeft: maintenanceDaysLeft,
+//         maintenanceStatusText: maintenanceStatusText,
+//         nextMaintenanceDate: nextMaintenanceDate ? nextMaintenanceDate.toISOString().split('T')[0] : null,
+//         dateSource: dateSource,
+//       };
+//     });
+
+//     res.json(alatWithSequentialId);
+//   } catch (error) {
+//     console.error("❌ Error in getAllAlat:", error);
+//     console.error("❌ Error stack:", error.stack);
+//     res.status(500).json({
+//       message: "Server error",
+//       error: error.message,
+//       stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+//     });
+//   }
+// };
+
 const getAllAlat = async (req, res) => {
   try {
     console.log("🔍 Executing getAllAlat query...");
 
-    // Query dengan LEFT JOIN untuk dapat latest record
     const [alat] = await db.query(`
       SELECT 
         a.*,
@@ -22,54 +158,112 @@ const getAllAlat = async (req, res) => {
 
     console.log(`📊 Found ${alat.length} equipment records`);
 
-    if (alat.length > 0) {
-      console.log("📋 First equipment record:", {
-        id: alat[0].id,
-        nama: alat[0].nama,
-        instalasi: alat[0].instalasi,
-        latest_tanggal: alat[0].latest_tanggal,
-        maintenance_interval_days: alat[0].maintenance_interval_days,
-      });
-    }
     const today = new Date();
 
     const alatWithSequentialId = alat.map((item, index) => {
       const sequentialId = alat.length - index;
 
-      let maintenanceStatus = "inactive";
-      let maintenanceAlertLevel = "none";
-      let maintenanceDaysLeft = null;
-      let nextMaintenanceDate = null;
-      let maintenanceStatusText = "Tidak ada jadwal maintenance";
+      // ========================================
+      // 1️⃣ HITUNG hasValidDate (LOGIKA LAMA - TETAP DIJAGA)
+      // ========================================
       let maintenanceDate = null;
       let hasValidDate = false;
       let dateSource = "none";
+
       if (item.latest_tanggal) {
         const recordDate = new Date(item.latest_tanggal);
         if (!isNaN(recordDate.getTime())) {
           maintenanceDate = recordDate;
           hasValidDate = true;
           dateSource = "record";
-          console.log(`✅ Equipment ${item.id} using date from RECORD:`, maintenanceDate.toISOString().split('T')[0]);
         }
       }
+
       if (!hasValidDate && item.instalasi) {
         const instalasiDate = new Date(item.instalasi);
         if (!isNaN(instalasiDate.getTime())) {
           maintenanceDate = instalasiDate;
           hasValidDate = true;
           dateSource = "instalasi";
-          console.log(`✅ Equipment ${item.id} using date from INSTALASI:`, maintenanceDate.toISOString().split('T')[0]);
         }
       }
-      if (hasValidDate) {
+
+      // ========================================
+      // 2️⃣ BACA is_maintenance_active DARI DATABASE
+      // ========================================
+      const isMaintenanceActiveFromDB = (() => {
+        const value = item.is_maintenance_active;
+
+        // Jika eksplisit false
+        if (
+          value === false ||
+          value === 0 ||
+          value === '0' ||
+          String(value).toLowerCase() === 'false'
+        ) {
+          return false;
+        }
+
+        // Jika eksplisit true
+        if (
+          value === true ||
+          value === 1 ||
+          value === '1' ||
+          String(value).toLowerCase() === 'true'
+        ) {
+          return true;
+        }
+
+        // Jika NULL atau undefined (data lama)
+        return null;
+      })();
+
+      // ========================================
+      // 3️⃣ TENTUKAN maintenanceEnabled (VARIABEL BARU)
+      // ========================================
+      let maintenanceEnabled;
+
+      if (isMaintenanceActiveFromDB === null) {
+        // Data lama: gunakan perhitungan (backward compatibility)
+        maintenanceEnabled = hasValidDate;
+        console.log(`📊 Equipment ${item.id}: Using calculated (hasValidDate: ${hasValidDate})`);
+      } else {
+        // Data baru: kombinasi database + perhitungan
+        maintenanceEnabled = isMaintenanceActiveFromDB && hasValidDate;
+        console.log(`📊 Equipment ${item.id}: DB=${isMaintenanceActiveFromDB}, hasValidDate=${hasValidDate}, Final=${maintenanceEnabled}`);
+      }
+
+      // ========================================
+      // 4️⃣ KALKULASI STATUS MAINTENANCE
+      // ========================================
+      let maintenanceStatus = "inactive";
+      let maintenanceAlertLevel = "none";
+      let maintenanceDaysLeft = null;
+      let nextMaintenanceDate = null;
+      let maintenanceStatusText = "Tidak ada jadwal maintenance";
+
+      // Jika maintenance TIDAK enabled (disabled manual atau tidak ada tanggal)
+      if (!maintenanceEnabled) {
+        // Cek apakah disabled secara manual (is_maintenance_active = false)
+        if (isMaintenanceActiveFromDB === false) {
+          maintenanceStatus = "selesai";
+          maintenanceAlertLevel = "blue";
+          maintenanceStatusText = "Maintenance selesai";
+        } else {
+          // Tidak ada jadwal atau data lama
+          maintenanceStatus = "inactive";
+          maintenanceAlertLevel = "none";
+          maintenanceStatusText = "Tidak ada jadwal maintenance";
+        }
+      } else {
+        // Maintenance ENABLED - lakukan kalkulasi normal
         const intervalDays = parseInt(item.maintenance_interval_days) || 90;
         nextMaintenanceDate = new Date(maintenanceDate);
         nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + intervalDays);
+
         const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
         maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-        console.log(`Equipment ${item.id} - Days left:`, maintenanceDaysLeft);
         if (maintenanceDaysLeft < 0) {
           maintenanceStatus = "overdue";
           maintenanceAlertLevel = "red";
@@ -87,11 +281,11 @@ const getAllAlat = async (req, res) => {
           maintenanceAlertLevel = "green";
           maintenanceStatusText = `${maintenanceDaysLeft} hari lagi`;
         }
-      } else {
-        maintenanceStatus = "inactive";
-        maintenanceAlertLevel = "none";
-        maintenanceStatusText = "Tidak ada jadwal maintenance";
       }
+
+      // ========================================
+      // 5️⃣ RETURN DATA
+      // ========================================
       const { latest_tanggal, ...itemData } = item;
 
       return {
@@ -113,9 +307,16 @@ const getAllAlat = async (req, res) => {
         i_alat: itemData.i_alat || "",
         created_at: itemData.created_at,
         updated_at: itemData.updated_at,
+
+        // ✅ FIELD MAINTENANCE (LENGKAP)
         maintenanceDate: hasValidDate ? maintenanceDate.toISOString().split('T')[0] : null,
         maintenanceInterval: itemData.maintenance_interval_days || 90,
-        isMaintenanceActive: hasValidDate,
+
+        // ✅ TIGA VARIABEL PENTING:
+        hasValidDate: hasValidDate,                           // Perhitungan lama (tetap ada)
+        isMaintenanceActive: isMaintenanceActiveFromDB,       // Nilai dari DB (bisa null)
+        maintenanceEnabled: maintenanceEnabled,               // VARIABEL BARU - untuk UI
+
         maintenanceStatus: maintenanceStatus,
         maintenanceAlertLevel: maintenanceAlertLevel,
         maintenanceDaysLeft: maintenanceDaysLeft,
@@ -128,11 +329,9 @@ const getAllAlat = async (req, res) => {
     res.json(alatWithSequentialId);
   } catch (error) {
     console.error("❌ Error in getAllAlat:", error);
-    console.error("❌ Error stack:", error.stack);
     res.status(500).json({
       message: "Server error",
       error: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
@@ -615,39 +814,52 @@ const updateMaintenanceSettings = async (req, res) => {
 
 const completeMaintenance = async (req, res) => {
   try {
-    const sequentialId = parseInt(req.params.id);
+    const alatId = Number(req.params.id);
 
-    // Get all equipment to map sequential ID to original ID
-    const [allAlat] = await db.query("SELECT * FROM m_alat ORDER BY id DESC");
+    const [rows] = await db.query(
+      "SELECT * FROM m_alat WHERE id = ?",
+      [alatId]
+    );
 
-    if (sequentialId > allAlat.length || sequentialId < 1) {
+    if (rows.length === 0) {
       return res.status(404).json({ message: "Alat tidak ditemukan" });
     }
 
-    // Fix mapping: sequential ID uses reverse logic (alat.length - index)
-    const arrayIndex = allAlat.length - sequentialId;
-    const originalId = allAlat[arrayIndex].id;
-    const today = new Date().toISOString().split("T")[0];
+    const equipment = rows[0];
 
-    // Update maintenance date to today and mark as completed (inactive)
+    const isActive =
+      equipment.is_maintenance_active === 1 ||
+      equipment.is_maintenance_active === '1' ||
+      equipment.is_maintenance_active === true ||
+      equipment.is_maintenance_active === 'true';
+
+    if (!isActive) {
+      return res.status(400).json({
+        message: "Maintenance tidak aktif untuk peralatan ini",
+      });
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+
     await db.query(
-      `UPDATE m_alat SET 
-        maintenance_date = ?, 
-        is_maintenance_active = 0
-       WHERE id = ?`,
-      [today, originalId],
+      `UPDATE m_alat 
+      SET maintenance_date = ?, is_maintenance_active = 'false'
+      WHERE id = ?`,
+      [today, alatId]
     );
+
     res.json({
-      message: "Maintenance berhasil diselesaikan dan dinonaktifkan",
-      id: sequentialId,
+      message: "Maintenance berhasil diselesaikan",
+      id: alatId,
       maintenanceDate: today,
-      isMaintenanceActive: false,
+      isMaintenanceActive: 0,
     });
-  } catch (error) {
-    console.error("❌ Error in completeMaintenance:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (err) {
+    console.error("❌ completeMaintenance error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 const testMaintenance = async (req, res) => {
   try {
@@ -863,7 +1075,13 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
       maintenanceDaysLeft: daysLeft || 0,
       maintenanceStatus: maintenanceStatus,
       maintenanceStatusText: maintenanceStatusText,
-      isMaintenanceActive: hasValidDate ? true : false,
+
+      // ✅ PERBAIKAN: Gunakan nilai dari database, bukan hasValidDate
+      isMaintenanceActive: alat.is_maintenance_active === 'true' ||
+        alat.is_maintenance_active === true ||
+        alat.is_maintenance_active === 1 ||
+        alat.is_maintenance_active === '1',
+
       maintenanceInterval: alat.maintenance_interval_days || 90,
       dateSource: dateSource
     };

@@ -35,7 +35,7 @@ export interface Equipment {
   keterangan?: string;
   maintenanceDate?: string;
   maintenanceInterval?: number;
-  isMaintenanceActive?: boolean | number;
+  isMaintenanceActive?: boolean | number | null;
   maintenanceDaysLeft?: number | null;
   maintenanceStatus?:
   | "active"
@@ -57,6 +57,9 @@ export interface Equipment {
   maintenanceStatusText?: string;
   nextMaintenanceDate?: string;
   maintenanceActivities?: MaintenanceActivity[];
+  hasValidDate?: boolean;
+  maintenanceEnabled?: boolean | number | undefined;
+  dateSource?: "record" | "instalasi" | "none";
 }
 
 export interface PreRecord {

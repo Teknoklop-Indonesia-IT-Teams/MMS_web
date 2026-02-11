@@ -45,17 +45,32 @@ export default function EquipmentDetail({
   });
 
   const { showSuccess } = useToast();
-
-  // const fetchRecords = useCallback(async () => {
-  //   try {
-  //     const response = await recordService.getByEquipmentId(equipment.id);
-  //     setRecords(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching records:", error);
-  //   }
-  // }, [equipment.id]);
   const [equipmentWithStatus, setEquipmentWithStatus] =
     useState<Equipment>(equipment);
+
+  const isMaintenanceActive = (() => {
+    const value = equipmentWithStatus.isMaintenanceActive;
+    // const value = equipmentWithStatus.maintenanceEnabled;
+
+    if (
+      value === false ||
+      value === 0 ||
+      String(value).toLowerCase() === 'false' ||
+      String(value) === '0'
+    ) {
+      return false;
+    }
+    if (
+      value === true ||
+      value === 1 ||
+      String(value).toLowerCase() === 'true' ||
+      String(value) === '1'
+    ) {
+      return true;
+    }
+    return false;
+  })();
+
   const fetchRecords = useCallback(async () => {
     try {
       const response = await recordService.getByEquipmentId(equipment.id);
@@ -216,11 +231,10 @@ export default function EquipmentDetail({
                     Status
                   </label>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      equipment.status === "Garansi"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}
                   >
                     {equipment.status}
                   </span>
@@ -307,26 +321,43 @@ export default function EquipmentDetail({
                 showDetails={true}
               />
               <MaintenanceActions
-                equipment={equipment}
+                equipment={equipmentWithStatus}
                 onUpdate={() => {
-                  onUpdate?.(); // Refresh the parent equipment list
-                  window.location.reload(); // Refresh the current detail view
+                  void fetchEquipmentStatus();
+                  void fetchRecords();
+                  onUpdate?.();
                 }}
               />
             </div>
           </div>
 
           <div className="pt-6 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Related Records</h3>
-              <button
-                onClick={handleAddRecord}
-                className="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
-              >
-                <Plus size={16} />
-                <span>Tambah Record</span>
-              </button>
-            </div>
+            {isMaintenanceActive ? (
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Related Records</h3>
+                <button
+                  onClick={handleAddRecord}
+                  className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                >
+                  <Plus size={16} />
+                  <span>Tambah Record</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Related Records</h3>
+                </div>
+
+                <div className="p-4 mb-4 text-sm text-blue-800 bg-blue-100 rounded-lg">
+                  <p className="font-medium">ℹ️ Maintenance telah selesai</p>
+                  <p className="mt-1">
+                    Record tidak dapat ditambahkan karena maintenance untuk peralatan ini sudah diselesaikan.
+                    Aktifkan kembali maintenance melalui "Pengaturan" jika diperlukan.
+                  </p>
+                </div>
+              </>
+            )}
 
             {showAddRecord && (
               <div className="p-4 mb-4 rounded-lg bg-gray-50">
@@ -561,11 +592,10 @@ export default function EquipmentDetail({
                           <div className="flex space-x-1">
                             <button
                               onClick={() => toggleRecordDetail(record.id)}
-                              className={`p-1 text-white rounded transition-colors ${
-                                expandedRecordId === record.id
-                                  ? "bg-blue-700"
-                                  : "bg-blue-600 hover:bg-blue-700"
-                              }`}
+                              className={`p-1 text-white rounded transition-colors ${expandedRecordId === record.id
+                                ? "bg-blue-700"
+                                : "bg-blue-600 hover:bg-blue-700"
+                                }`}
                             >
                               <BookOpen size={12} />
                             </button>
