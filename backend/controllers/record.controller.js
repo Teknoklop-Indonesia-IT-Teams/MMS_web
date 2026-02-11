@@ -81,9 +81,7 @@ const createRecord = async (req, res) => {
       berikutnya,
       keterangan,
       petugas,
-      i_panel,
       i_alat,
-      i_sensor,
       id_m_alat,
       tanggal,
     } = req.body;
@@ -104,12 +102,10 @@ const createRecord = async (req, res) => {
       return base64String;
     };
 
-    const processed_i_panel = processImage(i_panel);
     const processed_i_alat = processImage(i_alat);
-    const processed_i_sensor = processImage(i_sensor);
 
     const [result] = await db.query(
-      "INSERT INTO m_record (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_panel, i_alat, i_sensor, id_m_alat, tanggal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO m_record (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         deskripsi,
         awal,
@@ -119,9 +115,7 @@ const createRecord = async (req, res) => {
         berikutnya,
         keterangan,
         petugas,
-        processed_i_panel,
         processed_i_alat,
-        processed_i_sensor,
         id_m_alat,
         tanggal,
       ]

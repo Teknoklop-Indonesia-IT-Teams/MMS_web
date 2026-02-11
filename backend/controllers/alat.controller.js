@@ -615,39 +615,52 @@ const updateMaintenanceSettings = async (req, res) => {
 
 const completeMaintenance = async (req, res) => {
   try {
-    const sequentialId = parseInt(req.params.id);
+    const alatId = Number(req.params.id);
 
-    // Get all equipment to map sequential ID to original ID
-    const [allAlat] = await db.query("SELECT * FROM m_alat ORDER BY id DESC");
+    const [rows] = await db.query(
+      "SELECT * FROM m_alat WHERE id = ?",
+      [alatId]
+    );
 
-    if (sequentialId > allAlat.length || sequentialId < 1) {
+    if (rows.length === 0) {
       return res.status(404).json({ message: "Alat tidak ditemukan" });
     }
 
-    // Fix mapping: sequential ID uses reverse logic (alat.length - index)
-    const arrayIndex = allAlat.length - sequentialId;
-    const originalId = allAlat[arrayIndex].id;
-    const today = new Date().toISOString().split("T")[0];
+    const equipment = rows[0];
 
-    // Update maintenance date to today and mark as completed (inactive)
+    const isActive =
+      equipment.is_maintenance_active === 1 ||
+      equipment.is_maintenance_active === '1' ||
+      equipment.is_maintenance_active === true ||
+      equipment.is_maintenance_active === 'true';
+
+    if (!isActive) {
+      return res.status(400).json({
+        message: "Maintenance tidak aktif untuk peralatan ini",
+      });
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+
     await db.query(
-      `UPDATE m_alat SET 
-        maintenance_date = ?, 
-        is_maintenance_active = 0
-       WHERE id = ?`,
-      [today, originalId],
+      `UPDATE m_alat 
+      SET maintenance_date = ?, is_maintenance_active = 'false'
+      WHERE id = ?`,
+      [today, alatId]
     );
+
     res.json({
-      message: "Maintenance berhasil diselesaikan dan dinonaktifkan",
-      id: sequentialId,
+      message: "Maintenance berhasil diselesaikan",
+      id: alatId,
       maintenanceDate: today,
-      isMaintenanceActive: false,
+      isMaintenanceActive: 0,
     });
-  } catch (error) {
-    console.error("❌ Error in completeMaintenance:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  } catch (err) {
+    console.error("❌ completeMaintenance error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 const testMaintenance = async (req, res) => {
   try {
@@ -863,7 +876,13 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
       maintenanceDaysLeft: daysLeft || 0,
       maintenanceStatus: maintenanceStatus,
       maintenanceStatusText: maintenanceStatusText,
-      isMaintenanceActive: hasValidDate ? true : false,
+
+      // ✅ PERBAIKAN: Gunakan nilai dari database, bukan hasValidDate
+      isMaintenanceActive: alat.is_maintenance_active === 'true' ||
+        alat.is_maintenance_active === true ||
+        alat.is_maintenance_active === 1 ||
+        alat.is_maintenance_active === '1',
+
       maintenanceInterval: alat.maintenance_interval_days || 90,
       dateSource: dateSource
     };

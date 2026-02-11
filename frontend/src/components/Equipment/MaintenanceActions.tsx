@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Equipment } from "../../types";
-import { alatService } from "../../services/enhancedServices";
-import { CheckCircle, Settings, StopCircle } from "lucide-react";
+import { alatService } from "../../services/api";
+import { CheckCircle, Settings } from "lucide-react";
 import toast from "react-hot-toast";
 import { useEquipment } from "../../hooks/useEquipment";
 
@@ -27,57 +27,44 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
 
   const handleCompleteMaintenance = async () => {
     if (!equipment.isMaintenanceActive) {
-      console.warn("❌ Maintenance tidak aktif untuk peralatan ini");
       toast.error("Maintenance tidak aktif untuk peralatan ini");
       return;
     }
+
+    if (isLoading) return; // Prevent double-click
 
     try {
       setIsLoading(true);
 
       const response = await alatService.completeMaintenance(
-        equipment.id.toString(),
+        equipment.id.toString()
       );
 
-      toast.success("Maintenance berhasil diselesaikan!");
-      await refreshEquipment();
-
-      // Call onUpdate if provided
-      if (onUpdate) {
-        onUpdate();
-      }
-    } catch (error) {
-      console.error("❌ Error completing maintenance:", error);
-      toast.error("Gagal menyelesaikan maintenance");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleStopMaintenance = async () => {
-    // Prevent double-click
-    if (isLoading) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      await alatService.stopMaintenance(equipment.id.toString());
-      toast.success("Maintenance dihentikan!");
+      toast.success(
+        response?.data?.message || "Maintenance berhasil diselesaikan!"
+      );
 
       // Refresh equipment context to sync all components
       await refreshEquipment();
-      onUpdate?.();
-    } catch (error) {
-      console.error("❌ Error stopping maintenance:", error);
 
-      // Check if it's a 401 error (token expiry)
-      if (
-        (error as { response?: { status?: number } })?.response?.status === 401
-      ) {
+      // Call onUpdate if provided
+      onUpdate?.();
+    } catch (error: any) {
+      console.error("❌ Error completing maintenance:", error);
+
+      // Handle different error cases
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 401) {
         toast.error("Sesi berakhir, silakan login ulang");
+      } else if (status === 404) {
+        toast.error("Peralatan tidak ditemukan");
+      } else if (status === 409) {
+        // Conflict - operation already in progress (from optimisticLockManager)
+        toast.error("Operasi sedang berjalan, mohon tunggu");
       } else {
-        toast.error("Gagal menghentikan maintenance");
+        toast.error(message || "Gagal menyelesaikan maintenance");
       }
     } finally {
       setIsLoading(false);
@@ -85,19 +72,39 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
   };
 
   const handleUpdateSettings = async () => {
+    if (isLoading) return; // Prevent double-click
+
     try {
       setIsLoading(true);
-      await alatService.updateMaintenanceSettings(
+
+      const response = await alatService.updateMaintenanceSettings(
         equipment.id.toString(),
-        settings,
+        settings
       );
-      toast.success("Pengaturan maintenance berhasil diupdate!");
+
+      toast.success(
+        response?.data?.message || "Pengaturan maintenance berhasil diupdate!"
+      );
       setShowSettings(false);
+
       await refreshEquipment();
       onUpdate?.();
-    } catch (error) {
-      console.error("Error updating maintenance settings:", error);
-      toast.error("Gagal mengupdate pengaturan maintenance");
+    } catch (error: any) {
+      console.error("❌ Error updating maintenance settings:", error);
+
+      // Handle different error cases
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 401) {
+        toast.error("Sesi berakhir, silakan login ulang");
+      } else if (status === 404) {
+        toast.error("Peralatan tidak ditemukan");
+      } else if (status === 409) {
+        toast.error("Operasi sedang berjalan, mohon tunggu");
+      } else {
+        toast.error(message || "Gagal mengupdate pengaturan maintenance");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -105,12 +112,12 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
 
   if (showSettings) {
     return (
-      <div className="bg-white dark:bg-gray-800 dark:text-white p-4 rounded-lg border">
-        <h4 className="text-lg font-semibold mb-4">Pengaturan Maintenance</h4>
+      <div className="p-4 bg-white border rounded-lg dark:bg-gray-800 dark:text-white">
+        <h4 className="mb-4 text-lg font-semibold">Pengaturan Maintenance</h4>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block mb-1 text-sm font-medium">
               Tanggal Terakhir Maintenance
             </label>
             <input
@@ -123,11 +130,12 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
                 }))
               }
               className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block mb-1 text-sm font-medium">
               Interval Maintenance (hari)
             </label>
             <input
@@ -141,6 +149,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
               }
               className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               min="1"
+              disabled={isLoading}
             />
           </div>
 
@@ -156,6 +165,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
                 }))
               }
               className="mr-2"
+              disabled={isLoading}
             />
             <label htmlFor="maintenanceActive" className="text-sm font-medium">
               Maintenance Aktif
@@ -163,17 +173,17 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 mt-4">
+        <div className="flex justify-end mt-4 space-x-2">
           <button
             onClick={() => setShowSettings(false)}
-            className="px-4 py-2 text-gray-600 border rounded-md hover:bg-gray-50 dark:text-white dark:hover:text-gray-600"
+            className="px-4 py-2 text-gray-600 transition-colors border rounded-md hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700"
             disabled={isLoading}
           >
             Batal
           </button>
           <button
             onClick={handleUpdateSettings}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
             {isLoading ? "Menyimpan..." : "Simpan"}
@@ -189,32 +199,21 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
         <button
           onClick={handleCompleteMaintenance}
           disabled={isLoading}
-          className="flex items-center space-x-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+          className="flex items-center px-3 py-2 space-x-1 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <CheckCircle size={16} />
-          <span>Selesai Maintenance</span>
+          <span>{isLoading ? "Memproses..." : "Selesai Maintenance"}</span>
         </button>
       )}
 
       <button
         onClick={() => setShowSettings(true)}
         disabled={isLoading}
-        className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+        className="flex items-center px-3 py-2 space-x-1 text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Settings size={16} />
         <span>Pengaturan</span>
       </button>
-
-      {/* {Boolean(equipment.isMaintenanceActive) && (
-        <button
-          onClick={handleStopMaintenance}
-          disabled={isLoading}
-          className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-        >
-          <StopCircle size={16} />
-          <span>Stop Maintenance</span>
-        </button>
-      )} */}
     </div>
   );
 };

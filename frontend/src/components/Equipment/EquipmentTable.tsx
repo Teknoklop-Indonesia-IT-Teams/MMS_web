@@ -396,12 +396,7 @@ const EquipmentTable: React.FC = () => {
 
     try {
       if (selectedEquipment) {
-        const idToUpdate = selectedEquipment.originalId || selectedEquipment.id;
-
-        console.log("🔄 Updating equipment:");
-        console.log("  - Sequential ID:", selectedEquipment.id);
-        console.log("  - Original ID:", selectedEquipment.originalId);
-        console.log("  - Using ID:", idToUpdate);
+        const idToUpdate = selectedEquipment.id || selectedEquipment.id;
 
         await alatService.update(
           idToUpdate.toString(),
