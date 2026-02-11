@@ -49,7 +49,8 @@ export default function EquipmentDetail({
     useState<Equipment>(equipment);
 
   const isMaintenanceActive = (() => {
-    const value = equipmentWithStatus.isMaintenanceActive;
+    // ✅ GUNAKAN maintenanceEnabled (variabel baru)
+    const value = equipmentWithStatus.maintenanceEnabled;
 
     if (
       value === false ||
@@ -59,6 +60,7 @@ export default function EquipmentDetail({
     ) {
       return false;
     }
+
     if (
       value === true ||
       value === 1 ||
@@ -67,6 +69,7 @@ export default function EquipmentDetail({
     ) {
       return true;
     }
+
     return false;
   })();
 
