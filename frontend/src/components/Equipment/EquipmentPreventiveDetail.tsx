@@ -56,6 +56,15 @@ function Lightbox({ src, alt, onClose }: { src: string; alt?: string; onClose: (
 
 function ImageThumbnail({ src, alt }: { src: string; alt?: string }) {
   const [showLightbox, setShowLightbox] = useState(false);
+  const getFullUrl = (path: string) => {
+    if (path.startsWith("http")) return path;
+    const baseUrl = import.meta.env.VITE_URL || 
+                    import.meta.env.VITE_API_URL?.replace("/api", "") || 
+                    "http://localhost:3001";
+    return `${baseUrl}${path}`;
+  };
+
+  const fullSrc = getFullUrl(src);
 
   return (
     <>
@@ -64,7 +73,7 @@ function ImageThumbnail({ src, alt }: { src: string; alt?: string }) {
         onClick={() => setShowLightbox(true)}
       >
         <img
-          src={src}
+          src={fullSrc}
           alt={alt || "Record Image"}
           className="object-cover transition-opacity border border-gray-200 rounded-md shadow-sm w-14 h-14 group-hover:opacity-80"
         />
@@ -73,7 +82,7 @@ function ImageThumbnail({ src, alt }: { src: string; alt?: string }) {
         </div>
       </div>
       {showLightbox && (
-        <Lightbox src={src} alt={alt} onClose={() => setShowLightbox(false)} />
+        <Lightbox src={fullSrc} alt={alt} onClose={() => setShowLightbox(false)} />
       )}
     </>
   );
@@ -522,6 +531,7 @@ export default function EquipmentDetail({ equipment, onClose, onUpdate }: Equipm
                     </tr>
                   )}
                   {records.map(record => (
+                    console.log("record.i_alat:", record.i_alat),
                     <React.Fragment key={record.id}>
                       <tr>
                         <td className="px-4 py-4 text-sm text-gray-900">{formatDate(record.tanggal)}</td>

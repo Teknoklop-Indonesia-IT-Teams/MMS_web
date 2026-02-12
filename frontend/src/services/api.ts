@@ -579,9 +579,9 @@ export const alatService = {
     const config =
       data instanceof FormData
         ? {
-            headers: { "Content-Type": undefined },
-            transformRequest: [(data: FormData) => data],
-          }
+          headers: { "Content-Type": undefined },
+          transformRequest: [(data: FormData) => data],
+        }
         : { headers: { "Content-Type": "application/json" } };
 
     return optimisticLockManager
@@ -605,9 +605,9 @@ export const alatService = {
     const config =
       data instanceof FormData
         ? {
-            headers: { "Content-Type": undefined }, // Hapus Content-Type
-            transformRequest: [(data: FormData) => data], // Bypass transformer
-          }
+          headers: { "Content-Type": undefined }, // Hapus Content-Type
+          transformRequest: [(data: FormData) => data], // Bypass transformer
+        }
         : { headers: { "Content-Type": "application/json" } };
 
     return optimisticLockManager
@@ -675,15 +675,23 @@ export const recordService = {
 
     const isFormData = data instanceof FormData;
 
-    return api
-      .post<PreRecord>("/record", data, {
+    const config = isFormData
+      ? {
         headers: {
-          ...(isFormData
-            ? {} 
-            : { "Content-Type": "application/json" }),
+          "Content-Type": undefined, // ← Hapus default, biarkan browser set boundary
         },
-        timeout: 60000, // 60 detik untuk upload gambar
-      })
+        transformRequest: [(data: FormData) => data], // ← Bypass axios transformer
+        timeout: 60000,
+      }
+      : {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 60000,
+      };
+
+    return api
+      .post<PreRecord>("/record", data, config)
       .finally(() => AppStateManager.endCriticalOperation());
   },
   update: (id: string, data: Partial<PreRecord>) => {
@@ -722,7 +730,7 @@ export const recordCorrectiveService = {
         headers: {
           "Content-Type": "application/json",
         },
-        timeout: 60000, // 60 seconds for image upload
+        timeout: 60000,
       })
       .finally(() => AppStateManager.endCriticalOperation());
   },

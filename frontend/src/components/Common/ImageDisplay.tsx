@@ -35,17 +35,21 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
     // Process the URL
     let processedUrl = src;
 
-    // If it's just a filename (no http, no data:, no /), prepend the base URL
-    const isRelativePath =
-      !processedUrl.startsWith("http") &&
-      !processedUrl.startsWith("data:") &&
-      !processedUrl.startsWith("/");
+    if (processedUrl.startsWith("/uploads/")) {
+      const baseUrl = import.meta.env.VITE_URL || import.meta.env.VITE_API_URL?.replace("/api", "") || window.location.origin;
+      processedUrl = `${baseUrl}${processedUrl}`;
+    }
+    else {
+      const isRelativePath =
+        !processedUrl.startsWith("http") &&
+        !processedUrl.startsWith("data:") &&
+        !processedUrl.startsWith("/");
 
-    if (isRelativePath) {
-      // Remove any leading slashes or unwanted characters
-      const cleanFilename = processedUrl.replace(/^\/+/, "");
-      const baseUrl = import.meta.env.VITE_URL || window.location.origin;
-      processedUrl = `${baseUrl}/uploads/${cleanFilename}`;
+      if (isRelativePath) {
+        const cleanFilename = processedUrl.replace(/^\/+/, "");
+        const baseUrl = import.meta.env.VITE_URL || window.location.origin;
+        processedUrl = `${baseUrl}/uploads/${cleanFilename}`;
+      }
     }
 
     // Add cache busting in development mode
@@ -136,9 +140,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         <img
           src={imageUrl}
           alt={alt}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isLoading ? "opacity-0" : "opacity-100"
-          }`}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
+            }`}
           onLoad={handleImageLoad}
           onError={handleImageError}
           loading="lazy"
@@ -150,7 +153,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="flex flex-col items-center">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+            <div className="w-6 h-6 mb-2 border-2 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
             <span className="text-xs text-gray-500">Loading...</span>
           </div>
         </div>

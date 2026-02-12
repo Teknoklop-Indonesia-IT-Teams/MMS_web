@@ -383,7 +383,6 @@ const createAlat = async (req, res) => {
   try {
     console.log("\n========== CREATE ALAT START ==========");
 
-    // DEBUG: Log semua yang ada di request
     console.log("📤 REQUEST DETAILS:");
     console.log("- Headers:", {
       "content-type": req.headers["content-type"],
