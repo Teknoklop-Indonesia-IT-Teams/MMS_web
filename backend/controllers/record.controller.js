@@ -1,11 +1,9 @@
 const { db } = require("../config/db.js");
 
-// CRUD for Equipment Preventive Maintenance Records
 const getAllRecords = async (req, res) => {
   try {
     const [records] = await db.query("SELECT * FROM m_record");
 
-    // Process records to add data:image prefix to base64 images
     const processedRecords = records.map((record) => ({
       ...record,
       i_panel: record.i_panel
@@ -33,7 +31,6 @@ const getRecordById = async (req, res) => {
       return res.status(404).json({ message: "Record tidak ditemukan" });
     }
 
-    // Process record to add data:image prefix to base64 images
     const record = {
       ...records[0],
       i_panel: records[0].i_panel
@@ -97,7 +94,6 @@ const createRecord = async (req, res) => {
       });
     }
 
-    // 🔥 Ambil filename dari multer
     let imagePath = null;
 
     if (req.file) {
@@ -161,14 +157,11 @@ const updateRecord = async (req, res) => {
       berikutnya,
       keterangan,
       petugas,
-      i_panel,
       i_alat,
-      i_sensor,
       id_m_alat,
       tanggal,
     } = req.body;
 
-    // Process image data (remove data:image prefix if present)
     const processImage = (base64String) => {
       if (!base64String) return null;
       if (base64String.startsWith("data:image")) {
@@ -177,12 +170,10 @@ const updateRecord = async (req, res) => {
       return base64String;
     };
 
-    const processed_i_panel = processImage(i_panel);
     const processed_i_alat = processImage(i_alat);
-    const processed_i_sensor = processImage(i_sensor);
 
     await db.query(
-      "UPDATE m_record SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_panel = ?, i_alat = ?, i_sensor = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
+      "UPDATE m_record SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_alat = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
       [
         deskripsi,
         awal,
@@ -192,9 +183,7 @@ const updateRecord = async (req, res) => {
         berikutnya,
         keterangan,
         petugas,
-        i_panel,
-        i_alat,
-        i_sensor,
+        processed_i_alat,
         id_m_alat,
         tanggal,
         req.params.id,
@@ -359,9 +348,7 @@ const updateCorrectiveRecord = async (req, res) => {
       berikutnya,
       keterangan,
       petugas,
-      i_panel,
       i_alat,
-      i_sensor,
       id_m_alat,
       tanggal,
     } = req.body;
@@ -374,12 +361,10 @@ const updateCorrectiveRecord = async (req, res) => {
       return base64String;
     };
 
-    const processed_i_panel = processImage(i_panel);
     const processed_i_alat = processImage(i_alat);
-    const processed_i_sensor = processImage(i_sensor);
 
     await db.query(
-      "UPDATE m_record_corrective SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_panel = ?, i_alat = ?, i_sensor = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
+      "UPDATE m_record_corrective SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_alat = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
       [
         deskripsi,
         awal,
@@ -389,9 +374,7 @@ const updateCorrectiveRecord = async (req, res) => {
         berikutnya,
         keterangan,
         petugas,
-        i_panel,
-        i_alat,
-        i_sensor,
+        processed_i_alat,
         id_m_alat,
         tanggal,
         req.params.id,

@@ -1,26 +1,23 @@
 const nodemailer = require("nodemailer");
 
-// Konfigurasi email transporter untuk testing
 const createTransporter = () => {
   return nodemailer.createTransporter({
     service: "gmail",
     auth: {
       user: "alirohman857@gmail.com",
-      pass: "your-app-password", // Perlu diganti dengan App Password Gmail yang sebenarnya
+      pass: "your-app-password",
     },
   });
 };
 
-// Function untuk mengirim email maintenance warning (status kuning)
 const sendMaintenanceWarning = async (req, res) => {
   try {
     const { equipmentName, equipmentId, location, pic, email } = req.body;
-    // Untuk testing, kita simulasikan pengiriman email
     const transporter = createTransporter();
 
     const mailOptions = {
       from: "alirohman857@gmail.com",
-      to: "alirohman857@gmail.com", // Testing mode - semua email ke sini
+      to: "alirohman857@gmail.com",
       subject: `⚠️ Warning: Maintenance Required - ${equipmentName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -59,7 +56,6 @@ const sendMaintenanceWarning = async (req, res) => {
   }
 };
 
-// Function untuk mengirim email maintenance urgent (status merah)
 const sendMaintenanceUrgent = async (req, res) => {
   try {
     const { equipmentName, equipmentId, location, pic, email } = req.body;
@@ -90,8 +86,6 @@ const sendMaintenanceUrgent = async (req, res) => {
       `,
     };
 
-    // Simulasi pengiriman email
-    // await transporter.sendMail(mailOptions);
     res.status(200).json({
       success: true,
       message: "Urgent email sent successfully (simulated)",

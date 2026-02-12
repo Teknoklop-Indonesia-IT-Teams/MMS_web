@@ -9,7 +9,10 @@ const router = express.Router();
 // ========== PUBLIC ROUTES ==========
 router.get("/", alatController.getAllAlat);
 router.get("/public/:id", alatController.getPublicAlatById);
-router.get("/:id/maintenance-status", alatController.getEquipmentWithMaintenanceStatus);
+router.get(
+  "/:id/maintenance-status",
+  alatController.getEquipmentWithMaintenanceStatus,
+);
 
 // ========== PROTECTED ROUTES ==========
 router.use(authMiddleware);
@@ -46,7 +49,6 @@ router.post(
   alatController.addMaintenanceActivity,
 );
 
-// ========== DEBUG ROUTE ==========
 router.post("/debug-upload", upload.single("i_alat"), (req, res) => {
   res.json({
     success: true,

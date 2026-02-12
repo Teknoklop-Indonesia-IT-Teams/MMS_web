@@ -1,12 +1,8 @@
 const express = require("express");
 const recordController = require("../controllers/record.controller.js");
 const upload = require("../middleware/upload");
-// const { authMiddleware } = require("../middleware/auth.middleware.js");
 
 const router = express.Router();
-
-// Apply auth middleware to all routes (disabled for testing)
-// router.use(authMiddleware);
 
 // Corrective Maintenance Records
 router.get("/corrective/", recordController.getAllCorrectiveRecords);
@@ -23,11 +19,7 @@ router.delete("/corrective/:id", recordController.deleteCorrectiveRecord);
 router.get("/", recordController.getAllRecords);
 router.get("/equipment/:id", recordController.getRecordByEquipmentId);
 router.get("/:id", recordController.getRecordById);
-router.post(
-    "/",
-    upload.single("i_alat"),
-    recordController.createRecord
-);
+router.post("/", upload.single("i_alat"), recordController.createRecord);
 router.put("/:id", recordController.updateRecord);
 router.delete("/:id", recordController.deleteRecord);
 

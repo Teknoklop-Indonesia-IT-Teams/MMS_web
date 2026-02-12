@@ -3,7 +3,6 @@ const { db } = require("../config/db.js");
 const getAllStaff = async (req, res) => {
   try {
     const [staff] = await db.query("SELECT * FROM m_user ORDER BY id ASC");
-    // Map to expected format
     const mappedStaff = staff.map((item) => ({
       id: item.id,
       nama: item.nama,
@@ -82,7 +81,6 @@ const updateStaff = async (req, res) => {
       return res.status(400).json({ message: "Nama is required" });
     }
 
-    // First check if the staff exists
     const [existingStaff] = await db.query(
       "SELECT id, nama, email, role, username, telp FROM m_user WHERE id = ?",
       [staffId],
@@ -92,7 +90,6 @@ const updateStaff = async (req, res) => {
       return res.status(404).json({ message: "Petugas tidak ditemukan" });
     }
 
-    // Update staff with email
     await db.query(
       "UPDATE m_user SET nama = ?, email = ?, role = ?, username = ?, telp = ? WHERE id = ?",
       [nama, email || null, role, username, telp || null, staffId],

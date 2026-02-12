@@ -9,33 +9,31 @@ const { debugMiddleware } = require("./middleware/debug.js");
 dotenv.config();
 const app = express();
 
-// Middleware
 app.use(
   cors({
     origin: [
+      "https://teknoklop.com",
+      "https://mms.teknoklop.com",
       "http://localhost:5173",
       "http://localhost:5174",
       "http://192.168.18.116:5173",
       "http://192.168.18.116:5174",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    credentials: true, // Important for cookies
+    credentials: true,
   }),
 );
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(cookieParser()); // Add cookie parser middleware
+app.use(cookieParser());
 app.use(morgan("dev"));
 
-// Serve static files from uploads directory
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res, filePath) => {
-      // Set proper headers untuk semua jenis gambar
       const ext = path.extname(filePath).toLowerCase();
 
-      // MIME type mapping
       const mimeTypes = {
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
@@ -54,23 +52,19 @@ app.use(
         ".tif": "image/tiff",
       };
 
-      // Set Content-Type jika diketahui
       if (mimeTypes[ext]) {
         res.setHeader("Content-Type", mimeTypes[ext]);
       }
 
-      // Allow CORS untuk development
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
-      // Cache control
       if (ext === ".svg" || ext === ".ico") {
-        res.setHeader("Cache-Control", "public, max-age=604800"); // 1 week for icons
+        res.setHeader("Cache-Control", "public, max-age=604800");
       } else {
-        res.setHeader("Cache-Control", "public, max-age=86400"); // 1 day for images
+        res.setHeader("Cache-Control", "public, max-age=86400");
       }
 
-      // Handle query parameters untuk cache busting
       const reqUrl = res.req.originalUrl;
       if (reqUrl.includes("?")) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -79,10 +73,8 @@ app.use(
   }),
 );
 
-// Add debug middleware
 app.use(debugMiddleware);
 
-// Import routes
 const alatRoutes = require("./routes/alat.routes.js");
 const staffRoutes = require("./routes/staff.routes.js");
 const recordRoutes = require("./routes/record.routes.js");
@@ -92,7 +84,6 @@ const emailRoutes = require("./routes/email.routes.js");
 const authRoutes = require("./routes/auth.routes.js");
 const usersRoutes = require("./routes/users.routes.js");
 
-// Root route
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to MMS API",
@@ -110,7 +101,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Use routes without authentication
 app.use("/api/alat", alatRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/record", recordRoutes);
@@ -122,7 +112,6 @@ app.use("/api/users", usersRoutes);
 
 const PORT = process.env.PORT || 3001;
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -134,7 +123,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Tambahkan di server.js sebelum routes
 app.use((req, res, next) => {
   next();
 });

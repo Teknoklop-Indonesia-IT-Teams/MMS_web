@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const emailController = require("../controllers/email.controller");
 
-// Root email endpoint - menampilkan informasi endpoints yang tersedia
 router.get("/", (req, res) => {
   res.json({
     message: "Email API Endpoints",
@@ -26,28 +25,22 @@ router.get("/", (req, res) => {
   });
 });
 
-// Route untuk mengirim email warning maintenance (status kuning)
 router.post("/maintenance-warning", emailController.sendMaintenanceWarning);
 
-// Route untuk mengirim email urgent maintenance (status merah)
 router.post("/maintenance-urgent", emailController.sendMaintenanceUrgent);
 
-// Route untuk mengirim email maintenance resolved (status hijau)
 router.post("/maintenance-resolved", emailController.sendMaintenanceResolved);
 
-// Route untuk mengirim reminder email warning (status kuning)
 router.post(
   "/maintenance-warning-reminder",
-  emailController.sendMaintenanceWarningReminder
+  emailController.sendMaintenanceWarningReminder,
 );
 
-// Route untuk mengirim reminder email urgent (status merah)
 router.post(
   "/maintenance-urgent-reminder",
-  emailController.sendMaintenanceUrgentReminder
+  emailController.sendMaintenanceUrgentReminder,
 );
 
-// Route untuk test email functionality
 router.post("/test", emailController.sendTestEmail);
 router.get("/test", emailController.sendTestEmail);
 

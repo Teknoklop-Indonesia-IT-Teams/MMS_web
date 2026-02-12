@@ -1,6 +1,5 @@
 const { db } = require("../config/db.js");
 
-// Simple getAllAlat without complex calculations
 const getAllAlat = async (req, res) => {
   try {
     const [alat] = await db.query("SELECT * FROM m_alat ORDER BY id DESC");
@@ -22,7 +21,6 @@ const getAllAlat = async (req, res) => {
       i_alat: item.i_alat || "",
       created_at: item.created_at,
       updated_at: item.updated_at,
-      // Basic maintenance fields
       maintenanceDate: item.maintenance_date,
       maintenanceInterval: item.maintenance_interval_days || 90,
       isMaintenanceActive: item.is_maintenance_active,
@@ -37,7 +35,6 @@ const getAllAlat = async (req, res) => {
   }
 };
 
-// Fixed delete function
 const deleteAlat = async (req, res) => {
   try {
     const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");

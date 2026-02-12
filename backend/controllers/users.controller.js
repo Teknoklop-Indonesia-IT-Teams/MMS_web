@@ -1,7 +1,6 @@
 const { db } = require("../config/db.js");
 const bcrypt = require("bcrypt");
 
-// Get all users
 const getAllUsers = async (req, res) => {
   try {
     const [users] = await db.query(`
@@ -16,7 +15,6 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// Get user by ID
 const getUserById = async (req, res) => {
   try {
     const [user] = await db.query(
@@ -38,12 +36,10 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Create new user
 const createUser = async (req, res) => {
   try {
     const { email, password, nama, role } = req.body;
 
-    // Check if email already exists
     const [existingUser] = await db.query(
       "SELECT id FROM m_user WHERE email = ?",
       [email],
@@ -52,7 +48,6 @@ const createUser = async (req, res) => {
       return res.status(400).json({ message: "Email sudah digunakan" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
@@ -72,12 +67,10 @@ const createUser = async (req, res) => {
   }
 };
 
-// Update user
 const updateUser = async (req, res) => {
   try {
     const { email, nama, telp, username, role, password } = req.body;
 
-    // Check if email already exists for other users
     const [existingUser] = await db.query(
       "SELECT id FROM m_user WHERE email = ? AND id != ? AND isDeleted = 0",
       [email, req.params.id],
@@ -90,13 +83,11 @@ const updateUser = async (req, res) => {
       "UPDATE m_user SET email = ?, nama = ?, username = ?, telp = ?, updatedDtm = NOW(), updatedBy = 1";
     let queryParams = [email, nama, username, telp];
 
-    // role hanya diupdate kalau dikirim
     if (role) {
       updateQuery += ", role = ?";
       queryParams.push(role);
     }
 
-    // Only update password if provided
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       updateQuery += ", password = ?";
@@ -132,7 +123,6 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Delete user (soft delete)
 const deleteUser = async (req, res) => {
   try {
     await db.query(
@@ -146,7 +136,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Restore soft deleted user
 const restoreUser = async (req, res) => {
   try {
     await db.query(
@@ -160,13 +149,11 @@ const restoreUser = async (req, res) => {
   }
 };
 
-// Change password
 const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     const id = req.params.id;
 
-    // Get current user
     const [users] = await db.query(
       "SELECT password FROM m_user WHERE id = ? AND isDeleted = 0",
       [id],
@@ -175,7 +162,6 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    // Verify old password
     const isValidPassword = await bcrypt.compare(
       oldPassword,
       users[0].password,
@@ -184,10 +170,8 @@ const changePassword = async (req, res) => {
       return res.status(400).json({ message: "Password lama tidak sesuai" });
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password
     await db.query(
       "UPDATE m_user SET password = ?, updatedDtm = NOW(), updatedBy = 1 WHERE id = ?",
       [hashedPassword, id],

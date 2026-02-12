@@ -1,6 +1,5 @@
 const { db } = require("../config/db.js");
 
-// Get all items
 const getAllItems = async (req, res) => {
   try {
     const [items] = await db.query(`
@@ -15,7 +14,6 @@ const getAllItems = async (req, res) => {
   }
 };
 
-// Get item by ID
 const getItemById = async (req, res) => {
   try {
     const [item] = await db.query(
@@ -23,7 +21,7 @@ const getItemById = async (req, res) => {
       SELECT * FROM tbl_items 
       WHERE itemId = ? AND isDeleted = 0
     `,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (item.length === 0) {
@@ -36,7 +34,6 @@ const getItemById = async (req, res) => {
   }
 };
 
-// Create new item
 const createItem = async (req, res) => {
   try {
     const { itemHeader, itemSub, itemDesc } = req.body;
@@ -48,7 +45,7 @@ const createItem = async (req, res) => {
 
     const [result] = await db.query(
       "INSERT INTO tbl_items (itemHeader, itemSub, itemDesc, itemImage, isDeleted, createdBy, createdDtm) VALUES (?, ?, ?, ?, 0, 1, NOW())",
-      [itemHeader, itemSub, itemDesc, itemImage]
+      [itemHeader, itemSub, itemDesc, itemImage],
     );
 
     res.status(201).json({
@@ -64,7 +61,6 @@ const createItem = async (req, res) => {
   }
 };
 
-// Update item
 const updateItem = async (req, res) => {
   try {
     const { itemHeader, itemSub, itemDesc } = req.body;
@@ -76,7 +72,7 @@ const updateItem = async (req, res) => {
 
     await db.query(
       "UPDATE tbl_items SET itemHeader = ?, itemSub = ?, itemDesc = ?, itemImage = ?, updatedDtm = NOW(), updatedBy = 1 WHERE itemId = ?",
-      [itemHeader, itemSub, itemDesc, itemImage, req.params.id]
+      [itemHeader, itemSub, itemDesc, itemImage, req.params.id],
     );
 
     res.json({
@@ -92,12 +88,11 @@ const updateItem = async (req, res) => {
   }
 };
 
-// Delete item (soft delete)
 const deleteItem = async (req, res) => {
   try {
     await db.query(
       "UPDATE tbl_items SET isDeleted = 1, updatedDtm = NOW(), updatedBy = 1 WHERE itemId = ?",
-      [req.params.id]
+      [req.params.id],
     );
     res.json({ message: "Item berhasil dihapus" });
   } catch (error) {
@@ -106,12 +101,11 @@ const deleteItem = async (req, res) => {
   }
 };
 
-// Restore soft deleted item
 const restoreItem = async (req, res) => {
   try {
     await db.query(
       "UPDATE tbl_items SET isDeleted = 0, updatedDtm = NOW(), updatedBy = 1 WHERE itemId = ?",
-      [req.params.id]
+      [req.params.id],
     );
     res.json({ message: "Item berhasil dipulihkan" });
   } catch (error) {

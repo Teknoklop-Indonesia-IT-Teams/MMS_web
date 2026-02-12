@@ -5,11 +5,9 @@ const getAllUsers = async (req, res) => {
     const [users] = await db.query(
       "SELECT id, nama, email, role, usernama, telp FROM m_user ORDER BY id ASC",
     );
-    // Map to exact format as requested
     const mappedUsers = users.map((user) => {
       let roleId, roleName;
 
-      // Set role based on user id or nama
       if (user.id === 1 || user.nama === "Revan Ardian") {
         roleId = 1;
         roleName = "Admin";
@@ -190,7 +188,6 @@ const updateUser = async (req, res) => {
       return res.status(400).json({ message: "Name is required" });
     }
 
-    // Check if user exists
     const [existingUsers] = await db.query(
       "SELECT id FROM m_user WHERE id = ?",
       [id],
@@ -200,7 +197,6 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update user
     await db.query("UPDATE m_user SET petugas = ?, email = ? WHERE id = ?", [
       nama,
       email || null,

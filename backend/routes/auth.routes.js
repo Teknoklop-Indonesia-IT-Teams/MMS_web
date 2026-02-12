@@ -4,24 +4,20 @@ const { authMiddleware } = require("../middleware/auth.middleware.js");
 
 const router = express.Router();
 
-// Debug logging
 router.use((req, res, next) => {
   next();
 });
 
-// Public routes (no authentication required)
 router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 
-// Protected routes (authentication required)
 router.post("/logout", authMiddleware, authController.logout);
 router.get("/profile", authMiddleware, authController.getProfile);
 router.patch("/profile", authMiddleware, authController.updateProfile);
 router.patch("/password", authMiddleware, authController.changePassword);
 
-// Token verification endpoint
 router.get("/verify", authMiddleware, (req, res) => {
   res.json({
     valid: true,

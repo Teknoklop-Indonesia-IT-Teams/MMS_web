@@ -1,6 +1,5 @@
 const { db } = require("../config/db.js");
 
-// Get all roles for frontend
 const getRoles = async (req, res) => {
   try {
     const [roles] = await db.query(
@@ -20,7 +19,6 @@ const getRoles = async (req, res) => {
   }
 };
 
-// Get all roles (original function)
 const getAllRoles = async (req, res) => {
   try {
     const roles = [
@@ -36,7 +34,6 @@ const getAllRoles = async (req, res) => {
   }
 };
 
-// Get roleName by ID
 const getRoleById = async (req, res) => {
   try {
     const roleId = parseInt(req.params.id);
@@ -58,7 +55,6 @@ const getRoleById = async (req, res) => {
   }
 };
 
-// Create new roleName
 const createRole = async (req, res) => {
   try {
     const { roleName } = req.body;
@@ -78,7 +74,6 @@ const createRole = async (req, res) => {
   }
 };
 
-// Update roleName
 const updateRole = async (req, res) => {
   try {
     const { roleName } = req.body;
@@ -98,7 +93,6 @@ const updateRole = async (req, res) => {
   }
 };
 
-// Delete roleName
 const deleteRole = async (req, res) => {
   try {
     await db.query("DELETE FROM tbl_roles WHERE roleId = ?", [req.params.id]);

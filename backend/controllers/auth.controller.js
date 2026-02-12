@@ -4,7 +4,6 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { db } = require("../config/db.js");
 
-// Email transporter configuration
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || "smtp.gmail.com",
   port: process.env.EMAIL_PORT || 587,
@@ -19,19 +18,6 @@ const register = async (req, res) => {
   try {
     const { nama, email, password, telp, role, username } = req.body;
 
-    // Validate required fields
-    // if (!nama || !email || !password || !telp || !role || !username) {
-    //   return res.status(400).json({ message: "All fields are required" });
-    // }
-
-    // Validate role is a number
-    // if (isNaN(role) || role < 1) {
-    //   return res
-    //     .status(400)
-    //     .json({ message: "Valid role selection is required" });
-    // }
-
-    // Check if email exists in m_user
     const [existingEmails] = await db.query(
       "SELECT * FROM m_user WHERE email = ?",
       [email],
@@ -49,22 +35,18 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Role tidak valid" });
     }
 
-    const roleData = roles[0]; // { id, role_name }
+    const roleData = roles[0];
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Get current date
     const now = new Date();
 
-    // Insert user into m_user
     const [result] = await db.query(
       "INSERT INTO m_user (email, password, nama, role, username, telp) VALUES (?, ?, ?, ?, ?, ?)",
       [email, hashedPassword, nama, roleData.roleId, username, telp],
     );
 
-    // Send notification email to admin
     try {
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -101,7 +83,6 @@ const login = async (req, res) => {
   try {
     const { email, username, password } = req.body;
 
-    // Check if user exists in m_user table
     const [users] = await db.query(
       "SELECT * FROM m_user WHERE email = ? || username = ?",
       [email, username],
@@ -113,7 +94,6 @@ const login = async (req, res) => {
 
     const user = users[0];
 
-    // Check password (assuming we've added password column)
     if (!user.password) {
       return res.status(500).json({ message: "Account setup incomplete" });
     }
@@ -123,7 +103,6 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Create token with 1 day expiration
     const tokenPayload = {
       userId: user.id,
       email: user.email,
@@ -136,22 +115,19 @@ const login = async (req, res) => {
     const token = jwt.sign(
       tokenPayload,
       process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "1d" }, // 24 hours
+      { expiresIn: "1d" },
     );
 
-    // Set cookie options
     const cookieOptions = {
-      httpOnly: true, // Prevent XSS attacks
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      sameSite: "lax", // CSRF protection
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-      path: "/", // Available for all routes
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
     };
 
-    // Set token as httpOnly cookie
     res.cookie("accessToken", token, cookieOptions);
 
-    // Also send token in response for localStorage fallback
     res.json({
       token,
       user: {
@@ -162,7 +138,7 @@ const login = async (req, res) => {
         username: user.username,
         telp: user.telp,
       },
-      expiresIn: 24 * 60 * 60, // 24 hours in seconds
+      expiresIn: 24 * 60 * 60,
       message: "Login successful",
     });
   } catch (error) {
@@ -179,31 +155,25 @@ const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Check if user exists
     const [users] = await db.query("SELECT * FROM m_user WHERE email = ?", [
       email,
     ]);
 
     if (users.length === 0) {
-      // Don't reveal if email exists or not for security
       return res.json({
         message: "If the email exists, a reset link has been sent.",
       });
     }
 
     const user = users[0];
-
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+    const resetTokenExpiry = new Date(Date.now() + 3600000);
 
-    // Save reset token to database
     await db.query(
       "UPDATE m_user SET reset_token = ?, reset_token_expiry = ? WHERE id = ?",
       [resetToken, resetTokenExpiry, user.id],
     );
 
-    // Send reset email
     try {
       const resetUrl = `${
         process.env.FRONTEND_URL || "http://localhost:5174"
@@ -250,7 +220,6 @@ const resetPassword = async (req, res) => {
         .json({ message: "Token and new password are required" });
     }
 
-    // Find user with valid reset token
     const [users] = await db.query(
       "SELECT * FROM m_user WHERE reset_token = ? AND reset_token_expiry > NOW()",
       [token],
@@ -264,11 +233,9 @@ const resetPassword = async (req, res) => {
 
     const user = users[0];
 
-    // Hash new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Update password and clear reset token
     await db.query(
       "UPDATE m_user SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
       [hashedPassword, user.id],
@@ -281,10 +248,8 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Logout function
 const logout = async (req, res) => {
   try {
-    // Clear the httpOnly cookie
     res.clearCookie("accessToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -299,15 +264,12 @@ const logout = async (req, res) => {
   }
 };
 
-// Get user profile (for auth verification)
 const getProfile = async (req, res) => {
   try {
-    // req.user is set by auth middleware
     if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    // Get fresh user data from database
     const [users] = await db.query("SELECT * FROM m_user WHERE id = ?", [
       req.user.id,
     ]);
@@ -334,7 +296,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // dari JWT / session
+    const userId = req.user.id;
     const { email, nama, username, telp } = req.body;
 
     const [emailCheck] = await db.query(
