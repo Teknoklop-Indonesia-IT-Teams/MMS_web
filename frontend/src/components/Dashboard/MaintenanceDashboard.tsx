@@ -21,54 +21,39 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
 
   const getMaintenanceStats = () => {
     let selesai = 0;
-    let urgent = 0; // <= 14 days
-    let warning = 0; // <= 30 days
-    let normal = 0; // > 30 days
+    let urgent = 0;
+    let warning = 0;
+    let normal = 0;
     let inactive = 0;
 
-    // Arrays untuk tracking equipment per kategori
-    const urgentEquipment: Equipment[] = [];
-    const warningEquipment: Equipment[] = [];
-    const normalEquipment: Equipment[] = [];
-    const selesaiEquipment: Equipment[] = [];
-
     equipment.forEach((item) => {
-      // Convert to boolean properly - handle both 0/1 and true/false
-      const isMaintenanceActive = Boolean(item.isMaintenanceActive);
+      const isActive = Boolean(item.isMaintenanceActive);
 
-      // Check for completed maintenance FIRST before checking if maintenance is active
+      // 1️⃣ Jika selesai
       if (item.maintenanceStatus === "selesai") {
         selesai++;
-        selesaiEquipment.push(item);
         return;
       }
 
-      if (!isMaintenanceActive) {
+      // 2️⃣ Jika tidak aktif
+      if (!isActive) {
         inactive++;
         return;
       }
 
-      switch (item.maintenanceAlertLevel) {
-        case "red":
-          urgent++;
-          urgentEquipment.push(item);
-          break;
-        case "yellow":
-          warning++;
-          warningEquipment.push(item);
-          break;
-        case "green":
-          normal++;
-          normalEquipment.push(item);
-          break;
-        case "blue":
-          // Blue alert level indicates completed maintenance
-          selesai++;
-          selesaiEquipment.push(item);
-          break;
-        default:
-          // Equipment without specific maintenance alert level
-          inactive++;
+      const days = item.maintenanceDaysLeft;
+
+      if (days === null || days === undefined) {
+        inactive++;
+        return;
+      }
+
+      if (days <= 14) {
+        urgent++;
+      } else if (days <= 30) {
+        warning++;
+      } else {
+        normal++;
       }
     });
 
@@ -252,7 +237,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
         <div className="flex items-center justify-between mt-1 text-sm text-gray-600 dark:text-gray-400">
           <span>Perlu Perhatian:</span>
           <span className="font-medium text-red-600 dark:text-red-400">
-            {stats.selesai + stats.urgent}
+            {stats.urgent + stats.warning}
           </span>
         </div>
       </div>
