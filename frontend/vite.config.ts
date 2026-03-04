@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [
     react(), // Use simple react plugin without babel config
   ],
+  base: "/",
   build: {
     target: "es2020",
     minify: "terser",
@@ -72,7 +73,8 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        // target: "http://localhost:3001",
+        target: "https://api-mms.teknoklop.com",
         changeOrigin: true,
       },
     },

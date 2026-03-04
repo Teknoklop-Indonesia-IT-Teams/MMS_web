@@ -1,11 +1,12 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "MMS Project Management System",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "MMS Project Management System with React and TypeScript",
+  "description": "MMS Project Management System",
   "author": "MMS Team",
   "license": "MIT",
+  "homepage": "https://mms.teknoklop.com",
   "keywords": [
     "react",
     "typescript",

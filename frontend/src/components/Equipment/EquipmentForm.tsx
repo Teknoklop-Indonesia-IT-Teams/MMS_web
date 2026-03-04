@@ -65,7 +65,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     useState<ConversionResult | null>(null);
   const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
 
-  
   useEffect(() => {
     if (formData.instalasi && !equipment) {
       setFormData((prev) => ({
@@ -202,9 +201,18 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       formDataToSubmit.append("sensor", formData.sensor);
       formDataToSubmit.append("pelanggan", formData.pelanggan);
       formDataToSubmit.append("pic", formData.pic);
-      formDataToSubmit.append("maintenanceDate", formData.maintenanceDate || "");
-      formDataToSubmit.append("maintenanceInterval", formData.maintenanceInterval.toString());
-      formDataToSubmit.append("isMaintenanceActive", formData.isMaintenanceActive.toString());
+      formDataToSubmit.append(
+        "maintenanceDate",
+        formData.maintenanceDate || "",
+      );
+      formDataToSubmit.append(
+        "maintenanceInterval",
+        formData.maintenanceInterval.toString(),
+      );
+      formDataToSubmit.append(
+        "isMaintenanceActive",
+        formData.isMaintenanceActive.toString(),
+      );
 
       if (selectedFile) {
         console.log("📤 Uploading new file:", selectedFile.name);
@@ -218,7 +226,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       console.log("📤 FormData yang dikirim:");
       for (let [key, value] of formDataToSubmit.entries()) {
         if (value instanceof File) {
-          console.log(`  - ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+          console.log(
+            `  - ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`,
+          );
         } else {
           console.log(`  - ${key}: ${value}`);
         }
@@ -252,7 +262,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     } catch (error) {
       console.error("❌ Error processing image:", error);
       setImagePreview(
-        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkVGMkY0IiBzdHJva2U9IiNGQ0E1QTUiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iMzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjRjU5RTBCIj5QcmV2aWV3IEVycm9yPC90ZXh0Pgo8L3N2Zz4="
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkVGMkY0IiBzdHJva2U9IiNGQ0E1QTUiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iMzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjRjU5RTBCIj5QcmV2aWV3IEVycm9yPC90ZXh0Pgo8L3N2Zz4=",
       );
     } finally {
       setImageLoading(false);
@@ -266,7 +276,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     setShouldRemoveImage(true);
     setConversionResult(null);
 
-    const fileInput = document.getElementById("image-upload") as HTMLInputElement;
+    const fileInput = document.getElementById(
+      "image-upload",
+    ) as HTMLInputElement;
     if (fileInput) fileInput.value = "";
 
     console.log("🗑️ Image marked for removal");
@@ -307,11 +319,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               <input
                 type="text"
                 value={formData.nama}
+                placeholder="ARR"
                 onChange={(e) =>
                   setFormData({ ...formData, nama: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.nama ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.nama ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.nama && (
                 <p className="mt-1 text-xs text-red-500">{errors.nama}</p>
@@ -325,11 +339,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               <input
                 type="text"
                 value={formData.lokasi}
+                placeholder="Bendungan Selorejo"
                 onChange={(e) =>
                   setFormData({ ...formData, lokasi: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.lokasi ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.lokasi ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.lokasi && (
                 <p className="mt-1 text-xs text-red-500">{errors.lokasi}</p>
@@ -368,8 +384,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, instalasi: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.instalasi ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.instalasi ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.instalasi && (
                 <p className="mt-1 text-xs text-red-500">{errors.instalasi}</p>
@@ -386,8 +403,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, garansi: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.garansi ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.garansi ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.garansi && (
                 <p className="mt-1 text-xs text-red-500">{errors.garansi}</p>
@@ -453,11 +471,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               <input
                 type="text"
                 value={formData.device}
+                placeholder="RTCU"
                 onChange={(e) =>
                   setFormData({ ...formData, device: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.device ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.device ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.device && (
                 <p className="mt-1 text-xs text-red-500">{errors.device}</p>
@@ -471,11 +491,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               <input
                 type="text"
                 value={formData.sensor}
+                placeholder="Vegapulse C23"
                 onChange={(e) =>
                   setFormData({ ...formData, sensor: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.sensor ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.sensor ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.sensor && (
                 <p className="mt-1 text-xs text-red-500">{errors.sensor}</p>
@@ -489,11 +511,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               <input
                 type="text"
                 value={formData.pelanggan}
+                placeholder="PJTI"
                 onChange={(e) =>
                   setFormData({ ...formData, pelanggan: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.pelanggan ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.pelanggan ? "border-red-500" : "border-gray-300"
+                }`}
               />
               {errors.pelanggan && (
                 <p className="mt-1 text-xs text-red-500">{errors.pelanggan}</p>
@@ -509,8 +533,9 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, pic: e.target.value })
                 }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.pic ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.pic ? "border-red-500" : "border-gray-300"
+                }`}
                 disabled={loadingStaff}
               >
                 <option value="">

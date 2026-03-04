@@ -48,7 +48,9 @@ export default function EquipmentCorrectiveDetail({
   const fetchRecords = useCallback(async () => {
     try {
       console.log("Equipment ID:", equipment.id);
-      const response = await recordCorrectiveService.getByEquipmentId(equipment.id);
+      const response = await recordCorrectiveService.getByEquipmentId(
+        equipment.id,
+      );
       console.log("Corrective Records from API:", response.data);
       setRecords(response.data);
     } catch (error) {
@@ -81,7 +83,7 @@ export default function EquipmentCorrectiveDetail({
     setExpandedRecordId(expandedRecordId === recordId ? null : recordId);
   };
   const formatDate = (datetime: string) => {
-    return datetime ? datetime.split('T')[0] : '';
+    return datetime ? datetime.split("T")[0] : "";
   };
 
   useEffect(() => {
@@ -153,7 +155,6 @@ export default function EquipmentCorrectiveDetail({
     }
   }
 
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="w-full max-w-6xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl">
@@ -199,10 +200,11 @@ export default function EquipmentCorrectiveDetail({
                     Status
                   </label>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                      }`}
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      equipment.status === "Garansi"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
                   >
                     {equipment.status}
                   </span>
@@ -211,13 +213,17 @@ export default function EquipmentCorrectiveDetail({
                   <label className="block text-sm font-medium text-gray-700">
                     Instalasi
                   </label>
-                  <p className="text-gray-900">{formatDate(equipment.instalasi)}</p>
+                  <p className="text-gray-900">
+                    {formatDate(equipment.instalasi)}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Garansi
                   </label>
-                  <p className="text-gray-900">{formatDate(equipment.garansi)}</p>
+                  <p className="text-gray-900">
+                    {formatDate(equipment.garansi)}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -283,7 +289,9 @@ export default function EquipmentCorrectiveDetail({
           {/* Records Section - NO MAINTENANCE STATUS */}
           <div className="pt-6 border-t">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Corrective Maintenance Records</h3>
+              <h3 className="text-lg font-semibold">
+                Corrective Maintenance Records
+              </h3>
               <button
                 onClick={handleAddRecord}
                 className="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
@@ -408,7 +416,7 @@ export default function EquipmentCorrectiveDetail({
                     </div>
                     <div>
                       <label className="block mb-1 text-sm font-medium text-gray-700">
-                        Tambahan
+                        Spareparts
                       </label>
                       <textarea
                         value={formData.tambahan}
@@ -420,7 +428,8 @@ export default function EquipmentCorrectiveDetail({
                         }
                         rows={2}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Tindakan tambahan..."
+                        placeholder={`Apakah ada sparepart yang diganti?
+Jika tidak ada dapat diisi dengan tanda -`}
                       />
                     </div>
                     <div>
@@ -439,23 +448,6 @@ export default function EquipmentCorrectiveDetail({
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Kondisi setelah maintenance..."
                         required
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-700">
-                        Rencana Berikutnya
-                      </label>
-                      <textarea
-                        value={formData.berikutnya}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            berikutnya: e.target.value,
-                          })
-                        }
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Rencana maintenance berikutnya..."
                       />
                     </div>
                   </div>
@@ -526,10 +518,11 @@ export default function EquipmentCorrectiveDetail({
                           <div className="flex space-x-1">
                             <button
                               onClick={() => toggleRecordDetail(record.id)}
-                              className={`p-1 text-white rounded transition-colors ${expandedRecordId === record.id
-                                ? "bg-blue-700"
-                                : "bg-blue-600 hover:bg-blue-700"
-                                }`}
+                              className={`p-1 text-white rounded transition-colors ${
+                                expandedRecordId === record.id
+                                  ? "bg-blue-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              }`}
                             >
                               <BookOpen size={12} />
                             </button>

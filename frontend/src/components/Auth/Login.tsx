@@ -400,7 +400,7 @@ const Login: React.FC = () => {
             </div> */}
 
             {/* Sign Up Link */}
-            <p className="text-sm text-gray-600">
+            {/* <p className="text-sm text-gray-600">
               Don't have an account?{" "}
               <button
                 type="button"
@@ -409,7 +409,7 @@ const Login: React.FC = () => {
               >
                 Sign up
               </button>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

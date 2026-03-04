@@ -1,6 +1,6 @@
 // utils/imageDebug.ts
 export const debugImageLoad = async (
-  src: string
+  src: string,
 ): Promise<{
   success: boolean;
   url: string;
@@ -57,7 +57,7 @@ export const testImageUrls = async (filename: string) => {
     console.log(`Testing: ${url}`);
     const result = await debugImageLoad(url);
     console.log(
-      `Result: ${result.success ? "✅" : "❌"} ${result.error || ""}`
+      `Result: ${result.success ? "✅" : "❌"} ${result.error || ""}`,
     );
 
     if (result.success) {
