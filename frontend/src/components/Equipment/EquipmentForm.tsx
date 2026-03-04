@@ -293,6 +293,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     "GWL",
     "Weather Station",
     "CCTV",
+    "EWS",
   ];
 
   return (

@@ -66,6 +66,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
         return "from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700";
       case "CCTV":
         return "from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700";
+      case "EWS":
+        return "from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700";
       default:
         return "from-slate-500 to-slate-600 dark:from-slate-600 dark:to-slate-700";
     }
@@ -75,7 +77,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
     <div
       onClick={onClick}
       className={`bg-gradient-to-br ${getColor(
-        type
+        type,
       )} text-white p-6 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:scale-105 transform ${
         isSelected
           ? "ring-4 ring-white/50 ring-offset-2 ring-offset-transparent scale-105 shadow-xl shadow-black/30"
