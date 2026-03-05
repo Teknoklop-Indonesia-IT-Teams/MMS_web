@@ -21,7 +21,8 @@ const Dashboard: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
-
+  const [activityPage, setActivityPage] = useState(1);
+  const activityPerPage = 5;
   // Use lazy loading dashboard data - only fetch when dashboard is opened
   const { loading, isDataLoaded, stats, equipment } = useDashboardData();
 
@@ -32,6 +33,10 @@ const Dashboard: React.FC = () => {
     userRole as "admin" | "manager",
   );
 
+  useEffect(() => {
+    console.log("Dashboard equipment count:", equipment.length);
+  }, [equipment]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -41,13 +46,30 @@ const Dashboard: React.FC = () => {
     };
   }, [clickTimeout]);
 
+  // const equipmentByType = equipment.reduce(
+  //   (acc, curr) => {
+  //     acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
+  //     return acc;
+  //   },
+  //   {} as { [key: string]: number },
+  // );
+
   const equipmentByType = equipment.reduce(
     (acc, curr) => {
-      acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
+      const jenis = curr.jenis?.trim().toUpperCase();
+      acc[jenis] = (acc[jenis] || 0) + 1;
       return acc;
     },
     {} as { [key: string]: number },
   );
+
+  useEffect(() => {
+    console.log("Equipment:", equipment);
+    console.log(
+      "Jenis list:",
+      equipment.map((e) => e.jenis),
+    );
+  }, [equipment]);
 
   const deviceTypes = Object.keys(equipmentByType);
 
@@ -125,6 +147,17 @@ const Dashboard: React.FC = () => {
         : stats.alertCounts.blue,
     },
   ];
+
+  const activityTotalPages = Math.ceil(
+    filteredEquipment.length / activityPerPage,
+  );
+
+  const activityStart = (activityPage - 1) * activityPerPage;
+
+  const paginatedActivity = filteredEquipment.slice(
+    activityStart,
+    activityStart + activityPerPage,
+  );
 
   const statusColors = ["#f87171", "#fb923c", "#fbbf24", "#60a5fa"];
 
@@ -289,8 +322,8 @@ const Dashboard: React.FC = () => {
             )}
           </h3>
           <div className="space-y-3 text-sm">
-            {filteredEquipment.length > 0 ? (
-              filteredEquipment.slice(0, 5).map((item, index) => {
+            {paginatedActivity.length > 0 ? (
+              paginatedActivity.map((item, index) => {
                 // Generate status berdasarkan data peralatan
                 const getStatusInfo = (equipment: Equipment) => {
                   if (equipment.remot === "on") {
@@ -334,6 +367,29 @@ const Dashboard: React.FC = () => {
                     ? `Tidak ada aktivitas untuk ${selectedFilter}`
                     : "Tidak ada aktivitas terbaru"}
                 </p>
+              </div>
+            )}
+            {activityTotalPages > 1 && (
+              <div className="flex justify-between mt-3">
+                <button
+                  disabled={activityPage === 1}
+                  onClick={() => setActivityPage((prev) => prev - 1)}
+                  className="px-2 py-1 text-xs bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Prev
+                </button>
+
+                <span className="text-xs text-gray-500">
+                  {activityPage} / {activityTotalPages}
+                </span>
+
+                <button
+                  disabled={activityPage === activityTotalPages}
+                  onClick={() => setActivityPage((prev) => prev + 1)}
+                  className="px-2 py-1 text-xs bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
             )}
           </div>

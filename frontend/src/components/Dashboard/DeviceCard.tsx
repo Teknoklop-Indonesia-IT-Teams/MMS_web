@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Cloud,
   Camera,
+  Antenna,
 } from "lucide-react";
 
 interface DeviceCardProps {
@@ -43,6 +44,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
         return <Cloud size={32} />;
       case "CCTV":
         return <Camera size={32} />;
+      case "EWS":
+        return <Antenna size={32} />;
       default:
         return <Activity size={32} />;
     }

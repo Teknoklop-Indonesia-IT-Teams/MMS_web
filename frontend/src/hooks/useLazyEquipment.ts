@@ -73,20 +73,20 @@ export const useDashboardData = () => {
   const dashboardStats = {
     totalEquipment: equipment.length,
     maintenanceActive: equipment.filter(
-      (eq: Equipment) => eq.isMaintenanceActive
+      (eq: Equipment) => eq.isMaintenanceActive,
     ).length,
     alertCounts: {
       red: equipment.filter(
-        (eq: Equipment) => eq.maintenanceAlertLevel === "red"
+        (eq: Equipment) => eq.maintenanceAlertLevel === "red",
       ).length,
       yellow: equipment.filter(
-        (eq: Equipment) => eq.maintenanceAlertLevel === "yellow"
+        (eq: Equipment) => eq.maintenanceAlertLevel === "yellow",
       ).length,
       green: equipment.filter(
-        (eq: Equipment) => eq.maintenanceAlertLevel === "green"
+        (eq: Equipment) => eq.maintenanceAlertLevel === "green",
       ).length,
       blue: equipment.filter(
-        (eq: Equipment) => eq.maintenanceAlertLevel === "blue"
+        (eq: Equipment) => eq.maintenanceAlertLevel === "blue",
       ).length,
     },
   };
@@ -95,7 +95,7 @@ export const useDashboardData = () => {
     loading,
     isDataLoaded,
     stats: dashboardStats,
-    equipment: equipment.slice(0, 10), // Hanya 10 item untuk preview dashboard
+    equipment: equipment,
     refresh: () => fetchEquipment(true), // Menyediakan refresh function
   };
 };
