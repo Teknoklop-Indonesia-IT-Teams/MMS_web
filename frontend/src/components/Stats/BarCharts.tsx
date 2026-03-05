@@ -19,9 +19,17 @@ interface BarChartProps {
   colors?: string[]; // Ubah menjadi array
 }
 
+const statusColors = [
+  "#ef4444", // urgent
+  "#f59e0b", // warning
+  "#22c55e", // normal
+  "#3b82f6", // selesai
+  "#6b7280", // inactive
+];
+
 const StatusBarChart: React.FC<BarChartProps> = ({
   statusChartData,
-  colors = ["#f87171", "#fb923c", "#fbbf24", "#60a5fa"], // Default colors
+  colors = statusColors, // Default colors
 }) => {
   return (
     <ResponsiveContainer width="100%" height={200}>

@@ -91,6 +91,47 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const getMaintenanceStats = (data: Equipment[]) => {
+    let selesai = 0;
+    let urgent = 0;
+    let warning = 0;
+    let normal = 0;
+    let inactive = 0;
+
+    data.forEach((item) => {
+      const isActive = Boolean(item.isMaintenanceActive);
+
+      // selesai
+      if (item.maintenanceStatus === "selesai") {
+        selesai++;
+        return;
+      }
+
+      // tidak aktif
+      if (!isActive) {
+        inactive++;
+        return;
+      }
+
+      const days = item.maintenanceDaysLeft;
+
+      if (days === null || days === undefined) {
+        inactive++;
+        return;
+      }
+
+      if (days <= 14) {
+        urgent++;
+      } else if (days <= 30) {
+        warning++;
+      } else {
+        normal++;
+      }
+    });
+
+    return { selesai, urgent, warning, normal, inactive };
+  };
+
   // Filter data berdasarkan selectedFilter
   const filteredData = useMemo(() => {
     return equipmentByType;
@@ -118,33 +159,28 @@ const Dashboard: React.FC = () => {
   // Cek apakah ada filter aktif
   const hasActiveFilter = selectedFilter !== "all";
 
+  const maintenanceStats = getMaintenanceStats(filteredEquipment);
+
   const statusChartData = [
     {
-      name: "Maintenance Aktif",
-      value: hasActiveFilter
-        ? filteredEquipment.filter((e) => e.isMaintenanceActive).length
-        : stats.maintenanceActive,
+      name: "Segera (≤14 Hari)",
+      value: maintenanceStats.urgent,
     },
     {
-      name: "Segera (≤ 14 Hari)",
-      value: hasActiveFilter
-        ? filteredEquipment.filter((e) => e.maintenanceAlertLevel === "red")
-            .length
-        : stats.alertCounts.red,
+      name: "Perhatian (≤30 Hari)",
+      value: maintenanceStats.warning,
     },
     {
-      name: "Perhatian (≤ 30 Hari)",
-      value: hasActiveFilter
-        ? filteredEquipment.filter((e) => e.maintenanceAlertLevel === "yellow")
-            .length
-        : stats.alertCounts.yellow,
+      name: "Normal (>30 Hari)",
+      value: maintenanceStats.normal,
     },
     {
       name: "Selesai",
-      value: hasActiveFilter
-        ? filteredEquipment.filter((e) => e.maintenanceAlertLevel === "blue")
-            .length
-        : stats.alertCounts.blue,
+      value: maintenanceStats.selesai,
+    },
+    {
+      name: "Tidak Aktif",
+      value: maintenanceStats.inactive,
     },
   ];
 
@@ -159,7 +195,13 @@ const Dashboard: React.FC = () => {
     activityStart + activityPerPage,
   );
 
-  const statusColors = ["#f87171", "#fb923c", "#fbbf24", "#60a5fa"];
+  const statusColors = [
+    "#ef4444", // urgent
+    "#f59e0b", // warning
+    "#22c55e", // normal
+    "#3b82f6", // selesai
+    "#6b7280", // inactive
+  ];
 
   // Show loading state
   if (loading && !isDataLoaded) {
