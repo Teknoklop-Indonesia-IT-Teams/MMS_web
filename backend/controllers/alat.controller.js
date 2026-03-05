@@ -597,18 +597,21 @@ const stopMaintenance = async (req, res) => {
 
 const updateMaintenanceSettings = async (req, res) => {
   try {
-    const { maintenanceDate, maintenanceInterval, isMaintenanceActive } =
-      req.body;
+    const { maintenanceDate, maintenanceInterval, isMaintenanceActive } = req.body;
 
-    const [allAlat] = await db.query("SELECT id FROM m_alat ORDER BY id DESC");
-    const sequentialId = parseInt(req.params.id);
+    // ✅ Langsung pakai ID dari params sebagai database ID
+    const originalId = parseInt(req.params.id);
 
-    if (sequentialId > allAlat.length || sequentialId < 1) {
-      return res.status(404).json({ message: "Alat tidak ditemukan" });
+    if (!originalId || isNaN(originalId)) {
+      return res.status(400).json({ message: "ID tidak valid" });
     }
 
-    const arrayIndex = allAlat.length - sequentialId;
-    const originalId = allAlat[arrayIndex].id;
+    // ✅ Cek apakah alat dengan ID tersebut ada
+    const [alat] = await db.query("SELECT id FROM m_alat WHERE id = ?", [originalId]);
+
+    if (alat.length === 0) {
+      return res.status(404).json({ message: "Alat tidak ditemukan" });
+    }
 
     const processedIsMaintenanceActive =
       isMaintenanceActive === true ||
@@ -636,8 +639,7 @@ const updateMaintenanceSettings = async (req, res) => {
 
     res.json({
       message: "Pengaturan maintenance berhasil diupdate",
-      id: sequentialId,
-      originalId: originalId,
+      id: originalId,
       maintenanceDate,
       maintenanceInterval: maintenanceInterval || 90,
       isMaintenanceActive: Boolean(processedIsMaintenanceActive),
