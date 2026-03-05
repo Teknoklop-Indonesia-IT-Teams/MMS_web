@@ -716,33 +716,35 @@ export const recordService = {
 
 export const recordCorrectiveService = {
   getAll: () => api.get<CorRecord[]>("/record/corrective"),
-
   getById: (id: string) => api.get<CorRecord>(`/record/corrective/${id}`),
-
   getByEquipmentId: (equipmentId: number) =>
     api.get<CorRecord[]>(`/record/corrective/equipment/${equipmentId}`),
 
-  create: (data: Omit<CorRecord, "id">) => {
+  create: (data: Omit<CorRecord, "id"> | FormData) => {
     AppStateManager.startCriticalOperation("Create corrective record");
 
-    return api
-      .post<CorRecord>("/record/corrective", data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const isFormData = data instanceof FormData;
+    const config = isFormData
+      ? {
+        headers: { "Content-Type": undefined },
+        transformRequest: [(data: FormData) => data],
         timeout: 60000,
-      })
+      }
+      : {
+        headers: { "Content-Type": "application/json" },
+        timeout: 60000,
+      };
+
+    return api
+      .post<CorRecord>("/record/corrective", data, config)
       .finally(() => AppStateManager.endCriticalOperation());
   },
 
   update: (id: string, data: Partial<CorRecord>) => {
     AppStateManager.startCriticalOperation("Update corrective record");
-
     return api
       .put<CorRecord>(`/record/corrective/${id}`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         timeout: 60000,
       })
       .finally(() => AppStateManager.endCriticalOperation());

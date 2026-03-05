@@ -60,7 +60,19 @@ const getRecordByEquipmentId = async (req, res) => {
       [id],
     );
 
-    res.json(records);
+    const parsed = records.map(row => ({
+      ...row,
+      i_alat: (() => {
+        if (!row.i_alat) return null;
+        try {
+          return JSON.parse(row.i_alat);
+        } catch {
+          return [row.i_alat];
+        }
+      })()
+    }));
+
+    res.json(parsed);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -94,26 +106,19 @@ const createRecord = async (req, res) => {
       });
     }
 
-    let imagePath = null;
+    // ✅ Ganti req.file → req.files (array)
+    let i_alat = null;
 
-    if (req.file) {
-      console.log("📂 File uploaded:");
-      console.log(" - filename:", req.file.filename);
-      console.log(" - path:", req.file.path);
-      console.log(" - mimetype:", req.file.mimetype);
-      console.log(" - size:", req.file.size);
-
-      imagePath = `/uploads/${req.file.filename}`;
-      console.log("✅ Image path saved to DB:", imagePath);
+    if (req.files && req.files.length > 0) {
+      const filenames = req.files.map(f => `/uploads/${f.filename}`);
+      i_alat = JSON.stringify(filenames); // '["/uploads/a.jpg","/uploads/b.jpg"]'
+      console.log("✅ Files uploaded:", filenames);
     } else {
-      console.log("⚠️ No file uploaded");
+      console.log("⚠️ No files uploaded");
     }
 
     console.log("📦 Final values before insert:", {
-      deskripsi,
-      id_m_alat,
-      tanggal,
-      imagePath,
+      deskripsi, id_m_alat, tanggal, i_alat,
     });
 
     const [result] = await db.query(
@@ -129,7 +134,7 @@ const createRecord = async (req, res) => {
         berikutnya,
         keterangan,
         petugas,
-        imagePath,
+        i_alat,       // JSON string / null
         id_m_alat,
         tanggal,
       ],
@@ -138,7 +143,7 @@ const createRecord = async (req, res) => {
     res.status(201).json({
       id: result.insertId,
       ...req.body,
-      i_alat: imagePath,
+      i_alat: i_alat ? JSON.parse(i_alat) : null, // kembalikan sebagai array
     });
   } catch (error) {
     console.error(error);
@@ -271,7 +276,17 @@ const getCorrectiveRecordByEquipmentId = async (req, res) => {
       [id],
     );
 
-    res.json(records);
+    // ✅ Pastikan ini ada
+    const parsed = records.map(row => ({
+      ...row,
+      i_alat: (() => {
+        if (!row.i_alat) return null;
+        try { return JSON.parse(row.i_alat); }
+        catch { return [row.i_alat]; }
+      })()
+    }));
+
+    res.json(parsed); // ← kirim parsed, bukan records
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -281,17 +296,8 @@ const getCorrectiveRecordByEquipmentId = async (req, res) => {
 const createCorrectiveRecord = async (req, res) => {
   try {
     const {
-      deskripsi,
-      awal,
-      tindakan,
-      tambahan,
-      akhir,
-      berikutnya,
-      keterangan,
-      petugas,
-      i_alat,
-      id_m_alat,
-      tanggal,
+      deskripsi, awal, tindakan, tambahan, akhir,
+      berikutnya, keterangan, petugas, id_m_alat, tanggal,
     } = req.body;
 
     if (!id_m_alat || !tanggal || !deskripsi) {
@@ -300,36 +306,25 @@ const createCorrectiveRecord = async (req, res) => {
       });
     }
 
-    const processImage = (base64String) => {
-      if (!base64String) return null;
-      if (base64String.startsWith("data:image")) {
-        return base64String.split(",")[1];
-      }
-      return base64String;
-    };
-
-    const processed_i_alat = processImage(i_alat);
+    // ✅ Ganti base64 logic → req.files
+    let i_alat = null;
+    if (req.files && req.files.length > 0) {
+      const filenames = req.files.map(f => `/uploads/${f.filename}`);
+      i_alat = JSON.stringify(filenames);
+      console.log("✅ Files uploaded:", filenames);
+    }
 
     const [result] = await db.query(
-      "INSERT INTO m_record_corrective (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        deskripsi,
-        awal,
-        tindakan,
-        tambahan,
-        akhir,
-        berikutnya,
-        keterangan,
-        petugas,
-        processed_i_alat,
-        id_m_alat,
-        tanggal,
-      ],
+      `INSERT INTO m_record_corrective 
+      (deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal],
     );
 
     res.status(201).json({
       id: result.insertId,
       ...req.body,
+      i_alat: i_alat ? JSON.parse(i_alat) : null,
     });
   } catch (error) {
     console.error(error);

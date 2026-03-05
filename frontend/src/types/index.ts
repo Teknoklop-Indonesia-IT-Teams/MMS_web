@@ -72,7 +72,7 @@ export interface PreRecord {
   berikutnya: string;
   keterangan: string;
   petugas: string;
-  i_alat?: string | null;
+  i_alat?: string[] | null;
   id_m_alat: number;
   tanggal: string;
 }
@@ -87,7 +87,7 @@ export interface CorRecord {
   berikutnya: string;
   keterangan: string;
   petugas: string;
-  i_alat?: string | null;
+  i_alat?: string[] | null;
   id_m_alat: number;
   tanggal: string;
 }

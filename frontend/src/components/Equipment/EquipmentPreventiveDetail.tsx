@@ -150,8 +150,8 @@ export default function EquipmentDetail({
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const { showSuccess } = useToast();
 
@@ -224,32 +224,37 @@ export default function EquipmentDetail({
     setExpandedRecordId((prev) => (prev === id ? null : id));
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    if (
-      !["image/jpeg", "image/png", "image/gif", "image/webp"].includes(
-        file.type,
-      )
-    ) {
-      alert("Format tidak didukung. Gunakan JPG, PNG, GIF, atau WEBP.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Ukuran file terlalu besar. Maksimal 5MB.");
-      return;
-    }
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const maxSize = 5 * 1024 * 1024;
 
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const validFiles = files.filter((file) => {
+      if (!validTypes.includes(file.type)) {
+        alert(`${file.name}: Format tidak didukung.`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        alert(`${file.name}: Ukuran terlalu besar (maks 5MB).`);
+        return false;
+      }
+      return true;
+    });
+
+    setImageFiles((prev) => [...prev, ...validFiles]);
+    setImagePreviews((prev) => [
+      ...prev,
+      ...validFiles.map((f) => URL.createObjectURL(f)),
+    ]);
   }
 
-  function handleRemoveImage() {
-    setImageFile(null);
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-      setImagePreview(null);
-    }
+  function handleRemoveImage(index: number) {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
   }
 
   function resetForm() {
@@ -264,7 +269,6 @@ export default function EquipmentDetail({
       keterangan: "",
       petugas: "",
     });
-    handleRemoveImage();
   }
 
   async function handleSaveRecord(e: React.FormEvent) {
@@ -277,7 +281,7 @@ export default function EquipmentDetail({
     try {
       let payload: Parameters<typeof recordService.create>[0];
 
-      if (imageFile) {
+      if (imageFiles.length > 0) {
         const fd = new FormData();
         fd.append("id_m_alat", String(equipment.id));
         fd.append("tanggal", formData.tanggal);
@@ -289,32 +293,17 @@ export default function EquipmentDetail({
         fd.append("berikutnya", formData.berikutnya);
         fd.append("keterangan", formData.keterangan);
         fd.append("petugas", formData.petugas);
-        fd.append("i_alat", imageFile);
+
+        // ← Append semua gambar dengan field name yang sama
+        imageFiles.forEach((file) => fd.append("i_alat", file));
+
         payload = fd;
       } else {
         payload = {
           id_m_alat: equipment.id,
-          tanggal: formData.tanggal,
-          deskripsi: formData.deskripsi,
-          awal: formData.awal,
-          tindakan: formData.tindakan,
-          tambahan: formData.tambahan,
-          akhir: formData.akhir,
-          berikutnya: formData.berikutnya,
-          keterangan: formData.keterangan,
-          petugas: formData.petugas,
+          ...formData,
           i_alat: null,
         };
-      }
-
-      console.log("=== SUBMIT DEBUG ===");
-      console.log("imageFile:", imageFile);
-      console.log("payload instanceof FormData:", payload instanceof FormData);
-
-      if (payload instanceof FormData) {
-        for (const pair of payload.entries()) {
-          console.log("FD:", pair[0], pair[1]);
-        }
       }
 
       const response = await recordService.create(payload);
@@ -683,51 +672,43 @@ Jika tidak ada dapat diisi dengan tanda -`}
                       <label className="block mb-1 text-sm font-medium text-gray-700">
                         Upload Gambar
                       </label>
-                      {imagePreview ? (
-                        // Preview setelah file dipilih
-                        <div className="relative w-full h-32 overflow-hidden border border-gray-300 rounded-md group">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="object-cover w-full h-full"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center transition-all bg-black bg-opacity-0 group-hover:bg-opacity-40">
-                            <button
-                              type="button"
-                              onClick={handleRemoveImage}
-                              className="flex items-center px-3 py-1.5 space-x-1 text-xs text-white bg-red-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                            >
-                              <X size={12} />
-                              <span>Hapus</span>
-                            </button>
-                          </div>
-                          <div className="absolute bottom-1 left-1 right-1">
-                            <p className="text-xs text-white bg-black bg-opacity-50 rounded px-1 py-0.5 truncate">
-                              {imageFile?.name}
-                            </p>
-                          </div>
+                      {imagePreviews.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {imagePreviews.map((src, idx) => (
+                            <div key={idx} className="relative w-20 h-20 group">
+                              <img
+                                src={src}
+                                className="object-cover w-full h-full border border-gray-300 rounded-md"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage(idx)}
+                                className="absolute top-0.5 right-0.5 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X size={10} />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ) : (
-                        <label
-                          htmlFor="record-image-upload"
-                          className="flex flex-col items-center justify-center w-full h-32 transition-colors border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50"
-                        >
-                          <Upload size={24} className="mb-2 text-gray-400" />
-                          <span className="text-sm text-gray-500">
-                            Klik untuk upload gambar
-                          </span>
-                          <span className="mt-1 text-xs text-gray-400">
-                            JPG, PNG, GIF, WEBP — Maks. 5MB
-                          </span>
-                          <input
-                            id="record-image-upload"
-                            type="file"
-                            accept="image/jpeg,image/png,image/gif,image/webp"
-                            className="hidden"
-                            onChange={handleImageChange}
-                          />
-                        </label>
                       )}
+                      <label
+                        htmlFor="record-image-upload"
+                        className="flex flex-col items-center justify-center w-full h-20 transition-colors border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50"
+                      >
+                        <Upload size={20} className="mb-1 text-gray-400" />
+                        <span className="text-sm text-gray-500">
+                          {imagePreviews.length > 0 ? "Tambah gambar lagi" : "Klik untuk upload gambar"}
+                        </span>
+                        <span className="text-xs text-gray-400">JPG, PNG, GIF, WEBP — Maks. 5MB</span>
+                        <input
+                          id="record-image-upload"
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          multiple
+                          className="hidden"
+                          onChange={handleImageChange}
+                        />
+                      </label>
                     </div>
                   </div>
 
@@ -814,17 +795,19 @@ Jika tidak ada dapat diisi dengan tanda -`}
                             </td>
 
                             <td className="px-4 py-4">
-                              {record.i_alat ? (
-                                <ImageThumbnail
-                                  src={record.i_alat}
-                                  alt={`${record.deskripsi} - ${formatDate(record.tanggal)}`}
-                                />
+                              {record.i_alat && record.i_alat.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {record.i_alat.map((src, idx) => (
+                                    <ImageThumbnail
+                                      key={idx}
+                                      src={src}
+                                      alt={`${record.deskripsi} - ${formatDate(record.tanggal)} (${idx + 1})`}
+                                    />
+                                  ))}
+                                </div>
                               ) : (
                                 <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-md w-14 h-14">
-                                  <ImageIcon
-                                    size={18}
-                                    className="text-gray-300"
-                                  />
+                                  <ImageIcon size={18} className="text-gray-300" />
                                 </div>
                               )}
                             </td>
@@ -885,18 +868,21 @@ Jika tidak ada dapat diisi dengan tanda -`}
                                     </p>
                                   </div>
                                   {/* ── Gambar di expanded detail ── */}
-                                  {record.i_alat && (
+                                  {record.i_alat && record.i_alat.length > 0 && (
                                     <div>
                                       <label className="block mb-2 text-xs font-medium text-gray-500 uppercase">
                                         Gambar Record
                                       </label>
-                                      <ImageThumbnail
-                                        src={record.i_alat}
-                                        alt={`${record.deskripsi} - Detail`}
-                                      />
-                                      <p className="mt-1 text-xs text-gray-400">
-                                        Klik gambar untuk memperbesar
-                                      </p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {record.i_alat.map((src, idx) => (
+                                          <ImageThumbnail
+                                            key={idx}
+                                            src={src}
+                                            alt={`${record.deskripsi} - Detail ${idx + 1}`}
+                                          />
+                                        ))}
+                                      </div>
+                                      <p className="mt-1 text-xs text-gray-400">Klik gambar untuk memperbesar</p>
                                     </div>
                                   )}
                                 </div>

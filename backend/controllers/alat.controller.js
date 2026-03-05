@@ -229,16 +229,16 @@ const createAlat = async (req, res) => {
     });
     console.log("- Body keys:", Object.keys(req.body));
     console.log(
-      "- File:",
-      req.file
-        ? {
-            fieldname: req.file.fieldname,
-            originalname: req.file.originalname,
-            filename: req.file.filename,
-            path: req.file.path,
-            size: req.file.size,
-          }
-        : "NO FILE",
+      "- Files:",
+      req.files && req.files.length > 0
+        ? req.files.map(f => ({
+          fieldname: f.fieldname,
+          originalname: f.originalname,
+          filename: f.filename,
+          path: f.path,
+          size: f.size,
+        }))
+        : "NO FILES",
     );
 
     for (const [key, value] of Object.entries(req.body)) {
@@ -266,13 +266,15 @@ const createAlat = async (req, res) => {
       isMaintenanceActive,
     } = req.body;
 
+    // ✅ Ambil semua filename dari req.files, simpan sebagai JSON array
     let i_alat = null;
 
-    if (req.file) {
-      i_alat = req.file.filename;
-      console.log("✅ File uploaded successfully:", req.file.filename);
+    if (req.files && req.files.length > 0) {
+      const filenames = req.files.map(f => f.filename);
+      i_alat = JSON.stringify(filenames); // ["img1.jpg", "img2.jpg"]
+      console.log("✅ Files uploaded successfully:", filenames);
     } else {
-      console.log("⚠️ No file uploaded");
+      console.log("⚠️ No files uploaded");
     }
 
     if (!nama || !lokasi || !jenis) {
@@ -283,9 +285,9 @@ const createAlat = async (req, res) => {
 
     const is_maintenance_active =
       isMaintenanceActive === true ||
-      isMaintenanceActive === "true" ||
-      isMaintenanceActive === 1 ||
-      isMaintenanceActive === "1"
+        isMaintenanceActive === "true" ||
+        isMaintenanceActive === 1 ||
+        isMaintenanceActive === "1"
         ? 1
         : 0;
 
@@ -310,7 +312,7 @@ const createAlat = async (req, res) => {
       pelanggan || null,
       pic || null,
       email || null,
-      i_alat || null,
+      i_alat,                // JSON string / null
       maintenanceDate || new Date().toISOString().split("T")[0],
       maintenanceInterval || 90,
       is_maintenance_active,
@@ -318,6 +320,7 @@ const createAlat = async (req, res) => {
 
     const [result] = await db.query(query, params);
 
+    // ✅ Parse balik ke array untuk response
     const responseData = {
       id: result.insertId,
       nama,
@@ -332,13 +335,14 @@ const createAlat = async (req, res) => {
       pelanggan: pelanggan || null,
       pic: pic || null,
       email: email || null,
-      i_alat: i_alat || null,
+      i_alat: i_alat ? JSON.parse(i_alat) : [],  // kembalikan sebagai array
       maintenanceDate:
         maintenanceDate || new Date().toISOString().split("T")[0],
       maintenanceInterval: maintenanceInterval || 90,
       isMaintenanceActive: Boolean(is_maintenance_active),
       message: "Alat berhasil ditambahkan",
     };
+
     res.status(201).json(responseData);
   } catch (error) {
     console.error("\n❌❌❌ CREATE ALAT ERROR ❌❌❌");
@@ -608,9 +612,9 @@ const updateMaintenanceSettings = async (req, res) => {
 
     const processedIsMaintenanceActive =
       isMaintenanceActive === true ||
-      isMaintenanceActive === "true" ||
-      isMaintenanceActive === 1 ||
-      isMaintenanceActive === "1"
+        isMaintenanceActive === "true" ||
+        isMaintenanceActive === 1 ||
+        isMaintenanceActive === "1"
         ? 1
         : 0;
 
@@ -709,8 +713,8 @@ const addMaintenanceActivity = async (req, res) => {
 
   await db.query(
     `INSERT INTO m_activity
-     (id_alat, activity, note, image)
-     VALUES (?, ?, ?, ?)`,
+    (id_alat, activity, note, image)
+    VALUES (?, ?, ?, ?)`,
     [req.params.id, activity, note, image],
   );
 

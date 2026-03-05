@@ -47,7 +47,7 @@ const LoadingSpinner = () => (
 function AppStateComponent() {
   const pageLifecycle = usePageLifecycle();
 
-  useEffect(() => {}, [pageLifecycle]);
+  useEffect(() => { }, [pageLifecycle]);
 
   return null;
 }
@@ -55,7 +55,13 @@ function AppStateComponent() {
 function App() {
   return (
     <ThemeProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+
         <AuthProvider>
           <EquipmentProvider>
             <AppStateComponent />
