@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Users, Database, X } from "lucide-react";
+import { Home, Users, Database, X, LayoutList } from "lucide-react";
 import { useAuth } from "../../hooks/useAuthSimple";
 import RoleBasedContent from "../Auth/RoleBasedContent";
 import { PERMISSIONS } from "../../constants/roles";
@@ -27,8 +27,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     }
   };
 
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${isActive
+      ? "bg-blue-600 dark:bg-blue-700 text-white"
+      : "text-gray-300 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
+    }`;
+
   return (
-    <div className="flex flex-col w-64 min-h-screen text-white bg-gray-800 dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex flex-col w-64 min-h-screen text-white transition-colors duration-200 bg-gray-800 dark:bg-gray-900">
       <div className="p-4 border-b border-gray-700 dark:border-gray-600">
         <div className="flex items-center justify-between">
           <h2 className="text-sm text-gray-400 dark:text-gray-300">
@@ -37,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           {onClose && (
             <button
               onClick={onClose}
-              className="lg:hidden p-1 rounded-md hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
+              className="p-1 transition-colors rounded-md lg:hidden hover:bg-gray-700 dark:hover:bg-gray-800"
             >
               <X size={20} />
             </button>
@@ -47,62 +53,42 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {/* Dashboard - All roles */}
+          {/* Dashboard */}
           <RoleBasedContent allowedRoles={PERMISSIONS.DASHBOARD_VIEW}>
             <li>
-              <NavLink
-                to="/dashboard"
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${
-                    isActive
-                      ? "bg-blue-600 dark:bg-blue-700 text-white"
-                      : "text-gray-300 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
-                  }`
-                }
-              >
+              <NavLink to="/dashboard" onClick={onClose} className={navLinkClass}>
                 <Home size={20} />
                 <span className="text-sm sm:text-base">Dashboard</span>
               </NavLink>
             </li>
           </RoleBasedContent>
 
-          {/* Equipment - All roles can view, but with different permissions */}
+          {/* List Telemetri */}
           <RoleBasedContent allowedRoles={PERMISSIONS.EQUIPMENT_VIEW}>
             <li>
-              <NavLink
-                to="/telemetri"
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${
-                    isActive
-                      ? "bg-blue-600 dark:bg-blue-700 text-white"
-                      : "text-gray-300 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
-                  }`
-                }
-              >
+              <NavLink to="/telemetri" onClick={onClose} className={navLinkClass}>
                 <Database size={20} />
                 <span className="text-sm sm:text-base">List Telemetri</span>
               </NavLink>
             </li>
           </RoleBasedContent>
 
-          {/* Staff Management - Admin and Supervisor only */}
+          {/* Petugas */}
           <RoleBasedContent allowedRoles={PERMISSIONS.STAFF_VIEW}>
             <li>
-              <NavLink
-                to="/petugas"
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${
-                    isActive
-                      ? "bg-blue-600 dark:bg-blue-700 text-white"
-                      : "text-gray-300 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
-                  }`
-                }
-              >
+              <NavLink to="/petugas" onClick={onClose} className={navLinkClass}>
                 <Users size={20} />
                 <span className="text-sm sm:text-base">Petugas</span>
+              </NavLink>
+            </li>
+          </RoleBasedContent>
+
+          {/* ✅ Master Data - admin only */}
+          <RoleBasedContent allowedRoles={PERMISSIONS.STAFF_VIEW}>
+            <li>
+              <NavLink to="/master-data" onClick={onClose} className={navLinkClass}>
+                <LayoutList size={20} />
+                <span className="text-sm sm:text-base">Master Data</span>
               </NavLink>
             </li>
           </RoleBasedContent>
@@ -114,8 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         <NavLink to="/profile">
           <div className="p-4 border-t border-gray-700">
             <div className="text-sm">
-              <div className="text-white font-medium">{user.nama}</div>
-              {/* <div className="text-gray-400 text-xs">{user.username}</div> */}
+              <div className="font-medium text-white">{user.nama}</div>
               <div
                 className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${getRoleBadgeColor(
                   user.role,

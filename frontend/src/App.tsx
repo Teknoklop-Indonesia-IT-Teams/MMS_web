@@ -16,6 +16,7 @@ import MaintenanceEquipmentDetailQR from "./components/Equipment/MaintenanceEqui
 // Lazy load ALL components for maximum code splitting
 const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
 const StaffList = lazy(() => import("./components/Staff/StaffList"));
+const MasterDataPage = lazy(() => import("./components/MasterData/MasterDataPage"));
 const EquipmentTable = lazy(
   () => import("./components/Equipment/EquipmentTable"),
 );
@@ -110,6 +111,16 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
+                  <Route
+                    path="/master-data"
+                    element={
+                      <ProtectedRoute>
+                        <LayoutWrapper>
+                          <MasterDataPage />
+                        </LayoutWrapper>
+                      </ProtectedRoute>
+                    } />
 
                   {/* Staff/Petugas Routes */}
                   <Route

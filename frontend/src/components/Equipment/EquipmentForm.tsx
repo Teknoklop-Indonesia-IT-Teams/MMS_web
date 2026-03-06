@@ -31,6 +31,11 @@ interface StaffApiResponse {
   name?: string;
 }
 
+interface JenisTelemetry {
+  id: number;
+  jenis_telemetry: string;
+}
+
 const EquipmentForm: React.FC<EquipmentFormProps> = ({
   equipment,
   onSave,
@@ -39,7 +44,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const [formData, setFormData] = useState({
     nama: "",
     lokasi: "",
-    jenis: "ARR" as Equipment["jenis"],
+    jenis: "" as Equipment["jenis"],
     instalasi: "",
     garansi: "",
     remot: false,
@@ -64,6 +69,38 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const [conversionResult, setConversionResult] =
     useState<ConversionResult | null>(null);
   const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
+
+  // ✅ State untuk jenis telemetry dinamis
+  const [jenisList, setJenisList] = useState<JenisTelemetry[]>([]);
+  const [loadingJenis, setLoadingJenis] = useState(false);
+
+  // ✅ Fetch jenis telemetry dari API
+  useEffect(() => {
+    const fetchJenis = async () => {
+      try {
+        setLoadingJenis(true);
+        const response = await fetch(
+          `${import.meta.env.VITE_URL}/api/telemetry`,
+        );
+        const data: JenisTelemetry[] = await response.json();
+        setJenisList(data);
+
+        // Set default jenis ke item pertama jika form tambah baru
+        if (!equipment && data.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            jenis: data[0].jenis_telemetry as Equipment["jenis"],
+          }));
+        }
+      } catch (error) {
+        console.error("❌ Error fetching jenis telemetry:", error);
+        setJenisList([]);
+      } finally {
+        setLoadingJenis(false);
+      }
+    };
+    fetchJenis();
+  }, []);
 
   useEffect(() => {
     if (formData.instalasi && !equipment) {
@@ -107,7 +144,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       setFormData({
         nama: "",
         lokasi: "",
-        jenis: "ARR" as Equipment["jenis"],
+        jenis: "" as Equipment["jenis"],
         instalasi: "",
         garansi: "",
         remot: false,
@@ -222,17 +259,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         formDataToSubmit.append("removeImage", "true");
       }
 
-      console.log("📤 FormData entries:", [...formDataToSubmit.entries()]);
-      console.log("📤 FormData yang dikirim:");
-      for (let [key, value] of formDataToSubmit.entries()) {
-        if (value instanceof File) {
-          console.log(
-            `  - ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`,
-          );
-        } else {
-          console.log(`  - ${key}: ${value}`);
-        }
-      }
       onSave(formDataToSubmit);
     } catch (error) {
       console.error("❌ Error preparing form data:", error);
@@ -283,18 +309,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
     console.log("🗑️ Image marked for removal");
   };
-
-  const deviceTypes: Equipment["jenis"][] = [
-    "ARR",
-    "AWLR",
-    "WQMS",
-    "Flow Meter",
-    "Rembesan",
-    "GWL",
-    "Weather Station",
-    "CCTV",
-    "EWS",
-  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -353,6 +367,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               )}
             </div>
 
+            {/* ✅ Dropdown Jenis - sekarang dinamis dari API */}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
                 Jenis <span className="text-red-500">*</span>
@@ -366,13 +381,20 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loadingJenis}
               >
-                {deviceTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
+                <option value="">
+                  {loadingJenis ? "Memuat data jenis..." : "Pilih Jenis"}
+                </option>
+                {jenisList.map((jenis) => (
+                  <option key={jenis.id} value={jenis.jenis_telemetry}>
+                    {jenis.jenis_telemetry}
                   </option>
                 ))}
               </select>
+              {loadingJenis && (
+                <p className="mt-1 text-xs text-gray-400">Memuat...</p>
+              )}
             </div>
 
             <div>

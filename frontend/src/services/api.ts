@@ -800,6 +800,44 @@ export const authService = {
   },
 };
 
+//Jenis Service
+
+export const telemetryService = {
+  getAll: async () => {
+    const res = await api.get<{ id: number; jenis_telemetry: string }[]>("/telemetry");
+    if (!Array.isArray(res.data)) return [];
+    return res.data.map((d) => ({ id: d.id, name: d.jenis_telemetry }));
+  },
+
+  create: async (name: string) => {
+    const res = await api.post("/telemetry", { jenis_telemetry: name });
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await api.delete(`/telemetry/${id}`);
+    return res.data;
+  },
+};
+
+export const plcService = {
+  getAll: async () => {
+    const res = await api.get<{ id: number; jenis_plc: string }[]>("/plc");
+    if (!Array.isArray(res.data)) return [];
+    return res.data.map((d) => ({ id: d.id, name: d.jenis_plc }));
+  },
+
+  create: async (name: string) => {
+    const res = await api.post("/plc", { jenis_plc: name });
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await api.delete(`/plc/${id}`);
+    return res.data;
+  },
+};
+
 // Items service
 export interface Item {
   itemId: number;

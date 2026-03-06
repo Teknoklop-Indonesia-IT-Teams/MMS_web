@@ -83,6 +83,8 @@ const rolesRoutes = require("./routes/roles.routes.js");
 const emailRoutes = require("./routes/email.routes.js");
 const authRoutes = require("./routes/auth.routes.js");
 const usersRoutes = require("./routes/users.routes.js");
+const telemetryRoutes = require("./routes/telemetry.routes.js");
+const plcRoutes = require("./routes/plc.routes.js")
 
 app.get("/", (req, res) => {
   res.json({
@@ -97,6 +99,8 @@ app.get("/", (req, res) => {
       users: "/api/users",
       auth: "/api/auth",
       email: "/api/email",
+      telemetry: "/api/telemetry",
+      plc: "/api/plc",
     },
   });
 });
@@ -109,6 +113,8 @@ app.use("/api/roles", rolesRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/telemetry", telemetryRoutes);
+app.use("/api/plc", plcRoutes);
 
 const PORT = process.env.PORT || 3001;
 

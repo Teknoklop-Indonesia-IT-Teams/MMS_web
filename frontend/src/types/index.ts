@@ -125,3 +125,14 @@ export interface Staff {
   roleId: number;
   mobile?: string;
 }
+
+export interface MasterItem {
+  id: number;
+  name: string;
+}
+
+export interface ApiItem {
+  id: number;
+  jenis_telemetry?: string;
+  jenis_plc?: string;
+}
