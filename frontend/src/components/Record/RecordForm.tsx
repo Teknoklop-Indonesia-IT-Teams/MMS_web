@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Calendar, FileText, User, Wrench } from "lucide-react";
-import { Record } from "../../types";
+import { PreRecord as Record } from "../../types";
 import { staffService, alatService } from "../../services/api";
 
 interface RecordFormProps {
@@ -33,7 +33,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
     berikutnya: "",
     keterangan: "",
     petugas: "",
-    id_m_alat: "",
+    id_m_alat: 0,
     tanggal: new Date().toISOString().split("T")[0],
   });
 
@@ -54,7 +54,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
         berikutnya: record.berikutnya || "",
         keterangan: record.keterangan || "",
         petugas: record.petugas || "",
-        id_m_alat: record.id_m_alat || "",
+        id_m_alat: record.id_m_alat || 0,
         tanggal: record.tanggal || new Date().toISOString().split("T")[0],
       });
     }
@@ -123,7 +123,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
     if (!formData.tindakan.trim()) newErrors.tindakan = "Tindakan wajib diisi";
     if (!formData.akhir.trim()) newErrors.akhir = "Kondisi akhir wajib diisi";
     if (!formData.petugas.trim()) newErrors.petugas = "Petugas wajib diisi";
-    if (!formData.id_m_alat.trim()) newErrors.id_m_alat = "Alat wajib dipilih";
+    if (!formData.id_m_alat) newErrors.id_m_alat = "Alat wajib dipilih";
     if (!formData.tanggal.trim()) newErrors.tanggal = "Tanggal wajib diisi";
 
     setErrors(newErrors);
@@ -138,13 +138,13 @@ const RecordForm: React.FC<RecordFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-xl">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-              <FileText className="h-6 w-6 text-white" />
+            <div className="p-2 bg-white rounded-lg bg-opacity-20">
+              <FileText className="w-6 h-6 text-white" />
             </div>
             <h2 className="text-xl font-bold text-white">
               {record ? "Edit Record Maintenance" : "Tambah Record Maintenance"}
@@ -152,7 +152,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
           </div>
           <button
             onClick={onCancel}
-            className="text-white hover:text-gray-200 transition-colors p-1 rounded-lg hover:bg-white hover:bg-opacity-20"
+            className="p-1 text-white transition-colors rounded-lg hover:text-gray-200 hover:bg-white hover:bg-opacity-20"
           >
             <X size={24} />
           </button>
@@ -160,11 +160,11 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Tanggal */}
             <div>
-              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+              <label className="flex items-center mb-2 text-sm font-semibold text-gray-700">
+                <Calendar className="w-4 h-4 mr-2 text-blue-500" />
                 Tanggal <span className="text-red-500">*</span>
               </label>
               <input
@@ -173,14 +173,13 @@ const RecordForm: React.FC<RecordFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, tanggal: e.target.value })
                 }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.tanggal
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.tanggal
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300"
-                }`}
+                  }`}
               />
               {errors.tanggal && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.tanggal}
                 </p>
@@ -189,20 +188,17 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
             {/* Alat */}
             <div>
-              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                <Wrench className="h-4 w-4 mr-2 text-blue-500" />
+              <label className="flex items-center mb-2 text-sm font-semibold text-gray-700">
+                <Wrench className="w-4 h-4 mr-2 text-blue-500" />
                 Alat <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.id_m_alat}
-                onChange={(e) =>
-                  setFormData({ ...formData, id_m_alat: e.target.value })
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.id_m_alat
+                onChange={(e) => setFormData({ ...formData, id_m_alat: Number(e.target.value) })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.id_m_alat
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300"
-                }`}
+                  }`}
                 disabled={loadingEquipment}
               >
                 <option value="">
@@ -215,7 +211,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
                 ))}
               </select>
               {errors.id_m_alat && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.id_m_alat}
                 </p>
@@ -224,8 +220,8 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
             {/* Petugas */}
             <div>
-              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                <User className="h-4 w-4 mr-2 text-blue-500" />
+              <label className="flex items-center mb-2 text-sm font-semibold text-gray-700">
+                <User className="w-4 h-4 mr-2 text-blue-500" />
                 Petugas <span className="text-red-500">*</span>
               </label>
               <select
@@ -233,11 +229,10 @@ const RecordForm: React.FC<RecordFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, petugas: e.target.value })
                 }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.petugas
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.petugas
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300"
-                }`}
+                  }`}
                 disabled={loadingStaff}
               >
                 <option value="">
@@ -250,7 +245,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
                 ))}
               </select>
               {errors.petugas && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.petugas}
                 </p>
@@ -262,7 +257,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
           <div className="mt-6 space-y-6">
             {/* Deskripsi */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Deskripsi Kegiatan <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -271,15 +266,14 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, deskripsi: e.target.value })
                 }
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.deskripsi
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.deskripsi
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300"
-                }`}
+                  }`}
                 placeholder="Deskripsi kegiatan maintenance yang dilakukan..."
               />
               {errors.deskripsi && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.deskripsi}
                 </p>
@@ -288,7 +282,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
             {/* Kondisi Awal */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Kondisi Awal <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -297,13 +291,12 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, awal: e.target.value })
                 }
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.awal ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.awal ? "border-red-500 bg-red-50" : "border-gray-300"
+                  }`}
                 placeholder="Kondisi alat sebelum dilakukan maintenance..."
               />
               {errors.awal && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.awal}
                 </p>
@@ -312,7 +305,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
             {/* Tindakan */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Tindakan yang Dilakukan <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -321,15 +314,14 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, tindakan: e.target.value })
                 }
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.tindakan
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.tindakan
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300"
-                }`}
+                  }`}
                 placeholder="Tindakan perbaikan/maintenance yang dilakukan..."
               />
               {errors.tindakan && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.tindakan}
                 </p>
@@ -338,7 +330,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
             {/* Tindakan Tambahan */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Tindakan Tambahan
               </label>
               <textarea
@@ -347,14 +339,14 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, tambahan: e.target.value })
                 }
                 rows={2}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 transition-colors border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Tindakan tambahan jika ada..."
               />
             </div>
 
             {/* Kondisi Akhir */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Kondisi Akhir <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -363,13 +355,12 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, akhir: e.target.value })
                 }
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.akhir ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.akhir ? "border-red-500 bg-red-50" : "border-gray-300"
+                  }`}
                 placeholder="Kondisi alat setelah dilakukan maintenance..."
               />
               {errors.akhir && (
-                <p className="text-sm text-red-500 flex items-center mt-1">
+                <p className="flex items-center mt-1 text-sm text-red-500">
                   <span className="mr-1">⚠️</span>
                   {errors.akhir}
                 </p>
@@ -378,7 +369,7 @@ const RecordForm: React.FC<RecordFormProps> = ({
 
             {/* Rencana Berikutnya */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Rencana Maintenance Berikutnya
               </label>
               <textarea
@@ -387,14 +378,14 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, berikutnya: e.target.value })
                 }
                 rows={2}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 transition-colors border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Rencana maintenance berikutnya..."
               />
             </div>
 
             {/* Keterangan */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Keterangan Tambahan
               </label>
               <textarea
@@ -403,24 +394,24 @@ const RecordForm: React.FC<RecordFormProps> = ({
                   setFormData({ ...formData, keterangan: e.target.value })
                 }
                 rows={2}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 transition-colors border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Keterangan tambahan..."
               />
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-8">
+          <div className="flex flex-col gap-3 mt-8 sm:flex-row">
             <button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
+              className="flex-1 px-6 py-3 font-semibold text-white transition-all duration-200 transform rounded-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 hover:scale-105"
             >
               💾 {record ? "Update Record" : "Simpan Record"}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
+              className="flex-1 px-6 py-3 font-semibold text-white transition-all duration-200 transform rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 hover:scale-105"
             >
               ❌ Batal
             </button>

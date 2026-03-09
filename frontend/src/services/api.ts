@@ -665,6 +665,45 @@ export const alatService = {
   },
 };
 
+export const alatPlcService = {
+  getAll: () => api.get("/alat-plc"),
+  getById: (id: string) => api.get(`/alat-plc/${id}`),
+  getWithMaintenanceStatus: (id: number) =>
+    api.get(`/alat-plc/${id}/maintenance-status`),
+
+  create: (data: FormData | object) => {
+    const config = data instanceof FormData
+      ? {
+        headers: { "Content-Type": undefined },
+        transformRequest: [(d: FormData) => d],
+      }
+      : { headers: { "Content-Type": "application/json" } };
+    return api.post("/alat-plc", data, config);
+  },
+
+  update: (id: string, data: FormData | object) => {
+    const config = data instanceof FormData
+      ? {
+        headers: { "Content-Type": undefined },
+        transformRequest: [(d: FormData) => d],
+      }
+      : { headers: { "Content-Type": "application/json" } };
+    return api.put(`/alat-plc/${id}`, data, config);
+  },
+
+  delete: (id: string) => api.delete(`/alat-plc/${id}`),
+  completeMaintenance: (id: string) =>
+    api.post(`/alat-plc/${id}/complete-maintenance`),
+  updateMaintenanceSettings: (
+    id: string,
+    settings: {
+      maintenanceDate: string;
+      maintenanceInterval: number;
+      isMaintenanceActive: boolean;
+    },
+  ) => api.put(`/alat-plc/${id}/maintenance`, settings),
+};
+
 export const recordService = {
   getAll: () => api.get<PreRecord[]>("/record"),
   getById: (id: string) => api.get<PreRecord>(`/record/${id}`),
@@ -712,6 +751,48 @@ export const recordService = {
       .delete(`/record/${id}`)
       .finally(() => AppStateManager.endCriticalOperation());
   },
+};
+
+export const recordPlcService = {
+  // Preventive
+  getAll: () => api.get("/record-plc"),
+  getById: (id: string) => api.get(`/record-plc/${id}`),
+  getByEquipmentId: (id: number) => api.get(`/record-plc/equipment/${id}`),
+
+  create: (data: FormData | object) => {
+    const config = data instanceof FormData
+      ? {
+        headers: { "Content-Type": undefined },
+        transformRequest: [(d: FormData) => d],
+      }
+      : { headers: { "Content-Type": "application/json" } };
+    return api.post("/record-plc", data, config);
+  },
+
+  update: (id: string | number, data: object) =>
+    api.put(`/record-plc/${id}`, data),
+  delete: (id: string | number) => api.delete(`/record-plc/${id}`),
+
+  // Corrective
+  getAllCorrective: () => api.get("/record-plc/corrective"),
+  getCorrectiveById: (id: string) => api.get(`/record-plc/corrective/${id}`),
+  getCorrectiveByEquipmentId: (id: number) =>
+    api.get(`/record-plc/corrective/equipment/${id}`),
+
+  createCorrective: (data: FormData | object) => {
+    const config = data instanceof FormData
+      ? {
+        headers: { "Content-Type": undefined },
+        transformRequest: [(d: FormData) => d],
+      }
+      : { headers: { "Content-Type": "application/json" } };
+    return api.post("/record-plc/corrective", data, config);
+  },
+
+  updateCorrective: (id: string | number, data: object) =>
+    api.put(`/record-plc/corrective/${id}`, data),
+  deleteCorrective: (id: string | number) =>
+    api.delete(`/record-plc/corrective/${id}`),
 };
 
 export const recordCorrectiveService = {

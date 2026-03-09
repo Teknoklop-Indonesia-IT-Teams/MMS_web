@@ -84,7 +84,9 @@ const emailRoutes = require("./routes/email.routes.js");
 const authRoutes = require("./routes/auth.routes.js");
 const usersRoutes = require("./routes/users.routes.js");
 const telemetryRoutes = require("./routes/telemetry.routes.js");
-const plcRoutes = require("./routes/plc.routes.js")
+const plcRoutes = require("./routes/plc.routes.js");
+const alatPlcRoutes = require("./routes/alat-plc.routes.js");
+const recordPlcRoutes = require("./routes/record-plc.routes.js");
 
 app.get("/", (req, res) => {
   res.json({
@@ -92,8 +94,10 @@ app.get("/", (req, res) => {
     status: "API is running",
     endpoints: {
       alat: "/api/alat",
+      alat_plc: "api/alat-plc",
       staff: "/api/staff",
       record: "/api/record",
+      record_plc: "api/record-plc",
       items: "/api/items",
       roles: "/api/roles",
       users: "/api/users",
@@ -115,7 +119,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/telemetry", telemetryRoutes);
 app.use("/api/plc", plcRoutes);
-
+app.use("/api/alat-plc", alatPlcRoutes);
+app.use("/api/record-plc", recordPlcRoutes);
 const PORT = process.env.PORT || 3001;
 
 app.use((err, req, res, next) => {

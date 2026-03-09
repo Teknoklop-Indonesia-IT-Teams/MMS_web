@@ -26,6 +26,9 @@ const SimpleEquipmentDetail = lazy(
 const PublicEquipmentDetailQR = lazy(
   () => import("./components/Equipment/PublicEquipmentDetailQR"),
 );
+const EquipmentPlcTable = lazy(
+  () => import("./components/Equipment/Plc/EquipmentTablePlc"),
+);
 
 // Auth components
 const Login = lazy(() => import("./components/Auth/Login"));
@@ -107,6 +110,17 @@ function App() {
                       <ProtectedRoute>
                         <LayoutWrapper>
                           <EquipmentTable />
+                        </LayoutWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/plc"
+                    element={
+                      <ProtectedRoute>
+                        <LayoutWrapper>
+                          <EquipmentPlcTable />
                         </LayoutWrapper>
                       </ProtectedRoute>
                     }

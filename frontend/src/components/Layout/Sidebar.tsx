@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Users, Database, X, LayoutList } from "lucide-react";
+import { Home, Users, Database, X, LayoutList, Cpu } from "lucide-react";
 import { useAuth } from "../../hooks/useAuthSimple";
 import RoleBasedContent from "../Auth/RoleBasedContent";
 import { PERMISSIONS } from "../../constants/roles";
@@ -69,6 +69,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               <NavLink to="/telemetri" onClick={onClose} className={navLinkClass}>
                 <Database size={20} />
                 <span className="text-sm sm:text-base">List Telemetri</span>
+              </NavLink>
+            </li>
+          </RoleBasedContent>
+
+          <RoleBasedContent allowedRoles={PERMISSIONS.EQUIPMENT_VIEW}>
+            <li>
+              <NavLink to="/plc" onClick={onClose} className={navLinkClass}>
+                <Cpu size={20} />
+                <span className="text-sm sm:text-base">List PLC</span>
               </NavLink>
             </li>
           </RoleBasedContent>

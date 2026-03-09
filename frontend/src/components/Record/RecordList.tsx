@@ -9,7 +9,7 @@ import {
   User,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Record } from "../../types";
+import { PreRecord as Record } from "../../types";
 import { recordService } from "../../services/api";
 import {
   showSuccessToast,
@@ -76,7 +76,7 @@ const RecordList: React.FC = () => {
     showConfirmationToast(`Hapus record "${recordDesc}"?`, async () => {
       const loadingToastId = showLoadingToast("Menghapus record...");
       try {
-        await recordService.delete(recordId.toString());
+        await recordService.delete(recordId);
         await fetchRecords();
         showSuccessToast(
           "Record berhasil dihapus!",
