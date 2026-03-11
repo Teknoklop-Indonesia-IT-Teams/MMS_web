@@ -133,8 +133,14 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">
             QR Code For Maintenance - {equipment.nama}

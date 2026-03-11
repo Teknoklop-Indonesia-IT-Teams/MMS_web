@@ -311,8 +311,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="w-full max-w-2xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-2xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold">
             {equipment ? "Edit Alat" : "Tambah Alat"}

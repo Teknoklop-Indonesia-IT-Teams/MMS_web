@@ -16,7 +16,9 @@ import MaintenanceEquipmentDetailQR from "./components/Equipment/MaintenanceEqui
 // Lazy load ALL components for maximum code splitting
 const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
 const StaffList = lazy(() => import("./components/Staff/StaffList"));
-const MasterDataPage = lazy(() => import("./components/MasterData/MasterDataPage"));
+const MasterDataPage = lazy(
+  () => import("./components/MasterData/MasterDataPage"),
+);
 const EquipmentTable = lazy(
   () => import("./components/Equipment/EquipmentTable"),
 );
@@ -51,7 +53,7 @@ const LoadingSpinner = () => (
 function AppStateComponent() {
   const pageLifecycle = usePageLifecycle();
 
-  useEffect(() => { }, [pageLifecycle]);
+  useEffect(() => {}, [pageLifecycle]);
 
   return null;
 }
@@ -65,7 +67,6 @@ function App() {
           v7_relativeSplatPath: true,
         }}
       >
-
         <AuthProvider>
           <EquipmentProvider>
             <AppStateComponent />
@@ -103,6 +104,8 @@ function App() {
                     }
                   />
 
+                  <Route path="/public-dashboard" element={<Dashboard />} />
+
                   {/* Telemetri/Equipment Routes */}
                   <Route
                     path="/telemetri"
@@ -134,7 +137,8 @@ function App() {
                           <MasterDataPage />
                         </LayoutWrapper>
                       </ProtectedRoute>
-                    } />
+                    }
+                  />
 
                   {/* Staff/Petugas Routes */}
                   <Route

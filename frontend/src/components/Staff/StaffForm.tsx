@@ -68,8 +68,14 @@ const StaffForm: React.FC<StaffFormProps> = ({ user, onSave, onCancel }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-5">
-      <div className="w-full sm:max-w-lg bg-white sm:rounded-xl shadow-2xl h-[95vh] sm:h-auto overflow-hidden flex flex-col">
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-5"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full sm:max-w-lg bg-white sm:rounded-xl shadow-2xl h-[95vh] sm:h-auto overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 sm:p-6 bg-gradient-to-r from-blue-500 to-blue-600">
           <div className="flex items-center gap-2">
