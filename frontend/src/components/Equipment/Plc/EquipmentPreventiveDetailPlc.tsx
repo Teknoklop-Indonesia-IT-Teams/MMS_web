@@ -102,7 +102,7 @@ function ImageThumbnail({ src, alt }: { src: string; alt?: string }) {
         <img
           src={fullSrc}
           alt={alt || "Record Image"}
-          className="object-cover transition-opacity border border-gray-200 rounded-md shadow-sm w-14 h-14 group-hover:opacity-80"
+          className="object-cover transition-opacity border border-gray-200 rounded-md shadow-sm dark:border-gray-600 w-14 h-14 group-hover:opacity-80"
         />
         <div className="absolute inset-0 flex items-center justify-center transition-all bg-black bg-opacity-0 rounded-md group-hover:bg-opacity-30">
           <ZoomIn
@@ -314,7 +314,7 @@ export default function PlcPreventiveDetail({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
           >
             <X size={24} />
           </button>
@@ -353,7 +353,7 @@ export default function PlcPreventiveDetail({
                   Status
                 </label>
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}
                 >
                   {equipment.status}
                 </span>
@@ -373,8 +373,8 @@ export default function PlcPreventiveDetail({
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 border-2 border-gray-300 border-dashed rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                    <ImageIcon size={40} className="mb-2 text-gray-400" />
-                    <span className="text-sm text-gray-500">
+                    <ImageIcon size={40} className="mb-2 text-gray-400 dark:text-gray-500" />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       No Image Available
                     </span>
                   </div>
@@ -567,7 +567,7 @@ export default function PlcPreventiveDetail({
                             <div key={idx} className="relative w-20 h-20 group">
                               <img
                                 src={src}
-                                className="object-cover w-full h-full border border-gray-300 rounded-md"
+                                className="object-cover w-full h-full border border-gray-300 rounded-md dark:border-gray-600"
                               />
                               <button
                                 type="button"
@@ -582,15 +582,15 @@ export default function PlcPreventiveDetail({
                       )}
                       <label
                         htmlFor="plc-record-image"
-                        className="flex flex-col items-center justify-center w-full h-20 transition-colors border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600"
+                        className="flex flex-col items-center justify-center w-full h-20 transition-colors border-2 border-gray-300 border-dashed rounded-md cursor-pointer dark:border-gray-500 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600"
                       >
-                        <Upload size={20} className="mb-1 text-gray-400" />
-                        <span className="text-sm text-gray-500">
+                        <Upload size={20} className="mb-1 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           {imagePreviews.length > 0
                             ? "Tambah gambar lagi"
                             : "Klik untuk upload gambar"}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
                           JPG, PNG, GIF, WEBP — Maks. 5MB
                         </span>
                         <input
@@ -654,7 +654,7 @@ export default function PlcPreventiveDetail({
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-4 py-8 text-sm text-center text-gray-400"
+                        className="px-4 py-8 text-sm text-center text-gray-400 dark:text-gray-500"
                       >
                         Belum ada record preventive PLC.
                       </td>
@@ -700,8 +700,8 @@ export default function PlcPreventiveDetail({
                               )}
                             </div>
                           ) : (
-                            <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-md w-14 h-14 dark:bg-gray-700">
-                              <ImageIcon size={18} className="text-gray-300" />
+                            <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-md w-14 h-14 dark:bg-gray-700 dark:border-gray-600">
+                              <ImageIcon size={18} className="text-gray-300 dark:text-gray-500" />
                             </div>
                           )}
                         </td>
@@ -758,7 +758,7 @@ export default function PlcPreventiveDetail({
                                       ),
                                     )}
                                   </div>
-                                  <p className="mt-1 text-xs text-gray-400">
+                                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                     Klik gambar untuk memperbesar
                                   </p>
                                 </div>

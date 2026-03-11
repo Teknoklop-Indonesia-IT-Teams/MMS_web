@@ -65,7 +65,6 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
   const [jenisList, setJenisList] = useState<JenisPlc[]>([]);
   const [loadingJenis, setLoadingJenis] = useState(false);
 
-  // Fetch jenis PLC dari API
   useEffect(() => {
     const fetchJenis = async () => {
       try {
@@ -253,9 +252,11 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
   };
 
   const inputClass = (field: string) =>
-    `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors[field] ? "border-red-500" : "border-gray-300"}`;
+    `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${errors[field]
+      ? "border-red-500 dark:border-red-500"
+      : "border-gray-300 dark:border-gray-600"
+    }`;
 
-  // Options untuk SearchableSelect
   const jenisOptions = jenisList.map((j) => ({
     value: String(j.id),
     label: j.jenis_plc,
@@ -277,7 +278,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
           </h2>
           <button
             onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
           >
             <X size={24} />
           </button>
@@ -398,7 +399,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
                           status: e.target.value as Equipment["status"],
                         })
                       }
-                      className="mr-2"
+                      className="mr-2 accent-blue-600"
                     />
                     {s}
                   </label>
@@ -415,7 +416,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
               onChange={(e) =>
                 setFormData({ ...formData, remot: e.target.checked })
               }
-              className="mr-2"
+              className="mr-2 accent-blue-600"
             />
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Remote
@@ -515,7 +516,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
                 />
                 <label
                   htmlFor="plc-image-upload"
-                  className="flex items-center px-4 py-2 space-x-2 bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200"
+                  className="flex items-center px-4 py-2 space-x-2 bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
                 >
                   <Upload size={16} />
                   <span>
@@ -535,8 +536,8 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
               </div>
 
               {imageLoading && (
-                <div className="flex items-center space-x-2 text-blue-600">
-                  <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                  <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full dark:border-blue-400 animate-spin"></div>
                   <span className="text-sm">
                     {isHeicFile ? "Processing HEIC..." : "Loading preview..."}
                   </span>
@@ -548,7 +549,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg"
+                    className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg dark:border-gray-600"
                   />
                   {isHeicFile && (
                     <div className="absolute -top-1 -right-1 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
@@ -560,7 +561,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
             </div>
           </div>
 
-          {/* Maintenance Settings (hanya saat tambah baru) */}
+          {/* Maintenance Settings */}
           {!equipment && (
             <div className="pt-6 border-t dark:border-gray-700">
               <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
@@ -578,7 +579,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
                         isMaintenanceActive: e.target.checked,
                       })
                     }
-                    className="mr-2"
+                    className="mr-2 accent-blue-600"
                   />
                   <label
                     htmlFor="plcMaintenanceActive"
@@ -601,7 +602,7 @@ const PlcForm: React.FC<PlcFormProps> = ({ equipment, onSave, onCancel }) => {
                           maintenanceInterval: parseInt(e.target.value) || 90,
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                       min="1"
                       placeholder="90"
                     />

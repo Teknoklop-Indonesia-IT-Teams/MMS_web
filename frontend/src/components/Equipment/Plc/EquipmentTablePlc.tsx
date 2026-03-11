@@ -111,7 +111,7 @@ const PlcTable: React.FC = () => {
         {
             header: "Remote", accessorKey: "remot", size: 80,
             cell: ({ getValue }) => (
-                <span className={`px-2 py-1 text-sm font-medium rounded ${getValue<boolean>() ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
+                <span className={`px-2 py-1 text-sm font-medium rounded ${getValue<boolean>() ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"}`}>
                     {getValue<boolean>() ? "On" : "Off"}
                 </span>
             ),
@@ -122,13 +122,13 @@ const PlcTable: React.FC = () => {
                 const original = getValue<string>() || "";
                 const s = original.toLowerCase().trim();
                 const map: Record<string, string> = {
-                    garansi: "bg-green-100 text-green-800 border border-green-200",
-                    habis: "bg-gray-100 text-gray-800 border border-gray-200",
-                    maintenance: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-                    rusak: "bg-red-100 text-red-800 border border-red-200",
+                    garansi: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700",
+                    habis: "bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600",
+                    maintenance: "bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700",
+                    rusak: "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700",
                 };
                 return (
-                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${map[s] || "bg-orange-100 text-orange-800 border border-orange-200"}`}>
+                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${map[s] || "bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-700"}`}>
                         {original}
                     </span>
                 );
@@ -350,7 +350,7 @@ const PlcTable: React.FC = () => {
                                 onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>‹</button>
                             <div className="flex items-center px-3 py-1 text-sm text-gray-700 dark:text-gray-300 min-w-[60px] justify-center">
                                 <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span>
-                                <span className="mx-1 text-gray-400">/</span>
+                                <span className="mx-1 text-gray-400 dark:text-gray-500">/</span>
                                 <span>{table.getPageCount()}</span>
                             </div>
                             <button

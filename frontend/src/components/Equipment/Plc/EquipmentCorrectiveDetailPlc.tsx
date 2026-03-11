@@ -11,7 +11,6 @@ import {
 import { Equipment } from "../../../types";
 import { recordPlcService, staffService } from "../../../services/api";
 import { useToast } from "../../../hooks/useToast";
-import { useAuth } from "../../../hooks/useAuth";
 import SearchableSelect from "../../Common/SearchableSelect";
 import ImageDisplay from "../../Common/ImageDisplay";
 
@@ -99,7 +98,7 @@ function ImageThumbnail({ src, alt }: { src: string; alt?: string }) {
         <img
           src={full}
           alt={alt}
-          className="object-cover w-full h-full border border-gray-200 rounded-md"
+          className="object-cover w-full h-full border border-gray-200 rounded-md dark:border-gray-600"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-md group-hover:bg-opacity-30">
           <ZoomIn
@@ -122,8 +121,6 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
   const { showSuccess } = useToast();
 
   const [formData, setFormData] = useState({
@@ -273,14 +270,13 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <X size={24} />
           </button>
         </div>
 
         <div className="p-6">
-          {/* Detail alat — sama seperti preventive */}
           <div className="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -319,7 +315,7 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                   Status
                 </label>
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}
                 >
                   {equipment.status}
                 </span>
@@ -339,8 +335,8 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 border-2 border-gray-300 border-dashed rounded-lg dark:bg-gray-700 dark:border-gray-600">
-                    <ImageIcon size={40} className="mb-2 text-gray-400" />
-                    <span className="text-sm text-gray-500">
+                    <ImageIcon size={40} className="mb-2 text-gray-400 dark:text-gray-500" />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       No Image Available
                     </span>
                   </div>
@@ -354,15 +350,13 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
               <h3 className="text-lg font-semibold dark:text-gray-200">
                 Record Corrective
               </h3>
-              {isAdmin && (
-                <button
-                  onClick={() => setShowAddRecord(true)}
-                  className="flex items-center px-4 py-2 space-x-2 text-white bg-orange-600 rounded-lg hover:bg-orange-700"
-                >
-                  <Plus size={16} />
-                  <span>Tambah Record</span>
-                </button>
-              )}
+              <button
+                onClick={() => setShowAddRecord(true)}
+                className="flex items-center px-4 py-2 space-x-2 text-white bg-orange-600 rounded-lg hover:bg-orange-700"
+              >
+                <Plus size={16} />
+                <span>Tambah Record</span>
+              </button>
             </div>
 
             {showAddRecord && (
@@ -400,7 +394,6 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                         required
                       />
                     </div>
-                    {/* Petugas — SearchableSelect */}
                     <div>
                       <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                         Petugas *
@@ -422,21 +415,9 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                       { label: "Kondisi Awal *", key: "awal", required: true },
                       { label: "Tindakan *", key: "tindakan", required: true },
                       { label: "Spareparts", key: "tambahan", required: false },
-                      {
-                        label: "Kondisi Akhir *",
-                        key: "akhir",
-                        required: true,
-                      },
-                      {
-                        label: "Rencana Berikutnya",
-                        key: "berikutnya",
-                        required: false,
-                      },
-                      {
-                        label: "Keterangan",
-                        key: "keterangan",
-                        required: false,
-                      },
+                      { label: "Kondisi Akhir *", key: "akhir", required: true },
+                      { label: "Rencana Berikutnya", key: "berikutnya", required: false },
+                      { label: "Keterangan", key: "keterangan", required: false },
                     ].map(({ label, key, required }) => (
                       <div key={key}>
                         <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -491,7 +472,7 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                             <div key={idx} className="relative w-20 h-20 group">
                               <img
                                 src={src}
-                                className="object-cover w-full h-full border border-gray-300 rounded-md"
+                                className="object-cover w-full h-full border border-gray-300 rounded-md dark:border-gray-600"
                               />
                               <button
                                 type="button"
@@ -506,10 +487,10 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                       )}
                       <label
                         htmlFor="plc-corrective-image"
-                        className="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-gray-600"
+                        className="flex flex-col items-center justify-center w-full h-20 border-2 border-gray-300 border-dashed rounded-md cursor-pointer dark:border-gray-500 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-gray-600"
                       >
-                        <Upload size={20} className="mb-1 text-gray-400" />
-                        <span className="text-sm text-gray-500">
+                        <Upload size={20} className="mb-1 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           {imagePreviews.length > 0
                             ? "Tambah gambar lagi"
                             : "Upload gambar alat"}
@@ -574,7 +555,7 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-4 py-8 text-sm text-center text-gray-400"
+                        className="px-4 py-8 text-sm text-center text-gray-400 dark:text-gray-500"
                       >
                         Belum ada record corrective PLC.
                       </td>
@@ -595,7 +576,6 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                         <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
                           {record.tindakan}
                         </td>
-                        {/* 1 gambar + badge */}
                         <td className="px-4 py-4">
                           {record.i_alat && record.i_alat.length > 0 ? (
                             <div
@@ -618,8 +598,8 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                               )}
                             </div>
                           ) : (
-                            <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-md w-14 h-14 dark:bg-gray-700">
-                              <ImageIcon size={18} className="text-gray-300" />
+                            <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-md w-14 h-14 dark:bg-gray-700 dark:border-gray-600">
+                              <ImageIcon size={18} className="text-gray-300 dark:text-gray-500" />
                             </div>
                           )}
                         </td>
@@ -631,14 +611,12 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                             >
                               <BookOpen size={12} />
                             </button>
-                            {isAdmin && (
-                              <button
-                                onClick={() => handleDelete(record.id)}
-                                className="p-1 text-white bg-red-600 rounded hover:bg-red-700"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleDelete(record.id)}
+                              className="p-1 text-white bg-red-600 rounded hover:bg-red-700"
+                            >
+                              <Trash2 size={12} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -677,7 +655,7 @@ export default function PlcCorrectiveDetail({ equipment, onClose }: Props) {
                                       />
                                     ))}
                                   </div>
-                                  <p className="mt-1 text-xs text-gray-400">
+                                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                     Klik gambar untuk memperbesar
                                   </p>
                                 </div>

@@ -8,6 +8,7 @@ import {
   cleanupPreviewUrl,
   ConversionResult,
 } from "../../utils/autoHeicConverter";
+import SearchableSelect from "../Common/SearchableSelect";
 
 interface EquipmentFormProps {
   equipment: Equipment | null;
@@ -70,11 +71,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     useState<ConversionResult | null>(null);
   const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
 
-  // ✅ State untuk jenis telemetry dinamis
   const [jenisList, setJenisList] = useState<JenisTelemetry[]>([]);
   const [loadingJenis, setLoadingJenis] = useState(false);
 
-  // ✅ Fetch jenis telemetry dari API
+  // Fetch jenis telemetry dari API
   useEffect(() => {
     const fetchJenis = async () => {
       try {
@@ -85,7 +85,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         const data: JenisTelemetry[] = await response.json();
         setJenisList(data);
 
-        // Set default jenis ke item pertama jika form tambah baru
         if (!equipment && data.length > 0) {
           setFormData((prev) => ({
             ...prev,
@@ -310,22 +309,38 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     console.log("🗑️ Image marked for removal");
   };
 
+  // Reusable class strings
+  const inputClass = (hasError?: boolean) =>
+    `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500
+     bg-white dark:bg-gray-700
+     text-gray-900 dark:text-gray-100
+     placeholder-gray-400 dark:placeholder-gray-500
+     ${hasError ? "border-red-500 dark:border-red-500" : "border-gray-300 dark:border-gray-600"}`;
+
+  const labelClass = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
+
+  const jenisOptions = jenisList.map((j) => ({
+    value: j.jenis_telemetry,
+    label: j.jenis_telemetry,
+  }));
+
+  const picOptions = staffList.map((s) => ({
+    value: s.nama,
+    label: s.nama,
+  }));
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-2xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="w-full max-w-2xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl dark:bg-gray-800">
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {equipment ? "Edit Alat" : "Tambah Alat"}
           </h2>
           <button
             onClick={onCancel}
-            className="text-gray-400 transition-colors hover:text-gray-600"
+            className="text-gray-400 transition-colors dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <X size={24} />
           </button>
@@ -333,259 +348,184 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+            {/* Nama */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Nama <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.nama}
                 placeholder="ARR"
-                onChange={(e) =>
-                  setFormData({ ...formData, nama: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.nama ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                className={inputClass(!!errors.nama)}
               />
-              {errors.nama && (
-                <p className="mt-1 text-xs text-red-500">{errors.nama}</p>
-              )}
+              {errors.nama && <p className="mt-1 text-xs text-red-500">{errors.nama}</p>}
             </div>
 
+            {/* Lokasi */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Lokasi <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.lokasi}
                 placeholder="Bendungan Selorejo"
-                onChange={(e) =>
-                  setFormData({ ...formData, lokasi: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.lokasi ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, lokasi: e.target.value })}
+                className={inputClass(!!errors.lokasi)}
               />
-              {errors.lokasi && (
-                <p className="mt-1 text-xs text-red-500">{errors.lokasi}</p>
-              )}
+              {errors.lokasi && <p className="mt-1 text-xs text-red-500">{errors.lokasi}</p>}
             </div>
 
-            {/* ✅ Dropdown Jenis - sekarang dinamis dari API */}
+            {/* Jenis — SearchableSelect */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Jenis <span className="text-red-500">*</span>
               </label>
-              <select
+              <SearchableSelect
+                options={jenisOptions}
                 value={formData.jenis}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    jenis: e.target.value as Equipment["jenis"],
-                  })
+                onChange={(val) =>
+                  setFormData({ ...formData, jenis: val as Equipment["jenis"] })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={loadingJenis ? "Memuat data jenis..." : "Pilih Jenis"}
                 disabled={loadingJenis}
-              >
-                <option value="">
-                  {loadingJenis ? "Memuat data jenis..." : "Pilih Jenis"}
-                </option>
-                {jenisList.map((jenis) => (
-                  <option key={jenis.id} value={jenis.jenis_telemetry}>
-                    {jenis.jenis_telemetry}
-                  </option>
-                ))}
-              </select>
+              />
               {loadingJenis && (
-                <p className="mt-1 text-xs text-gray-400">Memuat...</p>
+                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">Memuat...</p>
               )}
             </div>
 
+            {/* Tanggal Instalasi */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Tanggal Instalasi (BAST)<span className="text-red-500">*</span>
+              <label className={labelClass}>
+                Tanggal Instalasi (BAST) <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.instalasi}
-                onChange={(e) =>
-                  setFormData({ ...formData, instalasi: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.instalasi ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, instalasi: e.target.value })}
+                className={inputClass(!!errors.instalasi)}
               />
-              {errors.instalasi && (
-                <p className="mt-1 text-xs text-red-500">{errors.instalasi}</p>
-              )}
+              {errors.instalasi && <p className="mt-1 text-xs text-red-500">{errors.instalasi}</p>}
             </div>
 
+            {/* Garansi */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Garansi <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.garansi}
-                onChange={(e) =>
-                  setFormData({ ...formData, garansi: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.garansi ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, garansi: e.target.value })}
+                className={inputClass(!!errors.garansi)}
               />
-              {errors.garansi && (
-                <p className="mt-1 text-xs text-red-500">{errors.garansi}</p>
-              )}
+              {errors.garansi && <p className="mt-1 text-xs text-red-500">{errors.garansi}</p>}
             </div>
 
+            {/* Status */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                Status
-              </label>
+              <label className={labelClass}>Status</label>
               <div className="flex pt-2 space-x-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="Garansi"
-                    checked={formData.status === "Garansi"}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as Equipment["status"],
-                      })
-                    }
-                    className="mr-2"
-                  />
-                  Garansi
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="Habis"
-                    checked={formData.status === "Habis"}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as Equipment["status"],
-                      })
-                    }
-                    className="mr-2"
-                  />
-                  Habis
-                </label>
+                {(["Garansi", "Habis"] as Equipment["status"][]).map((s) => (
+                  <label key={s} className="flex items-center text-sm text-gray-700 cursor-pointer dark:text-gray-300">
+                    <input
+                      type="radio"
+                      value={s}
+                      checked={formData.status === s}
+                      onChange={(e) =>
+                        setFormData({ ...formData, status: e.target.value as Equipment["status"] })
+                      }
+                      className="mr-2 accent-blue-600"
+                    />
+                    {s}
+                  </label>
+                ))}
               </div>
             </div>
           </div>
 
+          {/* Remote */}
           <div className="flex items-center mb-4">
             <input
               type="checkbox"
               checked={formData.remot}
-              onChange={(e) =>
-                setFormData({ ...formData, remot: e.target.checked })
-              }
-              className="mr-2"
+              onChange={(e) => setFormData({ ...formData, remot: e.target.checked })}
+              className="mr-2 accent-blue-600"
             />
-            <label className="text-sm font-medium text-gray-700">Remote</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Remote</label>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+            {/* Device */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Device <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.device}
                 placeholder="RTCU"
-                onChange={(e) =>
-                  setFormData({ ...formData, device: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.device ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, device: e.target.value })}
+                className={inputClass(!!errors.device)}
               />
-              {errors.device && (
-                <p className="mt-1 text-xs text-red-500">{errors.device}</p>
-              )}
+              {errors.device && <p className="mt-1 text-xs text-red-500">{errors.device}</p>}
             </div>
 
+            {/* Sensor */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Sensor <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.sensor}
                 placeholder="Vegapulse C23"
-                onChange={(e) =>
-                  setFormData({ ...formData, sensor: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.sensor ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, sensor: e.target.value })}
+                className={inputClass(!!errors.sensor)}
               />
-              {errors.sensor && (
-                <p className="mt-1 text-xs text-red-500">{errors.sensor}</p>
-              )}
+              {errors.sensor && <p className="mt-1 text-xs text-red-500">{errors.sensor}</p>}
             </div>
 
+            {/* Pelanggan */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Pelanggan <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.pelanggan}
                 placeholder="PJTI"
-                onChange={(e) =>
-                  setFormData({ ...formData, pelanggan: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.pelanggan ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(e) => setFormData({ ...formData, pelanggan: e.target.value })}
+                className={inputClass(!!errors.pelanggan)}
               />
-              {errors.pelanggan && (
-                <p className="mt-1 text-xs text-red-500">{errors.pelanggan}</p>
-              )}
+              {errors.pelanggan && <p className="mt-1 text-xs text-red-500">{errors.pelanggan}</p>}
             </div>
 
+            {/* PIC — SearchableSelect */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 PIC <span className="text-red-500">*</span>
               </label>
-              <select
+              <SearchableSelect
+                options={picOptions}
                 value={formData.pic}
-                onChange={(e) =>
-                  setFormData({ ...formData, pic: e.target.value })
-                }
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.pic ? "border-red-500" : "border-gray-300"
-                }`}
+                onChange={(val) => setFormData({ ...formData, pic: val })}
+                placeholder={loadingStaff ? "Memuat data petugas..." : "Pilih PIC"}
                 disabled={loadingStaff}
-              >
-                <option value="">
-                  {loadingStaff ? "Memuat data petugas..." : "Pilih PIC"}
-                </option>
-                {staffList.map((staff) => (
-                  <option key={staff.id} value={staff.nama}>
-                    {staff.nama}
-                  </option>
-                ))}
-              </select>
-              {errors.pic && (
-                <p className="mt-1 text-xs text-red-500">{errors.pic}</p>
-              )}
+                hasError={!!errors.pic}
+              />
+              {errors.pic && <p className="mt-1 text-xs text-red-500">{errors.pic}</p>}
             </div>
           </div>
 
+          {/* Gambar */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              Gambar
-            </label>
+            <label className={labelClass}>Gambar</label>
             <div className="space-y-3">
               <div className="flex items-center space-x-4">
                 <input
@@ -597,10 +537,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                 />
                 <label
                   htmlFor="image-upload"
-                  className="flex items-center px-4 py-2 space-x-2 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200"
+                  className="flex items-center px-4 py-2 space-x-2 text-gray-700 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   <Upload size={16} />
-                  <span>
+                  <span className="text-sm">
                     {selectedFile ? selectedFile.name : "Choose File"}
                   </span>
                 </label>
@@ -618,12 +558,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               </div>
 
               {imageLoading && (
-                <div className="flex items-center space-x-2 text-blue-600">
-                  <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                  <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full dark:border-blue-400 animate-spin"></div>
                   <span className="text-sm">
-                    {isHeicFile
-                      ? "Processing HEIC file..."
-                      : "Loading preview..."}
+                    {isHeicFile ? "Processing HEIC file..." : "Loading preview..."}
                   </span>
                 </div>
               )}
@@ -634,9 +572,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg"
+                      className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg dark:border-gray-600"
                       onError={(e) => {
-                        console.log("Image failed to load, showing fallback");
                         e.currentTarget.src =
                           "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+PHBhdGggZD0iTTI1IDMwaDMwdjIwSDI1VjMweiIgZmlsbD0iIzlDQTNBRiIvPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzciIHI9IjMiIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJtMzggNDMgNS01IDcgN1Y1MEgyNXYtN2w3LTciIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4K";
                       }}
@@ -650,14 +587,14 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
                   {selectedFile && (
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {selectedFile.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {(selectedFile.size / 1024).toFixed(1)} KB
                       </p>
                       {isHeicFile && (
-                        <p className="text-xs text-green-600">
+                        <p className="text-xs text-green-600 dark:text-green-400">
                           ✓ HEIC converted to JPEG
                         </p>
                       )}
@@ -668,9 +605,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
             </div>
           </div>
 
+          {/* Pengaturan Maintenance — hanya saat tambah baru */}
           {!equipment && (
-            <div className="pt-6 border-t">
-              <h3 className="mb-4 text-lg font-semibold text-gray-800">
+            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Pengaturan Maintenance
               </h3>
               <div className="space-y-4">
@@ -680,16 +618,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                     id="maintenanceActive"
                     checked={formData.isMaintenanceActive}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isMaintenanceActive: e.target.checked,
-                      })
+                      setFormData({ ...formData, isMaintenanceActive: e.target.checked })
                     }
-                    className="mr-2"
+                    className="mr-2 accent-blue-600"
                   />
                   <label
                     htmlFor="maintenanceActive"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
                     Aktifkan Maintenance
                   </label>
@@ -697,9 +632,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
                 {formData.isMaintenanceActive && (
                   <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700">
-                      Interval Maintenance (hari)
-                    </label>
+                    <label className={labelClass}>Interval Maintenance (hari)</label>
                     <input
                       type="number"
                       value={formData.maintenanceInterval}
@@ -709,7 +642,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
                           maintenanceInterval: parseInt(e.target.value) || 90,
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={inputClass()}
                       min="1"
                       placeholder="90"
                     />
@@ -719,6 +652,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
             </div>
           )}
 
+          {/* Action buttons */}
           <div className="flex pt-6 space-x-3">
             <button
               type="submit"
