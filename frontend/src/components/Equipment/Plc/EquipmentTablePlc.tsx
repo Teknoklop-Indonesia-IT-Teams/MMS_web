@@ -110,11 +110,15 @@ const PlcTable: React.FC = () => {
         },
         {
             header: "Remote", accessorKey: "remot", size: 80,
-            cell: ({ getValue }) => (
-                <span className={`px-2 py-1 text-sm font-medium rounded ${getValue<boolean>() ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"}`}>
-                    {getValue<boolean>() ? "On" : "Off"}
-                </span>
-            ),
+            cell: ({ getValue }) => {
+                const val = getValue<any>();
+                const isOn = val === true || val === 1 || val === "1" || val === "on" || val === "true";
+                return (
+                    <span className={`px-2 py-1 text-sm font-medium rounded ${isOn ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"}`}>
+                        {isOn ? "On" : "Off"}
+                    </span>
+                );
+            },
         },
         {
             header: "Status", accessorKey: "status", size: 100,
