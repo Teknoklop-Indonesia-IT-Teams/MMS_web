@@ -18,7 +18,7 @@ const AuthRedirect = () => {
 
   // Redirect based on authentication status
   return isAuthenticated ? (
-    <Navigate to="/dashboard" replace />
+    <Navigate to="/dashboard-telemetry" replace />
   ) : (
     <Navigate to="/login" replace />
   );

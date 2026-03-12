@@ -43,7 +43,7 @@ export default defineConfig({
           // Large components - split them separately
           "equipment-table": ["src/components/Equipment/EquipmentTable.tsx"],
           "equipment-form": ["src/components/Equipment/EquipmentForm.tsx"],
-          dashboard: ["src/components/Dashboard/Dashboard.tsx"],
+          dashboard: ["src/components/DashboardTelemetry/Dashboard.tsx"],
         },
         // Optimize chunk names
         chunkFileNames: (chunkInfo) => {

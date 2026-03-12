@@ -176,7 +176,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (success) {
           setUser(userData);
           // Navigate to dashboard
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboard-telemetry", { replace: true });
         } else {
           console.error("❌ Enhanced Auth: Failed to save auth data");
           throw new Error("Failed to save authentication data");

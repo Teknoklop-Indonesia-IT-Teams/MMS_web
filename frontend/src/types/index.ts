@@ -38,22 +38,66 @@ export interface Equipment {
   isMaintenanceActive?: boolean | number | null;
   maintenanceDaysLeft?: number | null;
   maintenanceStatus?:
-  | "active"
-  | "inactive"
-  | "selesai"
-  | "overdue"
-  | "urgent"
-  | "needed"
-  | "good";
+    | "active"
+    | "inactive"
+    | "selesai"
+    | "overdue"
+    | "urgent"
+    | "needed"
+    | "good";
   maintenanceAlertLevel?:
-  | "green"
-  | "yellow"
-  | "red"
-  | "blue"
-  | "none"
-  | "urgent"
-  | "warning"
-  | "good";
+    | "green"
+    | "yellow"
+    | "red"
+    | "blue"
+    | "none"
+    | "urgent"
+    | "warning"
+    | "good";
+  maintenanceStatusText?: string;
+  nextMaintenanceDate?: string;
+  maintenanceActivities?: MaintenanceActivity[];
+  hasValidDate?: boolean;
+  // maintenanceEnabled?: boolean | number | undefined;
+  dateSource?: "record" | "instalasi" | "none";
+}
+
+export interface EquipmentPLC {
+  id: number;
+  nama: string;
+  lokasi: string;
+  jenis: string;
+  instalasi: string;
+  garansi: string;
+  remot: string;
+  status: string;
+  device: string;
+  sensor: string;
+  pelanggan: string;
+  pic: string;
+  email?: string;
+  i_alat?: string;
+  maintenanceDate?: string;
+  maintenanceInterval?: number;
+  isMaintenanceActive?: boolean | number | null;
+  maintenanceDaysLeft?: number | null;
+  maintenanceStatus?:
+    | "active"
+    | "inactive"
+    | "selesai"
+    | "overdue"
+    | "urgent"
+    | "needed"
+    | "good";
+  maintenanceAlertLevel?:
+    | "green"
+    | "yellow"
+    | "red"
+    | "blue"
+    | "none"
+    | "urgent"
+    | "warning"
+    | "good";
   maintenanceStatusText?: string;
   nextMaintenanceDate?: string;
   maintenanceActivities?: MaintenanceActivity[];

@@ -98,7 +98,7 @@ const Login: React.FC = () => {
 
       // Delay navigation untuk memberikan waktu user melihat pesan success
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/dashboard-telemetry");
       }, 3500); // Total 3.5 detik untuk experience yang optimal
     } catch (error: unknown) {
       console.error("❌ Robust Login: Login failed:", error);

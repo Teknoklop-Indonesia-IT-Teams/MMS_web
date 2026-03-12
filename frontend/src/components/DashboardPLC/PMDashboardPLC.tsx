@@ -9,24 +9,23 @@ import {
   Eye,
   Wrench,
 } from "lucide-react";
-import { useDashboardData } from "../../hooks/useLazyEquipment";
-import { CorRecord, Equipment } from "../../types";
-import { alatService, recordCorrectiveService } from "../../services/api";
+import { EquipmentPLC, PreRecord } from "../../types";
+import { alatPlcService, recordPlcService } from "../../services/api";
 
-interface CMDashboardProps {
+interface PMDashboardPLCProps {
   selectedFilter: string; // Ubah dari isSelected ke selectedFilter
   hasActiveFilter?: boolean;
-  equipment: Equipment[]; // Tambahkan prop equipment dari parent
+  equipment: EquipmentPLC[]; // Tambahkan prop equipment dari parent
 }
 
-const CMDashboard: React.FC<CMDashboardProps> = ({
+const PMDashboardPLC: React.FC<PMDashboardPLCProps> = ({
   selectedFilter,
   hasActiveFilter = false,
   equipment,
 }) => {
   // State untuk history maintenance
-  const [maintenanceRecords, setMaintenanceRecords] = useState<CorRecord[]>([]);
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [maintenanceRecords, setMaintenanceRecords] = useState<PreRecord[]>([]);
+  const [equipments, setEquipments] = useState<EquipmentPLC[]>([]);
   const [loadingRecords, setLoadingRecords] = useState<boolean>(false);
   const [showRecordsModal, setShowRecordsModal] = useState<boolean>(false);
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
@@ -35,9 +34,8 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
   const fetchMaintenanceRecords = useCallback(async () => {
     try {
       setLoadingRecords(true);
-      const response = await recordCorrectiveService.getAll();
+      const response = await recordPlcService.getAll();
       setMaintenanceRecords(response.data || []);
-      console.log("RESPONSE", response.data);
     } catch (error) {
       console.error("Error fetching maintenance records:", error);
       setMaintenanceRecords([]);
@@ -48,7 +46,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
 
   const fetchEquipments = useCallback(async () => {
     try {
-      const response = await alatService.getAll();
+      const response = await alatPlcService.getAll();
       setEquipments(response.data || []);
     } catch (error) {
       console.error("Error fetching equipment:", error);
@@ -64,7 +62,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
 
   // Create equipment map for fast lookup
   const equipmentMap = useMemo(() => {
-    const map = new Map<number, Equipment>();
+    const map = new Map<number, EquipmentPLC>();
     equipments.forEach((eq) => {
       map.set(Number(eq.id), eq);
     });
@@ -109,6 +107,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
   const toggleRecordDetail = (recordId: number) => {
     setExpandedRecordId(expandedRecordId === recordId ? null : recordId);
   };
+
   return (
     <>
       <div className="mt-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
@@ -117,15 +116,15 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
             <div>
               <h3 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
                 <History className="mr-2" />
-                History Maintenance Corrective
-                {hasActiveFilter && (
+                History Maintenance Preventive
+                {hasActiveFilter && selectedFilter !== "all" && (
                   <span className="px-2 py-1 ml-2 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                     {selectedFilter}
                   </span>
                 )}
               </h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Riwayat perbaikan dan maintenance peralatan
+                Riwayat perawatan dan maintenance peralatan secara berkala
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -152,7 +151,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 <Wrench className="w-full h-full" />
               </div>
               <p className="text-gray-500 dark:text-gray-400">
-                {hasActiveFilter
+                {hasActiveFilter && selectedFilter !== "all"
                   ? `Tidak ada history maintenance untuk jenis ${selectedFilter}`
                   : "Belum ada history maintenance"}
               </p>
@@ -224,7 +223,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                               </div>
                             ) : (
                               <div className="text-sm italic text-gray-400">
-                                Equipment #{record.id_m_alat}
+                                EquipmentPLC #{record.id_m_alat}
                               </div>
                             );
                           })()}
@@ -329,7 +328,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Menampilkan 10 dari {filteredMaintenanceRecords.length} records
+                Menampilkan 5 dari {filteredMaintenanceRecords.length} records
               </p>
               <button
                 onClick={() => setShowRecordsModal(true)}
@@ -350,7 +349,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
             <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Semua History Maintenance Corrective
+                  Semua History Maintenance Preventive
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Total {filteredMaintenanceRecords.length} records
@@ -410,7 +409,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                  {filteredMaintenanceRecords.slice(0, 20).map((record) => {
+                  {filteredMaintenanceRecords.map((record) => {
                     const petugasName = record.petugas;
                     return (
                       <React.Fragment key={record.id}>
@@ -443,7 +442,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                                 </div>
                               ) : (
                                 <div className="text-sm italic text-gray-400">
-                                  Equipment #{record.id_m_alat}
+                                  EquipmentPLC #{record.id_m_alat}
                                 </div>
                               );
                             })()}
@@ -552,4 +551,4 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
   );
 };
 
-export default CMDashboard;
+export default PMDashboardPLC;

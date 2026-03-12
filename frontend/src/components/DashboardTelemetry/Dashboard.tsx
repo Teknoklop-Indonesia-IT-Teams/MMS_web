@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Filter,
   BarChart,
-  MapPinned,
+  ChartNoAxesCombined,
   History,
   ChevronDown,
+  ChartPie,
 } from "lucide-react";
 import DeviceCard from "./DeviceCard";
 import MaintenanceDashboard from "./MaintenanceDashboard";
@@ -56,7 +57,9 @@ const Dashboard: React.FC = () => {
 
   const equipmentByType = equipment.reduce(
     (acc, curr) => {
-      const jenis = curr.jenis?.trim().toUpperCase();
+      const jenis = curr.jenis?.trim();
+      if (!jenis) return acc;
+
       acc[jenis] = (acc[jenis] || 0) + 1;
       return acc;
     },
@@ -149,7 +152,7 @@ const Dashboard: React.FC = () => {
   const locationChartData = Object.entries(
     filteredEquipment.reduce(
       (acc, curr) => {
-        acc[curr.lokasi] = (acc[curr.lokasi] || 0) + 1;
+        acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
         return acc;
       },
       {} as Record<string, number>,
@@ -324,7 +327,8 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-3">
         <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            Status Peralatan
+            <ChartNoAxesCombined />{" "}
+            <span className="ml-2">Status Peralatan</span>
             {hasActiveFilter && (
               <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                 {selectedFilter}
@@ -339,8 +343,8 @@ const Dashboard: React.FC = () => {
 
         <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            <MapPinned />{" "}
-            <span className="ml-2">Peralatan Berdasarkan Lokasi</span>
+            <ChartPie />{" "}
+            <span className="ml-2">Peralatan Berdasarkan Jenis</span>
             {hasActiveFilter && (
               <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
                 {selectedFilter}

@@ -14,7 +14,7 @@ const Unauthorized: React.FC = () => {
     // Navigate based on user role
     switch (user?.role) {
       case "admin":
-        navigate("/dashboard");
+        navigate("/dashboard-telemetry");
         break;
       case "manager":
         navigate("/equipment");

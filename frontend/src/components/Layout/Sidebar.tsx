@@ -1,6 +1,14 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Users, Database, X, LayoutList, Cpu } from "lucide-react";
+import {
+  Home,
+  Users,
+  Database,
+  X,
+  LayoutList,
+  Cpu,
+  Monitor,
+} from "lucide-react";
 import { useAuth } from "../../hooks/useAuthSimple";
 import RoleBasedContent from "../Auth/RoleBasedContent";
 import { PERMISSIONS } from "../../constants/roles";
@@ -28,9 +36,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${isActive
-      ? "bg-blue-600 dark:bg-blue-700 text-white"
-      : "text-gray-300 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
+    `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors duration-200 ${
+      isActive
+        ? "bg-blue-600 dark:bg-blue-700 text-white"
+        : "text-gray-300 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white"
     }`;
 
   return (
@@ -56,9 +65,28 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           {/* Dashboard */}
           <RoleBasedContent allowedRoles={PERMISSIONS.DASHBOARD_VIEW}>
             <li>
-              <NavLink to="/dashboard" onClick={onClose} className={navLinkClass}>
+              <NavLink
+                to="/dashboard-telemetry"
+                onClick={onClose}
+                className={navLinkClass}
+              >
                 <Home size={20} />
-                <span className="text-sm sm:text-base">Dashboard</span>
+                <span className="text-sm sm:text-base">
+                  Dashboard Telemetry
+                </span>
+              </NavLink>
+            </li>
+          </RoleBasedContent>
+
+          <RoleBasedContent allowedRoles={PERMISSIONS.DASHBOARD_VIEW}>
+            <li>
+              <NavLink
+                to="/dashboard-plc"
+                onClick={onClose}
+                className={navLinkClass}
+              >
+                <Monitor size={20} />
+                <span className="text-sm sm:text-base">Dashboard PLC</span>
               </NavLink>
             </li>
           </RoleBasedContent>
@@ -66,7 +94,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           {/* List Telemetri */}
           <RoleBasedContent allowedRoles={PERMISSIONS.EQUIPMENT_VIEW}>
             <li>
-              <NavLink to="/telemetri" onClick={onClose} className={navLinkClass}>
+              <NavLink
+                to="/telemetri"
+                onClick={onClose}
+                className={navLinkClass}
+              >
                 <Database size={20} />
                 <span className="text-sm sm:text-base">List Telemetri</span>
               </NavLink>
@@ -95,7 +127,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           {/* ✅ Master Data - admin only */}
           <RoleBasedContent allowedRoles={PERMISSIONS.STAFF_VIEW}>
             <li>
-              <NavLink to="/master-data" onClick={onClose} className={navLinkClass}>
+              <NavLink
+                to="/master-data"
+                onClick={onClose}
+                className={navLinkClass}
+              >
                 <LayoutList size={20} />
                 <span className="text-sm sm:text-base">Master Data</span>
               </NavLink>

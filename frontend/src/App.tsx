@@ -1,5 +1,10 @@
 import { useEffect, Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AuthProvider from "./contexts/AuthContext";
@@ -12,9 +17,12 @@ import AuthRedirect from "./components/Auth/AuthRedirect";
 import LayoutWrapper from "./components/Layout/LayoutWrapper";
 import UsersProfile from "./components/Users/UsersProfile";
 import MaintenanceEquipmentDetailQR from "./components/Equipment/MaintenanceEquipmentDetailQR";
+import DashboardPLC from "./components/DashboardPLC/DashboardPLC";
 
 // Lazy load ALL components for maximum code splitting
-const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
+const Dashboard = lazy(
+  () => import("./components/DashboardTelemetry/Dashboard"),
+);
 const StaffList = lazy(() => import("./components/Staff/StaffList"));
 const MasterDataPage = lazy(
   () => import("./components/MasterData/MasterDataPage"),
@@ -94,7 +102,7 @@ function App() {
 
                   {/* Protected Routes */}
                   <Route
-                    path="/dashboard"
+                    path="/dashboard-telemetry"
                     element={
                       <ProtectedRoute>
                         <LayoutWrapper>
@@ -104,7 +112,26 @@ function App() {
                     }
                   />
 
-                  <Route path="/public-dashboard" element={<Dashboard />} />
+                  <Route
+                    path="/public-dashboard-telemetry"
+                    element={<Dashboard />}
+                  />
+
+                  <Route
+                    path="/dashboard-plc"
+                    element={
+                      <ProtectedRoute>
+                        <LayoutWrapper>
+                          <DashboardPLC />
+                        </LayoutWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/public-dashboard-plc"
+                    element={<DashboardPLC />}
+                  />
 
                   {/* Telemetri/Equipment Routes */}
                   <Route
@@ -175,7 +202,7 @@ function App() {
                   />
 
                   {/* Root redirect - check authentication first */}
-                  <Route path="/" element={<AuthRedirect />} />
+                  <Route path="/" element={<Navigate to="/login" replace />} />
 
                   {/* Catch all redirect - redirect to login if not authenticated */}
                   <Route path="*" element={<AuthRedirect />} />
