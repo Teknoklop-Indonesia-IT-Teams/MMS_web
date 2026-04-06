@@ -58,7 +58,7 @@ const PlcDescriptionModal: React.FC<Props> = ({ equipment, onClose }) => {
               <Row label="Lokasi" value={equipment.lokasi} />
               <Row label="Device" value={equipment.device} />
               <Row label="Sensor" value={equipment.sensor} />
-              <Row label="Pelanggan" value={equipment.pelanggan} />
+              <Row label="Pelanggan" value={equipment.pelanggan_nama || equipment.pelanggan} />
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                   Status

@@ -249,7 +249,7 @@ const SimpleEquipmentDetail: React.FC = () => {
                       Pelanggan
                     </p>
                     <p className="font-medium text-sm sm:text-base break-words">
-                      {equipment.pelanggan || "-"}
+                      {equipment.pelanggan_nama || equipment.pelanggan || "-"}
                     </p>
                   </div>
                 </div>

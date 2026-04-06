@@ -8,10 +8,10 @@ import {
     ColumnDef,
     flexRender,
 } from "@tanstack/react-table";
-import { Plus, Search, Trash2, Database, Cpu, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Database, Users, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { MasterItem } from "../../types";
-import { telemetryService, plcService } from "../../services/api";
+import { telemetryService, clientService } from "../../services/api";
 import {
     showSuccessToast,
     showErrorToast,
@@ -22,7 +22,7 @@ import MasterModalForm, { TableType, TABLE_CONFIG } from "./MasterModalForm";
 
 const ICONS = {
     telemetry: Database,
-    plc: Cpu,
+    client: Users,
 } as const;
 
 interface MasterTablePanelProps {
@@ -32,6 +32,7 @@ interface MasterTablePanelProps {
 const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
     const config = TABLE_CONFIG[tableType];
     const Icon = ICONS[tableType];
+    const displayLabel = tableType === "client" ? `Nama ${config.label}` : `Jenis ${config.label}`;
 
     const [items, setItems] = useState<MasterItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -39,7 +40,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
     const [saving, setSaving] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
 
-    const service = tableType === "telemetry" ? telemetryService : plcService;
+    const service = tableType === "telemetry" ? telemetryService : clientService;
 
     // ── Fetch ──
     const fetchItems = useCallback(async () => {
@@ -50,7 +51,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
         } catch (err) {
             showErrorToast(
                 "Gagal memuat data",
-                `Tidak dapat mengambil data ${config.label}`,
+                `Tidak dapat mengambil data ${displayLabel}`,
             );
             console.error(`❌ fetch ${tableType}:`, err);
         } finally {
@@ -65,13 +66,13 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
     // ── Add ──
     const handleAdd = async (value: string) => {
         const loadingToastId = showLoadingToast(
-            `Menambahkan jenis ${config.label}...`,
+            `Menambahkan ${displayLabel}...`,
         );
         try {
             setSaving(true);
             await service.create(value);
             showSuccessToast(
-                `Jenis ${config.label} ditambahkan!`,
+                `${displayLabel} ditambahkan!`,
                 `"${value}" berhasil ditambahkan`,
             );
             setIsFormOpen(false);
@@ -125,7 +126,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                 },
             },
             {
-                header: `Nama Jenis ${config.label}`,
+                header: displayLabel,
                 accessorKey: "name",
                 cell: ({ getValue }) => (
                     <span className="px-2 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900 dark:text-blue-200">
@@ -172,7 +173,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                     <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                         <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                             <Icon size={20} className="text-blue-600 dark:text-blue-400" />
-                            Jenis {config.label}
+                            {displayLabel}
                             <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">
                                 {table.getFilteredRowModel().rows.length} data
                             </span>
@@ -187,7 +188,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                                 <input
                                     value={globalFilter ?? ""}
                                     onChange={(e) => setGlobalFilter(e.target.value)}
-                                    placeholder={`Cari jenis ${config.label}...`}
+                                    placeholder={`Cari ${displayLabel}...`}
                                     className="w-full py-2 pr-4 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg pl-9 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
@@ -239,7 +240,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                                             colSpan={columns.length}
                                             className="py-12 text-sm text-center text-gray-400"
                                         >
-                                            Belum ada data jenis {config.label}
+                                            Belum ada data {displayLabel}
                                         </td>
                                     </tr>
                                 ) : (

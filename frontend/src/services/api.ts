@@ -919,6 +919,24 @@ export const plcService = {
   },
 };
 
+export const clientService = {
+  getAll: async () => {
+    const res = await api.get<{ id: number; nama_client: string }[]>("/client");
+    if (!Array.isArray(res.data)) return [];
+    return res.data.map((d) => ({ id: d.id, name: d.nama_client }));
+  },
+
+  create: async (name: string) => {
+    const res = await api.post("/client", { nama_client: name });
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await api.delete(`/client/${id}`);
+    return res.data;
+  },
+};
+
 // Items service
 export interface Item {
   itemId: number;

@@ -37,6 +37,11 @@ interface JenisTelemetry {
   jenis_telemetry: string;
 }
 
+interface ClientItem {
+  id: number;
+  nama_client: string;
+}
+
 const EquipmentForm: React.FC<EquipmentFormProps> = ({
   equipment,
   onSave,
@@ -73,6 +78,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
   const [jenisList, setJenisList] = useState<JenisTelemetry[]>([]);
   const [loadingJenis, setLoadingJenis] = useState(false);
+  const [clientList, setClientList] = useState<ClientItem[]>([]);
+  const [loadingClient, setLoadingClient] = useState(false);
 
   // Fetch jenis telemetry dari API
   useEffect(() => {
@@ -102,6 +109,23 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   }, []);
 
   useEffect(() => {
+    const fetchClient = async () => {
+      try {
+        setLoadingClient(true);
+        const response = await fetch(`${import.meta.env.VITE_URL}/api/client`);
+        const data: ClientItem[] = await response.json();
+        setClientList(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("❌ Error fetching client:", error);
+        setClientList([]);
+      } finally {
+        setLoadingClient(false);
+      }
+    };
+    fetchClient();
+  }, []);
+
+  useEffect(() => {
     if (formData.instalasi && !equipment) {
       setFormData((prev) => ({
         ...prev,
@@ -122,7 +146,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         status: equipment.status,
         device: equipment.device,
         sensor: equipment.sensor,
-        pelanggan: equipment.pelanggan,
+        pelanggan: equipment.pelanggan ? equipment.pelanggan.toString() : "",
         pic: equipment.pic,
         maintenanceDate: equipment.maintenanceDate?.split("T")[0] || "",
         maintenanceInterval: equipment.maintenanceInterval || 90,
@@ -329,6 +353,11 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     label: s.nama,
   }));
 
+  const clientOptions = clientList.map((c) => ({
+    value: c.id.toString(),
+    label: c.nama_client,
+  }));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="w-full max-w-2xl max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl dark:bg-gray-800">
@@ -496,12 +525,13 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               <label className={labelClass}>
                 Pelanggan <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <SearchableSelect
+                options={clientOptions}
                 value={formData.pelanggan}
-                placeholder="PJTI"
-                onChange={(e) => setFormData({ ...formData, pelanggan: e.target.value })}
-                className={inputClass(!!errors.pelanggan)}
+                onChange={(val) => setFormData({ ...formData, pelanggan: val })}
+                placeholder={loadingClient ? "Memuat data client..." : "Pilih Pelanggan"}
+                disabled={loadingClient}
+                hasError={!!errors.pelanggan}
               />
               {errors.pelanggan && <p className="mt-1 text-xs text-red-500">{errors.pelanggan}</p>}
             </div>

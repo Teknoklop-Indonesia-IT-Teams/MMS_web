@@ -85,6 +85,7 @@ const authRoutes = require("./routes/auth.routes.js");
 const usersRoutes = require("./routes/users.routes.js");
 const telemetryRoutes = require("./routes/telemetry.routes.js");
 const plcRoutes = require("./routes/plc.routes.js");
+const clientRoutes = require("./routes/client.routes.js");
 const alatPlcRoutes = require("./routes/alat-plc.routes.js");
 const recordPlcRoutes = require("./routes/record-plc.routes.js");
 
@@ -105,6 +106,7 @@ app.get("/", (req, res) => {
       email: "/api/email",
       telemetry: "/api/telemetry",
       plc: "/api/plc",
+      client: "/api/client",
     },
   });
 });
@@ -119,6 +121,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/telemetry", telemetryRoutes);
 app.use("/api/plc", plcRoutes);
+app.use("/api/client", clientRoutes);
 app.use("/api/alat-plc", alatPlcRoutes);
 app.use("/api/record-plc", recordPlcRoutes);
 const PORT = process.env.PORT || 3001;

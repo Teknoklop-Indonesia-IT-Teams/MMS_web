@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { X, Check, Loader2 } from "lucide-react";
 
-export type TableType = "telemetry" | "plc";
+export type TableType = "telemetry" | "client";
 
 export const TABLE_CONFIG = {
     telemetry: {
         label: "Telemetry",
         placeholder: "Contoh: ARR, AWLR, WQMS...",
     },
-    plc: {
-        label: "PLC",
-        placeholder: "Contoh: Siemens S7-1200...",
+    client: {
+        label: "Client",
+        placeholder: "Contoh: PJT I, JTE...",
     },
 } as const;
 

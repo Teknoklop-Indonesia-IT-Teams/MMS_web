@@ -11,13 +11,13 @@ const MasterDataPage: React.FC = () => {
                     Master Data
                 </h1>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Kelola jenis Telemetry dan PLC yang digunakan pada data alat
+                    Kelola jenis Telemetry dan Client yang digunakan pada data alat
                 </p>
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <MasterTablePanel tableType="telemetry" />
-                <MasterTablePanel tableType="plc" />
+                <MasterTablePanel tableType="client" />
             </div>
         </div>
     );

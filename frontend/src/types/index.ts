@@ -29,6 +29,7 @@ export interface Equipment {
   device: string;
   sensor: string;
   pelanggan: string;
+  pelanggan_nama?: string;
   pic: string;
   email?: string;
   i_alat?: string;
@@ -74,6 +75,7 @@ export interface EquipmentPLC {
   device: string;
   sensor: string;
   pelanggan: string;
+  pelanggan_nama?: string;
   pic: string;
   email?: string;
   i_alat?: string;

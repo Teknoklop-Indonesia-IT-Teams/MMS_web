@@ -123,7 +123,7 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
                   Pelanggan
                 </label>
                 <p className="p-2 text-sm text-gray-900 rounded bg-gray-50">
-                  {equipment.pelanggan || "-"}
+                  {equipment.pelanggan_nama || equipment.pelanggan || "-"}
                 </p>
               </div>
 
@@ -192,7 +192,7 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
                 </div>
                 <div>
                   <span className="font-medium">Pelanggan:</span>{" "}
-                  {equipment.pelanggan || "-"}
+                  {equipment.pelanggan_nama || equipment.pelanggan || "-"}
                 </div>
               </div>
             </div>

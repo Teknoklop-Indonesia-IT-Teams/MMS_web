@@ -5,12 +5,14 @@ const getAllAlat = async (req, res) => {
     console.log("🔍 Executing getAllAlat query...");
 
     const [alat] = await db.query(`
-      SELECT 
+      SELECT
         a.*,
+        c.nama_client AS pelanggan_nama,
         r.latest_tanggal
       FROM m_alat a
+      LEFT JOIN m_client c ON a.pelanggan = c.id
       LEFT JOIN (
-        SELECT 
+        SELECT
           id_m_alat,
           MAX(tanggal) as latest_tanggal
         FROM m_record
@@ -147,6 +149,7 @@ const getAllAlat = async (req, res) => {
         device: itemData.device || "",
         sensor: itemData.sensor || "",
         pelanggan: itemData.pelanggan || "",
+        pelanggan_nama: itemData.pelanggan_nama || "",
         pic: itemData.pic || "",
         email: itemData.email || "",
         i_alat: itemData.i_alat || "",
@@ -734,9 +737,13 @@ const getPublicAlatById = async (req, res) => {
       });
     }
 
-    const [alat] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
-      alatId,
-    ]);
+    const [alat] = await db.query(
+      `SELECT a.*, c.nama_client AS pelanggan_nama
+       FROM m_alat a
+       LEFT JOIN m_client c ON a.pelanggan = c.id
+       WHERE a.id = ?`,
+      [alatId],
+    );
 
     if (alat.length === 0) {
       return res.status(404).json({
@@ -782,6 +789,7 @@ const getPublicAlatById = async (req, res) => {
       garansi: equipment.garansi,
       remot: equipment.remot,
       pelanggan: equipment.pelanggan,
+      pelanggan_nama: equipment.pelanggan_nama || "",
       pic: equipment.pic,
     };
 
@@ -803,9 +811,13 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [equipment] = await db.query("SELECT * FROM m_alat WHERE id = ?", [
-      id,
-    ]);
+    const [equipment] = await db.query(
+      `SELECT a.*, c.nama_client AS pelanggan_nama
+       FROM m_alat a
+       LEFT JOIN m_client c ON a.pelanggan = c.id
+       WHERE a.id = ?`,
+      [id],
+    );
 
     if (equipment.length === 0) {
       return res.status(404).json({ message: "Equipment tidak ditemukan" });
@@ -911,6 +923,7 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
 
     const processedAlat = {
       ...alat,
+      pelanggan_nama: alat.pelanggan_nama || "",
       i_alat: alat.i_alat ? `data:image/jpeg;base64,${alat.i_alat}` : null,
       maintenanceDate: hasValidDate
         ? maintenanceDate.toISOString().split("T")[0]
