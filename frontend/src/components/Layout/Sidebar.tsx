@@ -6,8 +6,6 @@ import {
   Database,
   X,
   LayoutList,
-  Cpu,
-  Monitor,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuthSimple";
 import RoleBasedContent from "../Auth/RoleBasedContent";
@@ -78,19 +76,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             </li>
           </RoleBasedContent>
 
-          <RoleBasedContent allowedRoles={PERMISSIONS.DASHBOARD_VIEW}>
-            <li>
-              <NavLink
-                to="/dashboard-plc"
-                onClick={onClose}
-                className={navLinkClass}
-              >
-                <Monitor size={20} />
-                <span className="text-sm sm:text-base">Dashboard PLC</span>
-              </NavLink>
-            </li>
-          </RoleBasedContent>
-
           {/* List Telemetri */}
           <RoleBasedContent allowedRoles={PERMISSIONS.EQUIPMENT_VIEW}>
             <li>
@@ -101,15 +86,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               >
                 <Database size={20} />
                 <span className="text-sm sm:text-base">List Telemetri</span>
-              </NavLink>
-            </li>
-          </RoleBasedContent>
-
-          <RoleBasedContent allowedRoles={PERMISSIONS.EQUIPMENT_VIEW}>
-            <li>
-              <NavLink to="/plc" onClick={onClose} className={navLinkClass}>
-                <Cpu size={20} />
-                <span className="text-sm sm:text-base">List PLC</span>
               </NavLink>
             </li>
           </RoleBasedContent>

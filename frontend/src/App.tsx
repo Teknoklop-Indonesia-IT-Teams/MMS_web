@@ -17,7 +17,6 @@ import AuthRedirect from "./components/Auth/AuthRedirect";
 import LayoutWrapper from "./components/Layout/LayoutWrapper";
 import UsersProfile from "./components/Users/UsersProfile";
 import MaintenanceEquipmentDetailQR from "./components/Equipment/MaintenanceEquipmentDetailQR";
-import DashboardPLC from "./components/DashboardPLC/DashboardPLC";
 
 // Lazy load ALL components for maximum code splitting
 const Dashboard = lazy(
@@ -35,9 +34,6 @@ const SimpleEquipmentDetail = lazy(
 );
 const PublicEquipmentDetailQR = lazy(
   () => import("./components/Equipment/PublicEquipmentDetailQR"),
-);
-const EquipmentPlcTable = lazy(
-  () => import("./components/Equipment/Plc/EquipmentTablePlc"),
 );
 
 // Auth components
@@ -117,22 +113,6 @@ function App() {
                     element={<Dashboard />}
                   />
 
-                  <Route
-                    path="/dashboard-plc"
-                    element={
-                      <ProtectedRoute>
-                        <LayoutWrapper>
-                          <DashboardPLC />
-                        </LayoutWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/public-dashboard-plc"
-                    element={<DashboardPLC />}
-                  />
-
                   {/* Telemetri/Equipment Routes */}
                   <Route
                     path="/telemetri"
@@ -140,17 +120,6 @@ function App() {
                       <ProtectedRoute>
                         <LayoutWrapper>
                           <EquipmentTable />
-                        </LayoutWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/plc"
-                    element={
-                      <ProtectedRoute>
-                        <LayoutWrapper>
-                          <EquipmentPlcTable />
                         </LayoutWrapper>
                       </ProtectedRoute>
                     }

@@ -126,46 +126,6 @@ export const alatService = {
   ) => api.patch(`/alat/${id}/maintenance`, data),
 };
 
-export const alatPlcService = {
-  getAll: () => api.get("/alat-plc"),
-  getById: (id: string) => api.get(`/alat-plc/${id}`),
-  getWithMaintenanceStatus: (id: number) =>
-    api.get(`/alat-plc/${id}/maintenance-status`),
-
-  create: (data: FormData | object) => {
-    const config =
-      data instanceof FormData
-        ? {
-            headers: { "Content-Type": undefined },
-            transformRequest: [(d: FormData) => d],
-          }
-        : { headers: { "Content-Type": "application/json" } };
-    return api.post("/alat-plc", data, config);
-  },
-
-  update: (id: string, data: FormData | object) => {
-    const config =
-      data instanceof FormData
-        ? {
-            headers: { "Content-Type": undefined },
-            transformRequest: [(d: FormData) => d],
-          }
-        : { headers: { "Content-Type": "application/json" } };
-    return api.put(`/alat-plc/${id}`, data, config);
-  },
-
-  delete: (id: string) => api.delete(`/alat-plc/${id}`),
-  completeMaintenance: (id: string) =>
-    api.post(`/alat-plc/${id}/complete-maintenance`),
-  updateMaintenanceSettings: (
-    id: string,
-    settings: {
-      maintenanceDate: string;
-      maintenanceInterval: number;
-      isMaintenanceActive: boolean;
-    },
-  ) => api.put(`/alat-plc/${id}/maintenance`, settings),
-};
 
 export const recordService = {
   getAll: () => api.get<MaintenanceRecord[]>("/record"),
@@ -309,73 +269,6 @@ export const enhancedEquipmentService = {
   },
 };
 
-export const enhancedEquipmentPLCService = {
-  getAll: async () => {
-    try {
-      const response = await alatPlcService.getAll();
-      return response;
-    } catch (error) {
-      console.error("❌ Enhanced Equipment: Error:", error);
-      throw error;
-    }
-  },
-
-  getById: async (id: string) => {
-    return alatPlcService.getById(id);
-  },
-
-  create: async (data: unknown) => {
-    return alatPlcService.create(data as Partial<Equipment>);
-  },
-
-  update: async (id: string, data: unknown) => {
-    return alatPlcService.update(id, data as Partial<Equipment>);
-  },
-
-  delete: async (id: string) => {
-    return alatPlcService.delete(id);
-  },
-
-  stopMaintenance: async (id: string) => {
-    try {
-      const response = await api.post(`/alat/${id}/stop-maintenance`);
-      return response;
-    } catch (error) {
-      console.error("❌ Enhanced Equipment: Stop maintenance error:", error);
-      throw error;
-    }
-  },
-
-  completeMaintenance: async (id: string) => {
-    try {
-      const response = await api.post(`/alat/${id}/complete-maintenance`);
-      return response;
-    } catch (error) {
-      console.error(
-        "❌ Enhanced Equipment: Complete maintenance error:",
-        error,
-      );
-      throw error;
-    }
-  },
-
-  updateMaintenanceSettings: async (
-    id: string,
-    data: {
-      maintenanceDate?: string;
-      maintenanceInterval?: number;
-      isMaintenanceActive?: boolean;
-    },
-  ) => {
-    try {
-      const response = await api.put(`/alat/${id}/maintenance`, data);
-      return response;
-    } catch (error) {
-      console.error("❌ Enhanced Equipment: Update maintenance error:", error);
-      throw error;
-    }
-  },
-};
 
 export const enhancedStaffService = {
   getAll: async () => {
