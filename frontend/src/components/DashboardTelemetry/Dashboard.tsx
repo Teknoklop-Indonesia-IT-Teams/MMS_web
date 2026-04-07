@@ -17,6 +17,7 @@ import StatusBarChart from "../Stats/BarCharts";
 import LocationPieChart from "../Stats/LineChart";
 import PMDashboard from "./PMDashboard";
 import CMDashboard from "./CMDashboard";
+import { telemetryService } from "../../services/api";
 
 const Dashboard: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
@@ -24,6 +25,7 @@ const Dashboard: React.FC = () => {
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const [activityPage, setActivityPage] = useState(1);
   const activityPerPage = 5;
+  const [telemetryList, setTelemetryList] = useState<{ id: number; name: string }[]>([]);
   // Use lazy loading dashboard data - only fetch when dashboard is opened
   const { loading, isDataLoaded, stats, equipment } = useDashboardData();
 
@@ -33,6 +35,10 @@ const Dashboard: React.FC = () => {
   const hasFullAccess = PERMISSIONS.DASHBOARD_FULL_ACCESS.includes(
     userRole as "admin" | "manager",
   );
+
+  useEffect(() => {
+    telemetryService.getAll().then(setTelemetryList).catch(() => setTelemetryList([]));
+  }, []);
 
   useEffect(() => {
     console.log("Dashboard equipment count:", equipment.length);
@@ -47,34 +53,27 @@ const Dashboard: React.FC = () => {
     };
   }, [clickTimeout]);
 
-  // const equipmentByType = equipment.reduce(
-  //   (acc, curr) => {
-  //     acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
-  //     return acc;
-  //   },
-  //   {} as { [key: string]: number },
-  // );
-
-  const equipmentByType = equipment.reduce(
-    (acc, curr) => {
-      const jenis = curr.jenis?.trim();
-      if (!jenis) return acc;
-
-      acc[jenis] = (acc[jenis] || 0) + 1;
-      return acc;
-    },
-    {} as { [key: string]: number },
-  );
-
-  useEffect(() => {
-    console.log("Equipment:", equipment);
-    console.log(
-      "Jenis list:",
-      equipment.map((e) => e.jenis),
+  const equipmentCountByType = useMemo(() => {
+    return equipment.reduce(
+      (acc, curr) => {
+        const jenis = curr.jenis?.trim();
+        if (!jenis) return acc;
+        acc[jenis] = (acc[jenis] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number },
     );
   }, [equipment]);
 
-  const deviceTypes = Object.keys(equipmentByType);
+  // Device cards mengikuti data dari m_telemetry
+  const telemetryCards = useMemo(() => {
+    return telemetryList.map((t) => ({
+      type: t.name,
+      count: equipmentCountByType[t.name] || 0,
+    }));
+  }, [telemetryList, equipmentCountByType]);
+
+  const deviceTypes = telemetryList.map((t) => t.name);
 
   const handleCardClick = (type: string) => {
     if (clickTimeout) {
@@ -137,8 +136,8 @@ const Dashboard: React.FC = () => {
 
   // Filter data berdasarkan selectedFilter
   const filteredData = useMemo(() => {
-    return equipmentByType;
-  }, [equipmentByType]);
+    return telemetryCards;
+  }, [telemetryCards]);
 
   // Filter equipment berdasarkan jenis yang dipilih
   const filteredEquipment = useMemo(() => {
@@ -149,15 +148,12 @@ const Dashboard: React.FC = () => {
     }
   }, [equipment, selectedFilter]);
 
-  const locationChartData = Object.entries(
-    filteredEquipment.reduce(
-      (acc, curr) => {
-        acc[curr.jenis] = (acc[curr.jenis] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>,
-    ),
-  ).map(([name, value]) => ({ name, value }));
+  const locationChartData = useMemo(() => {
+    const base = selectedFilter === "all"
+      ? telemetryCards
+      : telemetryCards.filter((c) => c.type === selectedFilter);
+    return base.map(({ type, count }) => ({ name: type, value: count }));
+  }, [telemetryCards, selectedFilter]);
 
   // Cek apakah ada filter aktif
   const hasActiveFilter = selectedFilter !== "all";
@@ -287,8 +283,8 @@ const Dashboard: React.FC = () => {
 
       {/* Device Cards */}
       <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-        {Object.entries(filteredData).length > 0 ? (
-          Object.entries(filteredData).map(([type, count]) => (
+        {filteredData.length > 0 ? (
+          filteredData.map(({ type, count }) => (
             <DeviceCard
               key={type}
               type={type}
