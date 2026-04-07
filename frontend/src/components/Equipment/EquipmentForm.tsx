@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from "react";
-import { X, Upload, Trash2 } from "lucide-react";
+import { X, Upload, Trash2, Plus, Minus } from "lucide-react";
 import { Equipment } from "../../types";
 import { staffService } from "../../services/api";
 import {
@@ -42,6 +42,25 @@ interface ClientItem {
   nama_client: string;
 }
 
+interface SensorEntry {
+  nama: string;
+  sensorId: string;
+}
+
+const parseSensors = (raw: string | string[] | null | undefined): SensorEntry[] => {
+  if (!raw) return [{ nama: "", sensorId: "" }];
+  try {
+    const arr: string[] = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!Array.isArray(arr) || arr.length === 0) return [{ nama: "", sensorId: "" }];
+    return arr.map((item) => {
+      const parts = item.split(",").map((s) => s.trim());
+      return { nama: parts[0] || "", sensorId: parts[1] || "" };
+    });
+  } catch {
+    return [{ nama: typeof raw === "string" ? raw : "", sensorId: "" }];
+  }
+};
+
 const EquipmentForm: React.FC<EquipmentFormProps> = ({
   equipment,
   onSave,
@@ -56,7 +75,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     remot: false,
     status: "Garansi" as Equipment["status"],
     device: "",
-    sensor: "",
     pelanggan: "",
     pic: "",
     maintenanceDate: "",
@@ -64,6 +82,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     isMaintenanceActive: false,
     i_alat: "",
   });
+  const [sensors, setSensors] = useState<SensorEntry[]>([{ nama: "", sensorId: "" }]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -145,7 +164,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         remot: equipment.remot === "on",
         status: equipment.status,
         device: equipment.device,
-        sensor: equipment.sensor,
         pelanggan: equipment.pelanggan ? equipment.pelanggan.toString() : "",
         pic: equipment.pic,
         maintenanceDate: equipment.maintenanceDate?.split("T")[0] || "",
@@ -153,6 +171,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         isMaintenanceActive: Boolean(equipment.isMaintenanceActive) || false,
         i_alat: equipment.i_alat || "",
       });
+      setSensors(parseSensors(equipment.sensor));
 
       if (equipment.i_alat) {
         setImagePreview(
@@ -173,7 +192,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         remot: false,
         status: "Garansi" as Equipment["status"],
         device: "",
-        sensor: "",
         pelanggan: "",
         pic: "",
         maintenanceDate: "",
@@ -181,6 +199,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         isMaintenanceActive: false,
         i_alat: "",
       });
+      setSensors([{ nama: "", sensorId: "" }]);
       setImagePreview("");
       setSelectedFile(null);
       setIsHeicFile(false);
@@ -230,7 +249,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     if (!formData.garansi.trim())
       newErrors.garansi = "Tanggal garansi wajib diisi";
     if (!formData.device.trim()) newErrors.device = "Device wajib diisi";
-    if (!formData.sensor.trim()) newErrors.sensor = "Sensor wajib diisi";
+    if (sensors.every((s) => !s.nama.trim()))
+      newErrors.sensor = "Minimal satu sensor wajib diisi";
     if (!formData.pelanggan.trim())
       newErrors.pelanggan = "Pelanggan wajib diisi";
     if (!formData.pic.trim()) newErrors.pic = "PIC wajib diisi";
@@ -258,7 +278,12 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       formDataToSubmit.append("remot", formData.remot ? "on" : "off");
       formDataToSubmit.append("status", formData.status);
       formDataToSubmit.append("device", formData.device);
-      formDataToSubmit.append("sensor", formData.sensor);
+      const sensorJson = JSON.stringify(
+        sensors
+          .filter((s) => s.nama.trim())
+          .map((s) => `${s.nama.trim()}, ${s.sensorId.trim()}`)
+      );
+      formDataToSubmit.append("sensor", sensorJson);
       formDataToSubmit.append("pelanggan", formData.pelanggan);
       formDataToSubmit.append("pic", formData.pic);
       formDataToSubmit.append(
@@ -490,36 +515,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-            {/* Device */}
-            <div>
-              <label className={labelClass}>
-                Device <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.device}
-                placeholder="RTCU"
-                onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-                className={inputClass(!!errors.device)}
-              />
-              {errors.device && <p className="mt-1 text-xs text-red-500">{errors.device}</p>}
-            </div>
-
-            {/* Sensor */}
-            <div>
-              <label className={labelClass}>
-                Sensor <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.sensor}
-                placeholder="Vegapulse C23"
-                onChange={(e) => setFormData({ ...formData, sensor: e.target.value })}
-                className={inputClass(!!errors.sensor)}
-              />
-              {errors.sensor && <p className="mt-1 text-xs text-red-500">{errors.sensor}</p>}
-            </div>
-
             {/* Pelanggan */}
             <div>
               <label className={labelClass}>
@@ -551,88 +546,157 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
               />
               {errors.pic && <p className="mt-1 text-xs text-red-500">{errors.pic}</p>}
             </div>
-          </div>
 
-          {/* Gambar */}
-          <div>
-            <label className={labelClass}>Gambar</label>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-4">
-                <input
-                  type="file"
-                  accept="image/*,.heic,.heif"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="flex items-center px-4 py-2 space-x-2 text-gray-700 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                >
-                  <Upload size={16} />
-                  <span className="text-sm">
-                    {selectedFile ? selectedFile.name : "Choose File"}
-                  </span>
-                </label>
+            {/* Device */}
+            <div>
+              <label className={labelClass}>
+                Device <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.device}
+                placeholder="RTCU"
+                onChange={(e) => setFormData({ ...formData, device: e.target.value })}
+                className={inputClass(!!errors.device)}
+              />
+              {errors.device && <p className="mt-1 text-xs text-red-500">{errors.device}</p>}
+            </div>
+
+            {/* Gambar */}
+            <div>
+              <label className={labelClass}>Gambar</label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="flex items-center px-4 py-2 space-x-2 text-gray-700 transition-colors bg-gray-100 border border-gray-300 rounded-md cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    <Upload size={16} />
+                    <span className="text-sm">
+                      {selectedFile ? selectedFile.name : "Choose File"}
+                    </span>
+                  </label>
+
+                  {imagePreview && !imageLoading && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="flex items-center px-3 py-2 space-x-1 text-white transition-colors bg-red-600 rounded-md hover:bg-red-700"
+                    >
+                      <Trash2 size={14} />
+                      <span className="text-sm">Remove</span>
+                    </button>
+                  )}
+                </div>
+
+                {imageLoading && (
+                  <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                    <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full dark:border-blue-400 animate-spin"></div>
+                    <span className="text-sm">
+                      {isHeicFile ? "Processing HEIC file..." : "Loading preview..."}
+                    </span>
+                  </div>
+                )}
 
                 {imagePreview && !imageLoading && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="flex items-center px-3 py-2 space-x-1 text-white transition-colors bg-red-600 rounded-md hover:bg-red-700"
-                  >
-                    <Trash2 size={14} />
-                    <span className="text-sm">Remove</span>
-                  </button>
-                )}
-              </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg dark:border-gray-600"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+PHBhdGggZD0iTTI1IDMwaDMwdjIwSDI1VjMweiIgZmlsbD0iIzlDQTNBRiIvPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzciIHI9IjMiIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJtMzggNDMgNS01IDcgN1Y1MEgyNXYtN2w3LTciIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4K";
+                        }}
+                      />
+                      {isHeicFile && (
+                        <div className="absolute -top-1 -right-1 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
+                          HEIC
+                        </div>
+                      )}
+                    </div>
 
-              {imageLoading && (
-                <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
-                  <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full dark:border-blue-400 animate-spin"></div>
-                  <span className="text-sm">
-                    {isHeicFile ? "Processing HEIC file..." : "Loading preview..."}
-                  </span>
-                </div>
-              )}
-
-              {imagePreview && !imageLoading && (
-                <div className="flex items-start space-x-4">
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="object-cover w-32 h-32 border-2 border-gray-300 rounded-lg dark:border-gray-600"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+PHBhdGggZD0iTTI1IDMwaDMwdjIwSDI1VjMweiIgZmlsbD0iIzlDQTNBRiIvPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzciIHI9IjMiIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJtMzggNDMgNS01IDcgN1Y1MEgyNXYtN2w3LTciIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4K";
-                      }}
-                    />
-                    {isHeicFile && (
-                      <div className="absolute -top-1 -right-1 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
-                        HEIC
+                    {selectedFile && (
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {(selectedFile.size / 1024).toFixed(1)} KB
+                        </p>
+                        {isHeicFile && (
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            ✓ HEIC converted to JPEG
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-                  {selectedFile && (
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {selectedFile.name}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {(selectedFile.size / 1024).toFixed(1)} KB
-                      </p>
-                      {isHeicFile && (
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          ✓ HEIC converted to JPEG
-                        </p>
-                      )}
-                    </div>
+          {/* Sensor — dynamic array */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className={labelClass}>
+                Sensor <span className="text-red-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setSensors([...sensors, { nama: "", sensorId: "" }])}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700"
+              >
+                <Plus size={12} /> Tambah
+              </button>
+            </div>
+            <div className="space-y-2">
+              {sensors.map((s, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={s.nama}
+                    placeholder="Nama Sensor"
+                    onChange={(e) => {
+                      const updated = [...sensors];
+                      updated[idx] = { ...updated[idx], nama: e.target.value };
+                      setSensors(updated);
+                    }}
+                    className={inputClass(idx === 0 && !!errors.sensor)}
+                  />
+                  <input
+                    type="text"
+                    value={s.sensorId}
+                    placeholder="ID Sensor"
+                    onChange={(e) => {
+                      const updated = [...sensors];
+                      updated[idx] = { ...updated[idx], sensorId: e.target.value };
+                      setSensors(updated);
+                    }}
+                    className={inputClass()}
+                  />
+                  {sensors.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setSensors(sensors.filter((_, i) => i !== idx))}
+                      className="p-2 text-white bg-red-500 rounded hover:bg-red-600 shrink-0"
+                    >
+                      <Minus size={14} />
+                    </button>
                   )}
                 </div>
-              )}
+              ))}
             </div>
+            {errors.sensor && <p className="mt-1 text-xs text-red-500">{errors.sensor}</p>}
           </div>
 
           {/* Pengaturan Maintenance — hanya saat tambah baru */}

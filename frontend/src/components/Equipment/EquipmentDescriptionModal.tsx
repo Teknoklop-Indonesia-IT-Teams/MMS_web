@@ -102,24 +102,6 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
 
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Device
-                </label>
-                <p className="p-2 text-sm text-gray-900 rounded bg-gray-50">
-                  {equipment.device || "-"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Sensor
-                </label>
-                <p className="p-2 text-sm text-gray-900 rounded bg-gray-50">
-                  {equipment.sensor || "-"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
                   Pelanggan
                 </label>
                 <p className="p-2 text-sm text-gray-900 rounded bg-gray-50">
@@ -160,41 +142,51 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
             <label className="block mb-2 text-sm font-medium text-gray-700">
               Informasi Lengkap Alat
             </label>
-            <div className="p-4 rounded-lg bg-gray-50">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Nama:</span>{" "}
-                  {equipment.nama || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Jenis:</span>{" "}
-                  {equipment.jenis || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Lokasi:</span>{" "}
-                  {equipment.lokasi || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Status:</span>{" "}
-                  {equipment.status || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Device:</span>{" "}
-                  {equipment.device || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Sensor:</span>{" "}
-                  {equipment.sensor || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">PIC:</span>{" "}
-                  {equipment.pic || "-"}
-                </div>
-                <div>
-                  <span className="font-medium">Pelanggan:</span>{" "}
-                  {equipment.pelanggan_nama || equipment.pelanggan || "-"}
-                </div>
+            <div className="p-4 space-y-4 rounded-lg bg-gray-50">
+
+              {/* Device */}
+              <div>
+                <p className="mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">Device</p>
+                <p className="text-sm font-medium text-gray-900">{equipment.device || "-"}</p>
               </div>
+
+              {/* Sensor */}
+              <div>
+                <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">Sensor</p>
+                {(() => {
+                  const sensorArr = Array.isArray(equipment.sensor)
+                    ? equipment.sensor
+                    : equipment.sensor
+                      ? (() => { try { return JSON.parse(equipment.sensor as string); } catch { return [equipment.sensor]; } })()
+                      : [];
+
+                  if (!sensorArr.length) return <p className="text-sm text-gray-400">-</p>;
+
+                  return (
+                    <div className="overflow-y-auto max-h-48">
+                      <div className="grid grid-cols-3 gap-2">
+                        {sensorArr.map((item: string, idx: number) => {
+                          const [nama, id] = (item as string).split(",").map((s: string) => s.trim());
+                          return (
+                            <div key={idx} className="flex flex-col gap-1 px-3 py-2 bg-white border border-gray-200 rounded-lg">
+                              <div className="flex items-center gap-1">
+                                <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-700 bg-blue-100 rounded-full shrink-0">
+                                  {idx + 1}
+                                </span>
+                                <p className="text-xs font-medium text-gray-900 truncate">{nama || "-"}</p>
+                              </div>
+                              {id && (
+                                <p className="text-xs text-gray-400 truncate">ID: {id}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
             </div>
           </div>
 

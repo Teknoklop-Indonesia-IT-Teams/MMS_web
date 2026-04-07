@@ -147,7 +147,11 @@ const getAllAlat = async (req, res) => {
         remot: itemData.remot || "",
         status: itemData.status || "",
         device: itemData.device || "",
-        sensor: itemData.sensor || "",
+        sensor: (() => {
+          if (!itemData.sensor) return [];
+          try { return JSON.parse(itemData.sensor); }
+          catch { return [itemData.sensor]; }
+        })(),
         pelanggan: itemData.pelanggan || "",
         pelanggan_nama: itemData.pelanggan_nama || "",
         pic: itemData.pic || "",

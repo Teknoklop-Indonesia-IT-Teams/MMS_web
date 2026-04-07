@@ -27,7 +27,7 @@ export interface Equipment {
   remot: string;
   status: string;
   device: string;
-  sensor: string;
+  sensor: string | string[];
   pelanggan: string;
   pelanggan_nama?: string;
   pic: string;

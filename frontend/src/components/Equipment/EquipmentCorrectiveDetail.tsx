@@ -126,6 +126,7 @@ export default function EquipmentCorrectiveDetail({
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [showMainImageLightbox, setShowMainImageLightbox] = useState(false);
 
   const [formData, setFormData] = useState({
     tanggal: "",
@@ -299,8 +300,6 @@ export default function EquipmentCorrectiveDetail({
                 ["Lokasi", equipment.lokasi],
                 ["Instalasi", formatDate(equipment.instalasi)],
                 ["Garansi", formatDate(equipment.garansi)],
-                ["Device", equipment.device],
-                ["Sensor", equipment.sensor],
               ].map(([label, value]) => (
                 <div key={label}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -311,23 +310,59 @@ export default function EquipmentCorrectiveDetail({
                   </p>
                 </div>
               ))}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Jenis
-                </label>
-                <span className="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
-                  {equipment.jenis}
-                </span>
+
+              {/* Device | Jenis | Status — satu row */}
+              <div className="col-span-2 grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Device</label>
+                  <p className="text-gray-900 dark:text-gray-100">{equipment.device || "-"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis</label>
+                  <span className="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                    {equipment.jenis}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                    {equipment.status}
+                  </span>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Status
+
+              <div className="col-span-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Sensor
                 </label>
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${equipment.status === "Garansi" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                >
-                  {equipment.status}
-                </span>
+                {(() => {
+                  const sensorArr = Array.isArray(equipment.sensor)
+                    ? equipment.sensor
+                    : equipment.sensor
+                      ? (() => { try { return JSON.parse(equipment.sensor as string); } catch { return [equipment.sensor]; } })()
+                      : [];
+                  if (!sensorArr.length) return <p className="text-sm text-gray-400">-</p>;
+                  return (
+                    <div className="overflow-y-auto max-h-32">
+                      <div className="grid grid-cols-2 gap-2">
+                        {sensorArr.map((item: string, idx: number) => {
+                          const [nama, id] = item.split(",").map((s: string) => s.trim());
+                          return (
+                            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+                              <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-700 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full shrink-0">
+                                {idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{nama || "-"}</p>
+                                {id && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">ID: {id}</p>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -335,19 +370,25 @@ export default function EquipmentCorrectiveDetail({
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Gambar
               </label>
-              <div className="relative w-full h-64">
+              <div className="relative w-full h-64 group">
                 {equipment.i_alat ? (
-                  <ImageDisplay
-                    src={equipment.i_alat}
-                    alt={`${equipment.nama} Image`}
-                    className="w-full h-full border rounded-lg shadow-sm"
-                    onError={() =>
-                      console.log(`Image failed: ${equipment.i_alat}`)
-                    }
-                    onLoad={() =>
-                      console.log(`Image loaded: ${equipment.i_alat}`)
-                    }
-                  />
+                  <>
+                    <ImageDisplay
+                      src={equipment.i_alat}
+                      alt={`${equipment.nama} Image`}
+                      className="w-full h-full border rounded-lg shadow-sm"
+                      onError={() => console.log(`Image failed: ${equipment.i_alat}`)}
+                      onLoad={() => console.log(`Image loaded: ${equipment.i_alat}`)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowMainImageLightbox(true)}
+                      className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-white bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-opacity-75"
+                    >
+                      <ZoomIn size={14} />
+                      Fullscreen
+                    </button>
+                  </>
                 ) : (
                   <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100 border-2 border-gray-300 border-dashed rounded-lg dark:bg-gray-700 dark:border-gray-600">
                     <ImageIcon
@@ -360,6 +401,18 @@ export default function EquipmentCorrectiveDetail({
                   </div>
                 )}
               </div>
+              {showMainImageLightbox && equipment.i_alat && (
+                <Lightbox
+                  src={(() => {
+                    const src = equipment.i_alat as string;
+                    if (src.startsWith("http") || src.startsWith("data:")) return src;
+                    const base = import.meta.env.VITE_URL || window.location.origin;
+                    return src.startsWith("/") ? `${base}${src}` : `${base}/uploads/${src}`;
+                  })()}
+                  alt={equipment.nama}
+                  onClose={() => setShowMainImageLightbox(false)}
+                />
+              )}
             </div>
           </div>
 
@@ -620,7 +673,6 @@ export default function EquipmentCorrectiveDetail({
                         <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
                           {record.keterangan}
                         </td>
-                        {/* 1 gambar + badge */}
                         <td className="px-4 py-4">
                           {record.i_alat && record.i_alat.length > 0 ? (
                             <div
