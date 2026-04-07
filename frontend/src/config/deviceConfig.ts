@@ -8,6 +8,8 @@ import {
   Cloud,
   Camera,
   Antenna,
+  CircuitBoard,
+  Sprout,
 } from "lucide-react";
 
 export const DEVICE_CONFIG: Record<string, { icon: any; color: string }> = {
@@ -33,7 +35,7 @@ export const DEVICE_CONFIG: Record<string, { icon: any; color: string }> = {
     color: "from-cyan-500 to-cyan-600",
   },
   GWL: {
-    icon: TrendingUp,
+    icon: Sprout,
     color: "from-teal-500 to-teal-600",
   },
   "Weather Station": {
@@ -47,5 +49,9 @@ export const DEVICE_CONFIG: Record<string, { icon: any; color: string }> = {
   EWS: {
     icon: Antenna,
     color: "from-gray-500 to-gray-600",
+  },
+  PLC: {
+    icon: CircuitBoard,
+    color: "from-indigo-500 to-indigo-600",
   },
 };
