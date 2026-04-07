@@ -35,6 +35,9 @@ const SimpleEquipmentDetail = lazy(
 const PublicEquipmentDetailQR = lazy(
   () => import("./components/Equipment/PublicEquipmentDetailQR"),
 );
+const PublicClientDashboard = lazy(
+  () => import("./components/DashboardTelemetry/PublicClientDashboard"),
+);
 
 // Auth components
 const Login = lazy(() => import("./components/Auth/Login"));
@@ -110,7 +113,11 @@ function App() {
 
                   <Route
                     path="/public-dashboard-telemetry"
-                    element={<Dashboard />}
+                    element={<Dashboard hideEmptyCards />}
+                  />
+                  <Route
+                    path="/public-dashboard-telemetry/:nama_client"
+                    element={<PublicClientDashboard />}
                   />
 
                   {/* Telemetri/Equipment Routes */}

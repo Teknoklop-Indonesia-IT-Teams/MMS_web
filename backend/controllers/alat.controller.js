@@ -957,6 +957,160 @@ const getEquipmentWithMaintenanceStatus = async (req, res) => {
   }
 };
 
+const getPublicAlatByClient = async (req, res) => {
+  try {
+    const namaClient = decodeURIComponent(req.params.nama_client);
+
+    const [clientRows] = await db.query(
+      "SELECT id, status_delete FROM m_client WHERE nama_client = ?",
+      [namaClient],
+    );
+
+    if (clientRows.length === 0) {
+      return res.status(404).json({ success: false, message: "Client tidak ditemukan" });
+    }
+
+    if (clientRows[0].status_delete) {
+      return res.status(404).json({ success: false, message: "Client tidak ditemukan" });
+    }
+
+    const clientId = clientRows[0].id;
+
+    const [alat] = await db.query(
+      `SELECT
+        a.*,
+        c.nama_client AS pelanggan_nama,
+        r.latest_tanggal
+      FROM m_alat a
+      LEFT JOIN m_client c ON a.pelanggan = c.id
+      LEFT JOIN (
+        SELECT id_m_alat, MAX(tanggal) as latest_tanggal
+        FROM m_record
+        GROUP BY id_m_alat
+      ) r ON a.id = r.id_m_alat
+      WHERE a.pelanggan = ?
+      ORDER BY a.id DESC`,
+      [clientId],
+    );
+
+    const today = new Date();
+
+    const result = alat.map((item) => {
+      let maintenanceDate = null;
+      let hasValidDate = false;
+
+      if (item.latest_tanggal) {
+        const recordDate = new Date(item.latest_tanggal);
+        if (!isNaN(recordDate.getTime())) {
+          maintenanceDate = recordDate;
+          hasValidDate = true;
+        }
+      }
+
+      if (!hasValidDate && item.instalasi) {
+        const instalasiDate = new Date(item.instalasi);
+        if (!isNaN(instalasiDate.getTime())) {
+          maintenanceDate = instalasiDate;
+          hasValidDate = true;
+        }
+      }
+
+      const isMaintenanceActiveFromDB = (() => {
+        const value = item.is_maintenance_active;
+        if (value === false || value === 0 || value === "0" || String(value).toLowerCase() === "false") return false;
+        if (value === true || value === 1 || value === "1" || String(value).toLowerCase() === "true") return true;
+        return null;
+      })();
+
+      const maintenanceEnabled =
+        isMaintenanceActiveFromDB === null
+          ? hasValidDate
+          : isMaintenanceActiveFromDB && hasValidDate;
+
+      let maintenanceStatus = "inactive";
+      let maintenanceAlertLevel = "none";
+      let maintenanceDaysLeft = null;
+      let nextMaintenanceDate = null;
+      let maintenanceStatusText = "Tidak ada jadwal maintenance";
+
+      if (!maintenanceEnabled) {
+        if (isMaintenanceActiveFromDB === false) {
+          maintenanceStatus = "selesai";
+          maintenanceAlertLevel = "blue";
+          maintenanceStatusText = "Maintenance selesai";
+        }
+      } else {
+        const intervalDays = parseInt(item.maintenance_interval_days) || 90;
+        nextMaintenanceDate = new Date(maintenanceDate);
+        nextMaintenanceDate.setDate(nextMaintenanceDate.getDate() + intervalDays);
+
+        const timeDiff = nextMaintenanceDate.getTime() - today.getTime();
+        maintenanceDaysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+        if (maintenanceDaysLeft < 0) {
+          maintenanceStatus = "overdue";
+          maintenanceAlertLevel = "red";
+          maintenanceStatusText = "Terlambat maintenance";
+        } else if (maintenanceDaysLeft <= 7) {
+          maintenanceStatus = "urgent";
+          maintenanceAlertLevel = "red";
+          maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Urgent)`;
+        } else if (maintenanceDaysLeft <= 30) {
+          maintenanceStatus = "warning";
+          maintenanceAlertLevel = "yellow";
+          maintenanceStatusText = `${maintenanceDaysLeft} hari lagi (Diperlukan)`;
+        } else {
+          maintenanceStatus = "good";
+          maintenanceAlertLevel = "green";
+          maintenanceStatusText = `${maintenanceDaysLeft} hari lagi`;
+        }
+      }
+
+      const { latest_tanggal, ...itemData } = item;
+
+      return {
+        id: itemData.id,
+        nama: itemData.nama || "",
+        lokasi: itemData.lokasi || "",
+        jenis: itemData.jenis || "",
+        instalasi: itemData.instalasi || "",
+        garansi: itemData.garansi || "",
+        remot: itemData.remot || "",
+        status: itemData.status || "",
+        device: itemData.device || "",
+        sensor: (() => {
+          if (!itemData.sensor) return [];
+          try { return JSON.parse(itemData.sensor); }
+          catch { return [itemData.sensor]; }
+        })(),
+        pelanggan: itemData.pelanggan || "",
+        pelanggan_nama: itemData.pelanggan_nama || "",
+        pic: itemData.pic || "",
+        i_alat: itemData.i_alat || "",
+        maintenanceDate: hasValidDate ? maintenanceDate.toISOString().split("T")[0] : null,
+        maintenanceInterval: itemData.maintenance_interval_days || 90,
+        hasValidDate,
+        isMaintenanceActive: isMaintenanceActiveFromDB,
+        maintenanceEnabled,
+        maintenanceStatus,
+        maintenanceAlertLevel,
+        maintenanceDaysLeft,
+        maintenanceStatusText,
+        nextMaintenanceDate: nextMaintenanceDate ? nextMaintenanceDate.toISOString().split("T")[0] : null,
+      };
+    });
+
+    res.json({
+      success: true,
+      client: namaClient,
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ getPublicAlatByClient error:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   getAllAlat,
   getAlatById,
@@ -968,6 +1122,7 @@ module.exports = {
   completeMaintenance,
   testMaintenance,
   getPublicAlatById,
+  getPublicAlatByClient,
   addMaintenanceActivity,
   getEquipmentWithMaintenanceStatus,
 };

@@ -2,7 +2,9 @@ const { db } = require("../config/db.js");
 
 const getAllClient = async (req, res) => {
     try {
-        const [rows] = await db.query("SELECT * FROM m_client ORDER BY id ASC");
+        const [rows] = await db.query(
+            "SELECT * FROM m_client WHERE status_delete = FALSE ORDER BY id ASC"
+        );
         res.json(rows);
     } catch (error) {
         console.error("❌ Error getAllClient:", error);
@@ -115,7 +117,7 @@ const deleteClient = async (req, res) => {
         if (existing.length === 0)
             return res.status(404).json({ message: "Client tidak ditemukan" });
 
-        await db.query("DELETE FROM m_client WHERE id = ?", [id]);
+        await db.query("UPDATE m_client SET status_delete = TRUE WHERE id = ?", [id]);
 
         res.json({
             message: "Client berhasil dihapus",

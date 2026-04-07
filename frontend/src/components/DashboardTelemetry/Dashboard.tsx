@@ -19,7 +19,11 @@ import PMDashboard from "./PMDashboard";
 import CMDashboard from "./CMDashboard";
 import { telemetryService } from "../../services/api";
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  hideEmptyCards?: boolean;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -73,7 +77,9 @@ const Dashboard: React.FC = () => {
     }));
   }, [telemetryList, equipmentCountByType]);
 
-  const deviceTypes = telemetryList.map((t) => t.name);
+  const deviceTypes = hideEmptyCards
+    ? telemetryList.filter((t) => (equipmentCountByType[t.name] || 0) > 0).map((t) => t.name)
+    : telemetryList.map((t) => t.name);
 
   const handleCardClick = (type: string) => {
     if (clickTimeout) {
@@ -134,10 +140,9 @@ const Dashboard: React.FC = () => {
     return { selesai, urgent, warning, normal, inactive };
   };
 
-  // Filter data berdasarkan selectedFilter
   const filteredData = useMemo(() => {
-    return telemetryCards;
-  }, [telemetryCards]);
+    return hideEmptyCards ? telemetryCards.filter((c) => c.count > 0) : telemetryCards;
+  }, [telemetryCards, hideEmptyCards]);
 
   // Filter equipment berdasarkan jenis yang dipilih
   const filteredEquipment = useMemo(() => {

@@ -1,36 +1,39 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   History,
-  ChevronDown,
   Calendar,
   AlertCircle,
   User,
   CheckCircle,
   Eye,
   Wrench,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Search,
 } from "lucide-react";
 import { Equipment, PreRecord } from "../../types";
-import { alatService, recordService } from "../../services/api";
+import { recordService } from "../../services/api";
 
 interface PMDashboardProps {
-  selectedFilter: string; // Ubah dari isSelected ke selectedFilter
+  selectedFilter: string;
   hasActiveFilter?: boolean;
-  equipment: Equipment[]; // Tambahkan prop equipment dari parent
+  equipment: Equipment[];
 }
+
+const PAGE_SIZE = 5;
 
 const PMDashboard: React.FC<PMDashboardProps> = ({
   selectedFilter,
   hasActiveFilter = false,
   equipment,
 }) => {
-  // State untuk history maintenance
   const [maintenanceRecords, setMaintenanceRecords] = useState<PreRecord[]>([]);
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [loadingRecords, setLoadingRecords] = useState<boolean>(false);
-  const [showRecordsModal, setShowRecordsModal] = useState<boolean>(false);
-  const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRecord, setSelectedRecord] = useState<PreRecord | null>(null);
+  const [search, setSearch] = useState("");
 
-  // Fetch maintenance records
   const fetchMaintenanceRecords = useCallback(async () => {
     try {
       setLoadingRecords(true);
@@ -44,48 +47,50 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
     }
   }, []);
 
-  const fetchEquipments = useCallback(async () => {
-    try {
-      const response = await alatService.getAll();
-      setEquipments(response.data || []);
-    } catch (error) {
-      console.error("Error fetching equipment:", error);
-      setEquipments([]);
-    }
-  }, []);
-
-  // Load records on component mount
   useEffect(() => {
     fetchMaintenanceRecords();
-    fetchEquipments();
-  }, [fetchMaintenanceRecords, fetchEquipments]);
+  }, [fetchMaintenanceRecords]);
 
-  // Create equipment map for fast lookup
+  // Reset ke halaman 1 saat filter / search berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFilter, equipment, search]);
+
+  // Build equipment map dari prop (tidak perlu fetch ulang)
   const equipmentMap = useMemo(() => {
     const map = new Map<number, Equipment>();
-    equipments.forEach((eq) => {
-      map.set(Number(eq.id), eq);
-    });
+    equipment.forEach((eq) => map.set(Number(eq.id), eq));
     return map;
-  }, [equipments]);
+  }, [equipment]);
 
-  // Filter maintenance records berdasarkan equipment yang difilter
-  const filteredMaintenanceRecords = useMemo(() => {
-    if (selectedFilter === "all") {
-      return maintenanceRecords;
-    } else {
-      // Filter records berdasarkan jenis equipment
-      const filteredEquipmentIds = equipment
-        .filter((item) => item.jenis === selectedFilter)
-        .map((item) => item.id);
+  // Filter records: berdasarkan equipment IDs + 1 search (tanggal atau peralatan)
+  const filteredRecords = useMemo(() => {
+    const equipmentIds = new Set(equipment.map((e) => Number(e.id)));
+    return maintenanceRecords.filter((r) => {
+      if (!equipmentIds.has(Number(r.id_m_alat))) return false;
 
-      return maintenanceRecords.filter((record) =>
-        filteredEquipmentIds.includes(record.id_m_alat),
-      );
-    }
-  }, [maintenanceRecords, equipment, selectedFilter]);
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const eq = equipmentMap.get(Number(r.id_m_alat));
+        const peralatanMatch = `${eq?.nama || ""} ${eq?.jenis || ""} ${eq?.lokasi || ""}`.toLowerCase().includes(q);
+        const tanggalFormatted = new Date(r.tanggal).toLocaleDateString("id-ID", {
+          day: "2-digit", month: "short", year: "numeric",
+        }).toLowerCase();
+        const tanggalIso = new Date(r.tanggal).toISOString().split("T")[0];
+        const tanggalMatch = tanggalFormatted.includes(q) || tanggalIso.includes(q);
+        if (!peralatanMatch && !tanggalMatch) return false;
+      }
 
-  // Format tanggal
+      return true;
+    });
+  }, [maintenanceRecords, equipment, equipmentMap, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / PAGE_SIZE));
+  const paginatedRecords = filteredRecords.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("id-ID", {
@@ -95,24 +100,13 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
     });
   };
 
-  // Helper function to get equipment by id
-  const getEquipmentById = useCallback(
-    (equipmentId: number) => {
-      return equipmentMap.get(equipmentId);
-    },
-    [equipmentMap],
-  );
-
-  // Toggle record detail
-  const toggleRecordDetail = (recordId: number) => {
-    setExpandedRecordId(expandedRecordId === recordId ? null : recordId);
-  };
-
   return (
     <>
       <div className="mt-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
+        {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Kolom kiri: judul */}
             <div>
               <h3 className="flex items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
                 <History className="mr-2" />
@@ -127,25 +121,35 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
                 Riwayat perawatan dan maintenance peralatan secara berkala
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {filteredMaintenanceRecords.length} records
-              </span>
+            {/* Kolom kanan: total + search */}
+            <div>
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                {filteredRecords.length} records
+              </p>
+              <div className="relative">
+                <Search size={14} className="absolute text-gray-400 -translate-y-1/2 left-3 top-1/2" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="ari peralatan atau tanggal (contoh: 01 Jan 2026)"
+                  className="w-full py-2 pl-8 pr-3 text-sm border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Table */}
         <div className="overflow-x-auto">
           {loadingRecords ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="w-8 h-8 mx-auto mb-3 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Loading maintenance history...
-                </p>
+                <p className="text-gray-600 dark:text-gray-400">Loading maintenance history...</p>
               </div>
             </div>
-          ) : filteredMaintenanceRecords.length === 0 ? (
+          ) : filteredRecords.length === 0 ? (
             <div className="py-12 text-center">
               <div className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600">
                 <Wrench className="w-full h-full" />
@@ -161,162 +165,61 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center">
-                      <Calendar size={14} className="mr-2" />
-                      Tanggal
-                    </div>
+                    <div className="flex items-center"><Calendar size={14} className="mr-2" />Tanggal</div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center">
-                      <Wrench size={14} className="mr-2" />
-                      Peralatan
-                    </div>
+                    <div className="flex items-center"><Wrench size={14} className="mr-2" />Peralatan</div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center">
-                      <AlertCircle size={14} className="mr-2" />
-                      Deskripsi
-                    </div>
+                    <div className="flex items-center"><AlertCircle size={14} className="mr-2" />Deskripsi</div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center">
-                      <User size={14} className="mr-2" />
-                      Petugas
-                    </div>
+                    <div className="flex items-center"><User size={14} className="mr-2" />Petugas</div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    Actions
+                    Aksi
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                {filteredMaintenanceRecords.slice(0, 5).map((record) => {
-                  const petugasName = record.petugas;
+                {paginatedRecords.map((record) => {
+                  const eq = equipmentMap.get(Number(record.id_m_alat));
                   return (
-                    <React.Fragment key={record.id}>
-                      <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={record.id} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">
+                        {formatDate(record.tanggal)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {eq ? (
                           <div className="text-sm text-gray-900 dark:text-gray-100">
-                            <div className="font-medium">
-                              {formatDate(record.tanggal)}
+                            <div className="font-medium">{eq.nama}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{eq.jenis}</div>
+                            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                              {eq.lokasi || "-"} | {eq.device || "-"}
                             </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {(() => {
-                            const equipment = getEquipmentById(
-                              Number(record.id_m_alat),
-                            );
-
-                            return equipment ? (
-                              <div className="text-sm text-gray-900 dark:text-gray-100">
-                                <div className="font-medium">
-                                  {equipment.nama}
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {equipment.jenis}
-                                </div>
-                                <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                                  {equipment.lokasi || "-"} |{" "}
-                                  {equipment.device || "-"}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-sm italic text-gray-400">
-                                Equipment #{record.id_m_alat}
-                              </div>
-                            );
-                          })()}
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <div className="max-w-xs">
-                            <div className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">
-                              {record.deskripsi}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 dark:text-gray-100">
-                            {petugasName}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium">
-                          <button
-                            onClick={() => toggleRecordDetail(record.id)}
-                            className={`inline-flex items-center px-3 py-1.5 rounded-md transition-colors ${
-                              expandedRecordId === record.id
-                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                            }`}
-                          >
-                            <Eye size={14} className="mr-1.5" />
-                            {expandedRecordId === record.id
-                              ? "Tutup"
-                              : "Detail"}
-                          </button>
-                        </td>
-                      </tr>
-
-                      {/* Expandable Detail Row */}
-                      {expandedRecordId === record.id && (
-                        <tr className="bg-blue-50 dark:bg-gray-900">
-                          <td colSpan={6} className="px-6 py-4">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                              <div>
-                                <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  <AlertCircle size={14} className="mr-1.5" />
-                                  Kondisi Awal
-                                </h4>
-                                <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                  {record.awal || "-"}
-                                </p>
-                              </div>
-                              <div>
-                                <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  <Wrench size={14} className="mr-1.5" />
-                                  Tindakan
-                                </h4>
-                                <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                  {record.tindakan || "-"}
-                                </p>
-                              </div>
-                              {record.tambahan && (
-                                <div>
-                                  <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tindakan Tambahan
-                                  </h4>
-                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                    {record.tambahan}
-                                  </p>
-                                </div>
-                              )}
-                              {record.akhir && (
-                                <div>
-                                  <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Kondisi Akhir
-                                  </h4>
-                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                    {record.akhir}
-                                  </p>
-                                </div>
-                              )}
-                              {record.berikutnya && (
-                                <div className="md:col-span-2">
-                                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <CheckCircle size={14} className="mr-1.5" />
-                                    Rencana Berikutnya
-                                  </h4>
-                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                    {record.berikutnya}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
+                        ) : (
+                          <div className="text-sm italic text-gray-400">Equipment #{record.id_m_alat}</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="max-w-xs text-sm font-medium text-gray-900 truncate dark:text-gray-100">
+                          {record.deskripsi}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {record.petugas}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => setSelectedRecord(record)}
+                          className="inline-flex items-center px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-900 dark:hover:text-blue-200"
+                        >
+                          <Eye size={14} className="mr-1.5" />
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
@@ -324,225 +227,136 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
           )}
         </div>
 
-        {filteredMaintenanceRecords.length > 5 && (
+        {/* Pagination */}
+        {filteredRecords.length > PAGE_SIZE && (
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Menampilkan 5 dari {filteredMaintenanceRecords.length} records
-              </p>
-              <button
-                onClick={() => setShowRecordsModal(true)}
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 transition-colors rounded-md bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
-              >
-                Lihat Semua
-                <ChevronDown size={16} className="ml-1.5" />
-              </button>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredRecords.length)} dari {filteredRecords.length} records
+              </span>
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="px-3 text-sm text-gray-700 dark:text-gray-300">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Modal untuk semua records */}
-      {showRecordsModal && (
+      {/* Detail Modal */}
+      {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="w-full max-w-6xl max-h-[90vh] bg-white rounded-lg shadow-xl dark:bg-gray-800 overflow-hidden">
+          <div className="w-full max-w-2xl overflow-hidden bg-white rounded-lg shadow-xl dark:bg-gray-800">
             <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Semua History Maintenance Preventive
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Detail Record Preventive
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Total {filteredMaintenanceRecords.length} records
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {formatDate(selectedRecord.tanggal)}
+                  {equipmentMap.get(Number(selectedRecord.id_m_alat)) && (
+                    <span className="ml-2 font-medium">
+                      — {equipmentMap.get(Number(selectedRecord.id_m_alat))?.nama}
+                    </span>
+                  )}
                 </p>
               </div>
               <button
-                onClick={() => setShowRecordsModal(false)}
-                className="p-2 text-gray-400 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setSelectedRecord(null)}
+                className="p-2 text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X size={20} />
               </button>
             </div>
 
-            <div className="overflow-y-auto max-h-[70vh] p-6">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                      <div className="flex items-center">
-                        <Calendar size={14} className="mr-2" />
-                        Tanggal
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                      <div className="flex items-center">
-                        <Wrench size={14} className="mr-2" />
-                        Peralatan
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                      <div className="flex items-center">
-                        <AlertCircle size={14} className="mr-2" />
-                        Deskripsi
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                      <div className="flex items-center">
-                        <User size={14} className="mr-2" />
-                        Petugas
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                  {filteredMaintenanceRecords.map((record) => {
-                    const petugasName = record.petugas;
-                    return (
-                      <React.Fragment key={record.id}>
-                        <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900 dark:text-gray-100">
-                              <div className="font-medium">
-                                {formatDate(record.tanggal)}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {(() => {
-                              const equipment = getEquipmentById(
-                                Number(record.id_m_alat),
-                              );
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[65vh]">
+              {/* Info Peralatan */}
+              {equipmentMap.get(Number(selectedRecord.id_m_alat)) && (() => {
+                const eq = equipmentMap.get(Number(selectedRecord.id_m_alat))!;
+                return (
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                    <p className="mb-1 text-xs font-medium text-blue-600 uppercase dark:text-blue-400">Peralatan</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">{eq.nama}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{eq.jenis} · {eq.lokasi || "-"} · {eq.device || "-"}</p>
+                  </div>
+                );
+              })()}
 
-                              return equipment ? (
-                                <div className="text-sm text-gray-900 dark:text-gray-100">
-                                  <div className="font-medium">
-                                    {equipment.nama}
-                                  </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    {equipment.jenis}
-                                  </div>
-                                  <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                                    {equipment.lokasi || "-"} |{" "}
-                                    {equipment.device || "-"}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-sm italic text-gray-400">
-                                  Equipment #{record.id_m_alat}
-                                </div>
-                              );
-                            })()}
-                          </td>
-
-                          <td className="px-6 py-4">
-                            <div className="max-w-xs">
-                              <div className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">
-                                {record.deskripsi}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900 dark:text-gray-100">
-                              {petugasName}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm font-medium">
-                            <button
-                              onClick={() => toggleRecordDetail(record.id)}
-                              className={`inline-flex items-center px-3 py-1.5 rounded-md transition-colors ${
-                                expandedRecordId === record.id
-                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
-                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                              }`}
-                            >
-                              <Eye size={14} className="mr-1.5" />
-                              {expandedRecordId === record.id
-                                ? "Tutup"
-                                : "Detail"}
-                            </button>
-                          </td>
-                        </tr>
-
-                        {/* Expandable Detail Row */}
-                        {expandedRecordId === record.id && (
-                          <tr className="bg-blue-50 dark:bg-gray-900">
-                            <td colSpan={6} className="px-6 py-4">
-                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <AlertCircle size={14} className="mr-1.5" />
-                                    Kondisi Awal
-                                  </h4>
-                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                    {record.awal || "-"}
-                                  </p>
-                                </div>
-                                <div>
-                                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <Wrench size={14} className="mr-1.5" />
-                                    Tindakan
-                                  </h4>
-                                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                    {record.tindakan || "-"}
-                                  </p>
-                                </div>
-                                {record.tambahan && (
-                                  <div>
-                                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                      Tindakan Tambahan
-                                    </h4>
-                                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                      {record.tambahan}
-                                    </p>
-                                  </div>
-                                )}
-                                {record.akhir && (
-                                  <div>
-                                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                      Kondisi Akhir
-                                    </h4>
-                                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                      {record.akhir}
-                                    </p>
-                                  </div>
-                                )}
-                                {record.berikutnya && (
-                                  <div className="md:col-span-2">
-                                    <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                      <CheckCircle
-                                        size={14}
-                                        className="mr-1.5"
-                                      />
-                                      Rencana Berikutnya
-                                    </h4>
-                                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                                      {record.berikutnya}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <User size={14} className="mr-1.5" />Petugas
+                  </h4>
+                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                    {selectedRecord.petugas || "-"}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <AlertCircle size={14} className="mr-1.5" />Deskripsi
+                  </h4>
+                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                    {selectedRecord.deskripsi || "-"}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <AlertCircle size={14} className="mr-1.5" />Kondisi Awal
+                  </h4>
+                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                    {selectedRecord.awal || "-"}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Wrench size={14} className="mr-1.5" />Tindakan
+                  </h4>
+                  <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                    {selectedRecord.tindakan || "-"}
+                  </p>
+                </div>
+                {selectedRecord.tambahan && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Tindakan Tambahan</h4>
+                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                      {selectedRecord.tambahan}
+                    </p>
+                  </div>
+                )}
+                {selectedRecord.akhir && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Kondisi Akhir</h4>
+                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                      {selectedRecord.akhir}
+                    </p>
+                  </div>
+                )}
+                {selectedRecord.berikutnya && (
+                  <div className="md:col-span-2">
+                    <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <CheckCircle size={14} className="mr-1.5" />Rencana Berikutnya
+                    </h4>
+                    <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
+                      {selectedRecord.berikutnya}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

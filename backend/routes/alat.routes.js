@@ -1,5 +1,6 @@
 const express = require("express");
 const alatController = require("../controllers/alat.controller.js");
+
 const upload = require("../middleware/upload.js"); // Pastikan ini ada
 const autoHeicConverter = require("../middleware/heicConverter.js");
 const { authMiddleware } = require("../middleware/auth.middleware.js");
@@ -8,6 +9,7 @@ const router = express.Router();
 
 // ========== PUBLIC ROUTES ==========
 router.get("/", alatController.getAllAlat);
+router.get("/public/by-client/:nama_client", alatController.getPublicAlatByClient);
 router.get("/public/:id", alatController.getPublicAlatById);
 router.get(
   "/:id/maintenance-status",

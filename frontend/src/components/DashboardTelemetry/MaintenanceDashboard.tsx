@@ -13,11 +13,14 @@ interface MaintenanceDashboardProps {
   equipment: Equipment[];
 }
 
+const MODAL_PAGE_SIZE = 10;
+
 export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
   equipment,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [modalPage, setModalPage] = useState(1);
 
   const getMaintenanceStats = () => {
     let selesai = 0;
@@ -135,6 +138,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
     setShowDetailModal(true);
+    setModalPage(1);
   };
 
   const StatCard: React.FC<{
@@ -243,147 +247,166 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
       </div>
 
       {/* Detail Modal */}
-      {showDetailModal && selectedCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4 w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                Detail{" "}
-                {selectedCategory === "selesai"
-                  ? "Maintenance Selesai"
-                  : selectedCategory === "urgent"
-                    ? "Maintenance Segera"
-                    : selectedCategory === "warning"
-                      ? "Maintenance Perhatian"
-                      : selectedCategory === "normal"
-                        ? "Maintenance Normal"
-                        : "Equipment Tidak Aktif"}
-              </h3>
-              <button
-                onClick={() => setShowDetailModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                ✕
-              </button>
-            </div>
+      {showDetailModal && selectedCategory && (() => {
+        const categoryItems = getEquipmentByCategory(selectedCategory);
+        const totalPages = Math.max(1, Math.ceil(categoryItems.length / MODAL_PAGE_SIZE));
+        const paginatedItems = categoryItems.slice(
+          (modalPage - 1) * MODAL_PAGE_SIZE,
+          modalPage * MODAL_PAGE_SIZE,
+        );
+        const categoryLabel =
+          selectedCategory === "selesai" ? "Maintenance Selesai"
+          : selectedCategory === "urgent" ? "Maintenance Segera"
+          : selectedCategory === "warning" ? "Maintenance Perhatian"
+          : selectedCategory === "normal" ? "Maintenance Normal"
+          : "Equipment Tidak Aktif";
 
-            <div className="space-y-4">
-              {getEquipmentByCategory(selectedCategory).map((item) => (
-                <div
-                  key={item.id}
-                  className="p-4 border rounded-lg dark:border-gray-700"
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b dark:border-gray-700 shrink-0">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Detail {categoryLabel}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {categoryItems.length} peralatan
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="p-2 text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600"
                 >
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">
-                        {item.nama}
-                      </h4>
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        <span>{item.lokasi}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <Activity className="w-4 h-4 mr-1" />
-                        <span>Device: {item.device}</span>
-                      </div>
-                    </div>
+                  ✕
+                </button>
+              </div>
 
-                    <div className="space-y-2">
-                      <div className="text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Status:
-                        </span>
-                        <span
-                          className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                            item.status?.toLowerCase() === "garansi"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </div>
-                      <div className="text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Jenis:
-                        </span>
-                        <span className="px-2 py-1 ml-2 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
-                          {item.jenis}
-                        </span>
-                      </div>
-                      <div className="text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Pelanggan:
-                        </span>
-                        <span className="ml-2 dark:text-white">
-                          {item.pelanggan}
-                        </span>
-                      </div>
-                    </div>
+              {/* Modal Body */}
+              <div className="overflow-y-auto flex-1 p-6">
+                {paginatedItems.length === 0 ? (
+                  <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                    Tidak ada peralatan dalam kategori ini
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {paginatedItems.map((item) => (
+                      <div key={item.id} className="p-4 border rounded-lg dark:border-gray-700">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                          <div className="space-y-2">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">
+                              {item.nama}
+                            </h4>
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              <span>{item.lokasi}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <Activity className="w-4 h-4 mr-1" />
+                              <span>Device: {item.device}</span>
+                            </div>
+                          </div>
 
-                    <div className="space-y-2">
-                      {item.isMaintenanceActive && (
-                        <>
-                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            <span>
-                              {item.maintenanceDaysLeft !== null &&
-                              item.maintenanceDaysLeft !== undefined
-                                ? `${Math.abs(item.maintenanceDaysLeft)} hari ${
-                                    item.maintenanceDaysLeft < 0
-                                      ? "terlambat"
-                                      : "tersisa"
-                                  }`
-                                : "Tidak ada data"}
-                            </span>
-                          </div>
-                          <div className="text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">
-                              Status Maintenance:
-                            </span>
-                            <span
-                              className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                                item.maintenanceAlertLevel === "red"
-                                  ? "bg-red-100 text-red-800"
-                                  : item.maintenanceAlertLevel === "yellow"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : item.maintenanceAlertLevel === "green"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {item.maintenanceStatus}
-                            </span>
-                          </div>
-                          {item.nextMaintenanceDate && (
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              <span>Maintenance Berikutnya:</span>
-                              <span className="ml-2 font-medium">
-                                {item.nextMaintenanceDate.split("T")[0]}
+                          <div className="space-y-2">
+                            <div className="text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                item.status?.toLowerCase() === "garansi"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}>
+                                {item.status}
                               </span>
                             </div>
-                          )}
-                        </>
-                      )}
-                      {!item.isMaintenanceActive && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          Maintenance tidak aktif
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                            <div className="text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">Jenis:</span>
+                              <span className="px-2 py-1 ml-2 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                                {item.jenis}
+                              </span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">Pelanggan:</span>
+                              <span className="ml-2 dark:text-white">
+                                {item.pelanggan_nama || item.pelanggan}
+                              </span>
+                            </div>
+                          </div>
 
-              {getEquipmentByCategory(selectedCategory).length === 0 && (
-                <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                  Tidak ada peralatan dalam kategori ini
+                          <div className="space-y-2">
+                            {item.isMaintenanceActive ? (
+                              <>
+                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                  <Calendar className="w-4 h-4 mr-1" />
+                                  <span>
+                                    {item.maintenanceDaysLeft !== null && item.maintenanceDaysLeft !== undefined
+                                      ? `${Math.abs(item.maintenanceDaysLeft)} hari ${item.maintenanceDaysLeft < 0 ? "terlambat" : "tersisa"}`
+                                      : "Tidak ada data"}
+                                  </span>
+                                </div>
+                                <div className="text-sm">
+                                  <span className="text-gray-600 dark:text-gray-400">Status Maintenance:</span>
+                                  <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                    item.maintenanceAlertLevel === "red" ? "bg-red-100 text-red-800"
+                                    : item.maintenanceAlertLevel === "yellow" ? "bg-yellow-100 text-yellow-800"
+                                    : item.maintenanceAlertLevel === "green" ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                                  }`}>
+                                    {item.maintenanceStatus}
+                                  </span>
+                                </div>
+                                {item.nextMaintenanceDate && (
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    <span>Maintenance Berikutnya:</span>
+                                    <span className="ml-2 font-medium">
+                                      {item.nextMaintenanceDate.split("T")[0]}
+                                    </span>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Maintenance tidak aktif
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer: Pagination */}
+              {categoryItems.length > MODAL_PAGE_SIZE && (
+                <div className="flex items-center justify-between px-6 py-4 border-t dark:border-gray-700 shrink-0">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {(modalPage - 1) * MODAL_PAGE_SIZE + 1}–{Math.min(modalPage * MODAL_PAGE_SIZE, categoryItems.length)} dari {categoryItems.length} peralatan
+                  </span>
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => setModalPage((p) => Math.max(1, p - 1))}
+                      disabled={modalPage === 1}
+                      className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      ‹
+                    </button>
+                    <span className="px-3 text-sm text-gray-700 dark:text-gray-300">
+                      {modalPage} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setModalPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={modalPage === totalPages}
+                      className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      ›
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

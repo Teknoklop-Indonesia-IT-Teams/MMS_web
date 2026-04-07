@@ -823,6 +823,18 @@ export const telemetryService = {
 };
 
 
+export const publicAlatService = {
+  getByClient: async (namaClient: string) => {
+    const encoded = encodeURIComponent(namaClient);
+    const res = await api.get<{
+      success: boolean;
+      client: string;
+      data: Equipment[];
+    }>(`/alat/public/by-client/${encoded}`);
+    return res.data;
+  },
+};
+
 export const clientService = {
   getAll: async () => {
     const res = await api.get<{ id: number; nama_client: string }[]>("/client");
