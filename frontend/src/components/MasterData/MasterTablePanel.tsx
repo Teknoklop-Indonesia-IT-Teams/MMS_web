@@ -8,7 +8,7 @@ import {
     ColumnDef,
     flexRender,
 } from "@tanstack/react-table";
-import { Plus, Search, Trash2, Database, Users, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Database, Users, Loader2, QrCode } from "lucide-react";
 import toast from "react-hot-toast";
 import { MasterItem } from "../../types";
 import { telemetryService, clientService } from "../../services/api";
@@ -19,6 +19,7 @@ import {
     showConfirmationToast,
 } from "../../utils/toast";
 import MasterModalForm, { TableType, TABLE_CONFIG } from "./MasterModalForm";
+import ClientQRCodeModal from "./ClientQRCodeModal";
 
 const ICONS = {
     telemetry: Database,
@@ -39,6 +40,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
     const [globalFilter, setGlobalFilter] = useState("");
     const [saving, setSaving] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [qrClient, setQrClient] = useState<string | null>(null);
 
     const service = tableType === "telemetry" ? telemetryService : clientService;
 
@@ -137,19 +139,30 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
             {
                 header: "Aksi",
                 id: "actions",
-                size: 80,
+                size: tableType === "client" ? 120 : 80,
                 cell: ({ row }) => (
-                    <button
-                        onClick={() => handleDelete(row.original.id, row.original.name)}
-                        className="p-2 text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-700"
-                        title="Hapus"
-                    >
-                        <Trash2 size={14} />
-                    </button>
+                    <div className="flex items-center space-x-1">
+                        {tableType === "client" && (
+                            <button
+                                onClick={() => setQrClient(row.original.name)}
+                                className="p-2 text-white transition-colors bg-blue-600 rounded-md shadow-sm hover:bg-blue-700"
+                                title="QR Code Dashboard"
+                            >
+                                <QrCode size={14} />
+                            </button>
+                        )}
+                        <button
+                            onClick={() => handleDelete(row.original.id, row.original.name)}
+                            className="p-2 text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-700"
+                            title="Hapus"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    </div>
                 ),
             },
         ],
-        [config.label, handleDelete],
+        [config.label, handleDelete, tableType],
     );
 
     const table = useReactTable({
@@ -325,6 +338,13 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                     onSave={handleAdd}
                     onCancel={() => setIsFormOpen(false)}
                     saving={saving}
+                />
+            )}
+
+            {qrClient && (
+                <ClientQRCodeModal
+                    clientName={qrClient}
+                    onClose={() => setQrClient(null)}
                 />
             )}
         </>

@@ -576,13 +576,10 @@ export const alatService = {
     AppStateManager.startCriticalOperation("Equipment create");
     const operationKey = `create-alat-${Date.now()}`;
 
-    const config =
-      data instanceof FormData
-        ? {
-          headers: { "Content-Type": undefined },
-          transformRequest: [(data: FormData) => data],
-        }
-        : { headers: { "Content-Type": "application/json" } };
+    // Untuk FormData, hapus Content-Type agar browser otomatis set multipart/form-data + boundary
+    const config = data instanceof FormData
+      ? { headers: { "Content-Type": false as unknown as string } }
+      : {};
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>
@@ -601,14 +598,10 @@ export const alatService = {
       console.log("📤 Sending JSON:", data);
     }
 
-    // ✅ FIX: Tambah transformRequest untuk FormData
-    const config =
-      data instanceof FormData
-        ? {
-          headers: { "Content-Type": undefined }, // Hapus Content-Type
-          transformRequest: [(data: FormData) => data], // Bypass transformer
-        }
-        : { headers: { "Content-Type": "application/json" } };
+    // Untuk FormData, hapus Content-Type agar browser otomatis set multipart/form-data + boundary
+    const config = data instanceof FormData
+      ? { headers: { "Content-Type": false as unknown as string } }
+      : {};
 
     return optimisticLockManager
       .executeWithLock(operationKey, () =>

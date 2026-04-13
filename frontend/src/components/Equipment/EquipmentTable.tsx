@@ -189,12 +189,12 @@ const EquipmentTable: React.FC = () => {
         cell: ({ getValue }) => (
           <span
             className={`px-2 py-1 text-sm font-medium rounded ${
-              getValue<boolean>()
+              getValue<string>() === "on"
                 ? "bg-green-100 text-green-800"
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {getValue<boolean>() ? "On" : "Off"}
+            {getValue<string>() === "on" ? "On" : "Off"}
           </span>
         ),
       },

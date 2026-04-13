@@ -312,7 +312,7 @@ const createAlat = async (req, res) => {
       jenis,
       instalasi || null,
       garansi || null,
-      remot || "off",
+      remot === "on" ? "on" : "off",
       status || "Garansi",
       device || null,
       sensor || null,
@@ -335,7 +335,7 @@ const createAlat = async (req, res) => {
       jenis,
       instalasi: instalasi || null,
       garansi: garansi || null,
-      remot: remot || "off",
+      remot: remot === "on" ? "on" : "off",
       status: status || "Garansi",
       device: device || null,
       sensor: sensor || null,
@@ -446,13 +446,17 @@ const updateAlat = async (req, res) => {
       WHERE id = ?
     `;
 
+    const processedRemot = remot !== undefined && remot !== null
+      ? (remot === "on" ? "on" : "off")
+      : existingData.remot;
+
     const updateValues = [
       nama || existingData.nama,
       lokasi || existingData.lokasi,
       jenis || existingData.jenis,
       processedInstalasi,
       processedGaransi,
-      remot || existingData.remot,
+      processedRemot,
       status || existingData.status,
       device || existingData.device,
       sensor || existingData.sensor,
@@ -476,7 +480,7 @@ const updateAlat = async (req, res) => {
       jenis: jenis || existingData.jenis,
       instalasi: processedInstalasi,
       garansi: processedGaransi,
-      remot: remot || existingData.remot,
+      remot: processedRemot,
       status: status || existingData.status,
       device: device || existingData.device,
       sensor: sensor || existingData.sensor,

@@ -661,7 +661,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
             </div>
             <div className="space-y-2">
               {sensors.map((s, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
+                <div key={idx} className="flex items-center gap-2">
                   <input
                     type="text"
                     value={s.nama}
