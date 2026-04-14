@@ -146,8 +146,39 @@ const EquipmentDescriptionModal: React.FC<EquipmentDescriptionModalProps> = ({
 
               {/* Device */}
               <div>
-                <p className="mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">Device</p>
-                <p className="text-sm font-medium text-gray-900">{equipment.device || "-"}</p>
+                <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">Device</p>
+                {(() => {
+                  const deviceArr: string[] = Array.isArray(equipment.device)
+                    ? equipment.device
+                    : equipment.device
+                      ? (() => { try { return JSON.parse(equipment.device as string); } catch { return [equipment.device]; } })()
+                      : [];
+
+                  if (!deviceArr.length) return <p className="text-sm text-gray-400">-</p>;
+
+                  return (
+                    <div className="overflow-y-auto max-h-48">
+                      <div className="grid grid-cols-3 gap-2">
+                        {deviceArr.map((item: string, idx: number) => {
+                          const [nama, id] = item.split(",").map((s) => s.trim());
+                          return (
+                            <div key={idx} className="flex flex-col gap-1 px-3 py-2 bg-white border border-gray-200 rounded-lg">
+                              <div className="flex items-center gap-1">
+                                <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-purple-700 bg-purple-100 rounded-full shrink-0">
+                                  {idx + 1}
+                                </span>
+                                <p className="text-xs font-medium text-gray-900 truncate">{nama || "-"}</p>
+                              </div>
+                              {id && (
+                                <p className="text-xs text-gray-400 truncate">ID: {id}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Sensor */}

@@ -242,7 +242,22 @@ const EquipmentTable: React.FC = () => {
       {
         header: "Device",
         accessorKey: "device",
-        size: 120,
+        size: 150,
+        cell: ({ getValue }) => {
+          const val = getValue<string | string[]>();
+          const list: string[] = Array.isArray(val)
+            ? val
+            : typeof val === "string" && val
+              ? (() => { try { return JSON.parse(val); } catch { return [val]; } })()
+              : [];
+          if (list.length === 0) return <span className="text-gray-400">-</span>;
+          const names = list.map((d) => d.split(",")[0].trim());
+          return (
+            <span className="text-xs text-gray-800 dark:text-gray-200">
+              {names.join(", ")}
+            </span>
+          );
+        },
       },
       {
         header: "PIC",

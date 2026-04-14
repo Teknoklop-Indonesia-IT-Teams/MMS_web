@@ -195,7 +195,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                             <div className="font-medium">{eq.nama}</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">{eq.jenis}</div>
                             <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                              {eq.lokasi || "-"} | {eq.device || "-"}
+                              {eq.lokasi || "-"} | {Array.isArray(eq.device) ? (eq.device.length > 0 ? eq.device.join(", ") : "-") : (eq.device || "-")}
                             </div>
                           </div>
                         ) : (
@@ -292,7 +292,7 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                   <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                     <p className="mb-1 text-xs font-medium text-blue-600 uppercase dark:text-blue-400">Peralatan</p>
                     <p className="font-semibold text-gray-900 dark:text-gray-100">{eq.nama}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{eq.jenis} · {eq.lokasi || "-"} · {eq.device || "-"}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{eq.jenis} · {eq.lokasi || "-"} · {Array.isArray(eq.device) ? (eq.device.length > 0 ? eq.device.join(", ") : "-") : (eq.device || "-")}</p>
                   </div>
                 );
               })()}

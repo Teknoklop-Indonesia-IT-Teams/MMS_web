@@ -47,6 +47,11 @@ interface SensorEntry {
   sensorId: string;
 }
 
+interface DeviceEntry {
+  nama: string;
+  deviceId: string;
+}
+
 const parseSensors = (raw: string | string[] | null | undefined): SensorEntry[] => {
   if (!raw) return [{ nama: "", sensorId: "" }];
   try {
@@ -58,6 +63,22 @@ const parseSensors = (raw: string | string[] | null | undefined): SensorEntry[] 
     });
   } catch {
     return [{ nama: typeof raw === "string" ? raw : "", sensorId: "" }];
+  }
+};
+
+const MAX_DEVICES = 5;
+
+const parseDevices = (raw: string | string[] | null | undefined): DeviceEntry[] => {
+  if (!raw) return [{ nama: "", deviceId: "" }];
+  try {
+    const arr: string[] = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!Array.isArray(arr) || arr.length === 0) return [{ nama: "", deviceId: "" }];
+    return arr.map((item) => {
+      const parts = item.split(",").map((s) => s.trim());
+      return { nama: parts[0] || "", deviceId: parts[1] || "" };
+    });
+  } catch {
+    return [{ nama: typeof raw === "string" ? raw : "", deviceId: "" }];
   }
 };
 
@@ -74,7 +95,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     garansi: "",
     remot: false,
     status: "Garansi" as Equipment["status"],
-    device: "",
     pelanggan: "",
     pic: "",
     maintenanceDate: "",
@@ -83,6 +103,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
     i_alat: "",
   });
   const [sensors, setSensors] = useState<SensorEntry[]>([{ nama: "", sensorId: "" }]);
+  const [devices, setDevices] = useState<DeviceEntry[]>([{ nama: "", deviceId: "" }]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -163,7 +184,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         garansi: equipment.garansi?.split("T")[0] || "",
         remot: equipment.remot === "on",
         status: equipment.status,
-        device: equipment.device,
         pelanggan: equipment.pelanggan ? equipment.pelanggan.toString() : "",
         pic: equipment.pic,
         maintenanceDate: equipment.maintenanceDate?.split("T")[0] || "",
@@ -172,6 +192,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         i_alat: equipment.i_alat || "",
       });
       setSensors(parseSensors(equipment.sensor));
+      setDevices(parseDevices(equipment.device));
 
       if (equipment.i_alat) {
         setImagePreview(
@@ -191,7 +212,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         garansi: "",
         remot: false,
         status: "Garansi" as Equipment["status"],
-        device: "",
         pelanggan: "",
         pic: "",
         maintenanceDate: "",
@@ -200,6 +220,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
         i_alat: "",
       });
       setSensors([{ nama: "", sensorId: "" }]);
+      setDevices([{ nama: "", deviceId: "" }]);
       setImagePreview("");
       setSelectedFile(null);
       setIsHeicFile(false);
@@ -248,7 +269,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       newErrors.instalasi = "Tanggal instalasi wajib diisi";
     if (!formData.garansi.trim())
       newErrors.garansi = "Tanggal garansi wajib diisi";
-    if (!formData.device.trim()) newErrors.device = "Device wajib diisi";
+    if (devices.every((d) => !d.nama.trim())) newErrors.device = "Minimal satu device wajib diisi";
     if (sensors.every((s) => !s.nama.trim()))
       newErrors.sensor = "Minimal satu sensor wajib diisi";
     if (!formData.pelanggan.trim())
@@ -277,7 +298,12 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
       formDataToSubmit.append("garansi", formData.garansi);
       formDataToSubmit.append("remot", formData.remot ? "on" : "off");
       formDataToSubmit.append("status", formData.status);
-      formDataToSubmit.append("device", formData.device);
+      const deviceJson = JSON.stringify(
+        devices
+          .filter((d) => d.nama.trim())
+          .map((d) => `${d.nama.trim()}, ${d.deviceId.trim()}`)
+      );
+      formDataToSubmit.append("device", deviceJson);
       const sensorJson = JSON.stringify(
         sensors
           .filter((s) => s.nama.trim())
@@ -549,16 +575,60 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
 
             {/* Device */}
             <div>
-              <label className={labelClass}>
-                Device <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.device}
-                placeholder="RTCU"
-                onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-                className={inputClass(!!errors.device)}
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelClass}>
+                  Device <span className="text-red-500">*</span>
+                </label>
+                {devices.length < MAX_DEVICES && (
+                  <button
+                    type="button"
+                    onClick={() => setDevices([...devices, { nama: "", deviceId: "" }])}
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700"
+                  >
+                    <Plus size={12} /> Tambah
+                  </button>
+                )}
+              </div>
+              <div className="space-y-2">
+                {devices.map((d, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={d.nama}
+                      placeholder="Nama Device"
+                      onChange={(e) => {
+                        const updated = [...devices];
+                        updated[idx] = { ...updated[idx], nama: e.target.value };
+                        setDevices(updated);
+                      }}
+                      className={inputClass(idx === 0 && !!errors.device)}
+                    />
+                    <input
+                      type="text"
+                      value={d.deviceId}
+                      placeholder="ID Device"
+                      onChange={(e) => {
+                        const updated = [...devices];
+                        updated[idx] = { ...updated[idx], deviceId: e.target.value };
+                        setDevices(updated);
+                      }}
+                      className={inputClass()}
+                    />
+                    {devices.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setDevices(devices.filter((_, i) => i !== idx))}
+                        className="p-2 text-white bg-red-500 rounded hover:bg-red-600 shrink-0"
+                      >
+                        <Minus size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Maksimal {MAX_DEVICES} device ({devices.length}/{MAX_DEVICES})
+              </p>
               {errors.device && <p className="mt-1 text-xs text-red-500">{errors.device}</p>}
             </div>
 

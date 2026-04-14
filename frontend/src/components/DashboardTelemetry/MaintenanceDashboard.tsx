@@ -303,7 +303,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
                             </div>
                             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                               <Activity className="w-4 h-4 mr-1" />
-                              <span>Device: {item.device}</span>
+                              <span>Device: {Array.isArray(item.device) ? (item.device.length > 0 ? item.device.join(", ") : "-") : (item.device || "-")}</span>
                             </div>
                           </div>
 

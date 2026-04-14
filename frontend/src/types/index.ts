@@ -26,7 +26,7 @@ export interface Equipment {
   garansi: string;
   remot: string;
   status: string;
-  device: string;
+  device: string | string[];
   sensor: string | string[];
   pelanggan: string;
   pelanggan_nama?: string;

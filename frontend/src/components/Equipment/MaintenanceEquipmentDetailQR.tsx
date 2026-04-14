@@ -336,7 +336,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                     Kode Alat
                   </label>
                   <p className="font-mono text-gray-900">
-                    {equipment.device || "N/A"}
+                    {Array.isArray(equipment.device) ? (equipment.device.length > 0 ? equipment.device.join(", ") : "N/A") : (equipment.device || "N/A")}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
@@ -363,7 +363,7 @@ const MaintenanceEquipmentDetailQR: React.FC = () => {
                   <label className="block mb-1 text-sm font-medium text-gray-600">
                     Device
                   </label>
-                  <p className="text-gray-900">{equipment.device || "N/A"}</p>
+                  <p className="text-gray-900">{Array.isArray(equipment.device) ? (equipment.device.length > 0 ? equipment.device.join(", ") : "N/A") : (equipment.device || "N/A")}</p>
                 </div>
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-600">

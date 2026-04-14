@@ -315,7 +315,7 @@ export default function EquipmentCorrectiveDetail({
               <div className="col-span-2 grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Device</label>
-                  <p className="text-gray-900 dark:text-gray-100">{equipment.device || "-"}</p>
+                  <p className="text-gray-900 dark:text-gray-100">{Array.isArray(equipment.device) ? (equipment.device.length > 0 ? equipment.device.join(", ") : "-") : (equipment.device || "-")}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis</label>

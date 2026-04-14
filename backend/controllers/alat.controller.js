@@ -146,7 +146,11 @@ const getAllAlat = async (req, res) => {
         garansi: itemData.garansi || "",
         remot: itemData.remot || "",
         status: itemData.status || "",
-        device: itemData.device || "",
+        device: (() => {
+          if (!itemData.device) return [];
+          try { return JSON.parse(itemData.device); }
+          catch { return [itemData.device]; }
+        })(),
         sensor: (() => {
           if (!itemData.sensor) return [];
           try { return JSON.parse(itemData.sensor); }
@@ -458,8 +462,8 @@ const updateAlat = async (req, res) => {
       processedGaransi,
       processedRemot,
       status || existingData.status,
-      device || existingData.device,
-      sensor || existingData.sensor,
+      device !== undefined && device !== null ? device : existingData.device,
+      sensor !== undefined && sensor !== null ? sensor : existingData.sensor,
       pelanggan || existingData.pelanggan,
       pic || existingData.pic,
       email || existingData.email,
@@ -1081,7 +1085,11 @@ const getPublicAlatByClient = async (req, res) => {
         garansi: itemData.garansi || "",
         remot: itemData.remot || "",
         status: itemData.status || "",
-        device: itemData.device || "",
+        device: (() => {
+          if (!itemData.device) return [];
+          try { return JSON.parse(itemData.device); }
+          catch { return [itemData.device]; }
+        })(),
         sensor: (() => {
           if (!itemData.sensor) return [];
           try { return JSON.parse(itemData.sensor); }

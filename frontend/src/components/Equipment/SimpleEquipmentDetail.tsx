@@ -166,7 +166,7 @@ const SimpleEquipmentDetail: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-500">Device</p>
                       <p className="font-medium text-sm sm:text-base break-words">
-                        {equipment.device || "-"}
+                        {Array.isArray(equipment.device) ? (equipment.device.length > 0 ? equipment.device.join(", ") : "-") : (equipment.device || "-")}
                       </p>
                     </div>
                   </div>
