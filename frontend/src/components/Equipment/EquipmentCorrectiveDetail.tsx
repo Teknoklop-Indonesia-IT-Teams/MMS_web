@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useMemo,
   memo,
+  useRef,
 } from "react";
 import {
   X,
@@ -19,6 +20,7 @@ import { Equipment, CorRecord } from "../../types";
 import { recordCorrectiveService, staffService } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
 import ImageDisplay from "../Common/ImageDisplay";
+import { compressImage } from "../../utils/imageUtils";
 import SearchableSelect from "../Common/SearchableSelect";
 
 interface EquipmentDetailProps {
@@ -511,7 +513,8 @@ export default function EquipmentCorrectiveDetail({
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
   const [showMainImageLightbox, setShowMainImageLightbox] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);           // guard: tidak punya stale closure
+  const [isSubmitting, setIsSubmitting] = useState(false); // hanya untuk UI (disabled/teks)
 
   // Add form state
   const [addFormData, setAddFormData] = useState<Record<FormKey, string>>(emptyForm);
@@ -575,32 +578,34 @@ export default function EquipmentCorrectiveDetail({
       setPreviews((prev) => [...prev, ...valid.map((f) => URL.createObjectURL(f))]);
     }, [setFiles, setPreviews]);
 
-  const handleAddImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const valid = Array.from(e.target.files || []).filter((f) => {
+  const handleAddImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Array.from(e.target.files || []).filter((f) => {
       if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(f.type)) {
         alert(`${f.name}: Format tidak didukung.`); return false;
       }
       if (f.size > 5 * 1024 * 1024) { alert(`${f.name}: Ukuran terlalu besar (maks 5MB).`); return false; }
       return true;
     });
-    setAddImageFiles((prev) => [...prev, ...valid]);
-    setAddImagePreviews((prev) => [...prev, ...valid.map((f) => URL.createObjectURL(f))]);
+    if (!raw.length) return;
+    const compressed = await Promise.all(raw.map((f) => compressImage(f)));
+    setAddImageFiles((prev) => [...prev, ...compressed]);
+    setAddImagePreviews((prev) => [...prev, ...compressed.map((f) => URL.createObjectURL(f))]);
   }, []);
 
-  const handleEditImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const valid = Array.from(e.target.files || []).filter((f) => {
+  const handleEditImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Array.from(e.target.files || []).filter((f) => {
       if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(f.type)) {
         alert(`${f.name}: Format tidak didukung.`); return false;
       }
       if (f.size > 5 * 1024 * 1024) { alert(`${f.name}: Ukuran terlalu besar (maks 5MB).`); return false; }
       return true;
     });
-    if (valid.length > 0) {
-      setEditImageFiles((prev) => [...prev, ...valid]);
-      setEditImagePreviews((prev) => [...prev, ...valid.map((f) => URL.createObjectURL(f))]);
-      // Gambar lama otomatis dihapus saat gambar baru diupload
-      setEditKeepImages([]);
-    }
+    if (!raw.length) return;
+    const compressed = await Promise.all(raw.map((f) => compressImage(f)));
+    setEditImageFiles((prev) => [...prev, ...compressed]);
+    setEditImagePreviews((prev) => [...prev, ...compressed.map((f) => URL.createObjectURL(f))]);
+    // Gambar lama otomatis dihapus saat gambar baru diupload
+    setEditKeepImages([]);
   }, []);
 
   const handleRemoveAddImage = useCallback((idx: number) => {
@@ -636,10 +641,11 @@ export default function EquipmentCorrectiveDetail({
 
   const handleSaveRecord = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (submittingRef.current) return;          // ref-guard: selalu current, tidak stale
     if (!addFormData.tanggal || !addFormData.deskripsi) {
       alert("Tanggal dan Deskripsi harus diisi"); return;
     }
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       let payload: Parameters<typeof recordCorrectiveService.create>[0];
@@ -662,9 +668,10 @@ export default function EquipmentCorrectiveDetail({
       console.error(error);
       alert("Gagal menyimpan record. Silakan coba lagi.");
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [isSubmitting, addFormData, addImageFiles, equipment.id, fetchRecords, resetAddForm, showSuccess]);
+  }, [addFormData, addImageFiles, equipment.id, fetchRecords, resetAddForm, showSuccess]);
 
   // ─── Edit ───────────────────────────────────────────────────────────────────
   const handleEditRecord = useCallback((record: CorRecord) => {
@@ -696,10 +703,11 @@ export default function EquipmentCorrectiveDetail({
 
   const handleUpdateRecord = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || !editingRecord) return;
+    if (submittingRef.current || !editingRecord) return;
     if (!editFormData.tanggal || !editFormData.deskripsi) {
       alert("Tanggal dan Deskripsi harus diisi"); return;
     }
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       const fd = new FormData();
@@ -715,9 +723,10 @@ export default function EquipmentCorrectiveDetail({
       console.error(error);
       alert("Gagal mengupdate record. Silakan coba lagi.");
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [isSubmitting, editingRecord, editFormData, editKeepImages, editImageFiles, equipment.id, fetchRecords, resetEditForm, showSuccess]);
+  }, [editingRecord, editFormData, editKeepImages, editImageFiles, equipment.id, fetchRecords, resetEditForm, showSuccess]);
 
   // ─── Delete ─────────────────────────────────────────────────────────────────
   const handleDeleteRecord = useCallback(async (recordId: number) => {
@@ -897,7 +906,7 @@ export default function EquipmentCorrectiveDetail({
             )}
 
             {/* Table */}
-            <div className="overflow-auto bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+            <div className="overflow-auto bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-700" style={{ contain: "layout" }}>
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
