@@ -178,50 +178,48 @@ const createRecord = async (req, res) => {
 const updateRecord = async (req, res) => {
   try {
     const {
-      deskripsi,
-      awal,
-      tindakan,
-      tambahan,
-      akhir,
-      berikutnya,
-      keterangan,
-      petugas,
-      i_alat,
-      id_m_alat,
-      tanggal,
+      deskripsi, awal, tindakan, tambahan, akhir,
+      berikutnya, keterangan, petugas, id_m_alat, tanggal,
+      keepImages,
     } = req.body;
 
-    const processImage = (base64String) => {
-      if (!base64String) return null;
-      if (base64String.startsWith("data:image")) {
-        return base64String.split(",")[1];
-      }
-      return base64String;
-    };
+    // Ambil data lama untuk keperluan hapus gambar
+    const [rows] = await db.query("SELECT i_alat FROM m_record WHERE id = ?", [req.params.id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Record tidak ditemukan" });
+    }
 
-    const processed_i_alat = processImage(i_alat);
+    // Parse gambar lama
+    let existingImages = [];
+    try { existingImages = JSON.parse(rows[0].i_alat || "[]"); } catch { /* empty */ }
+
+    // Parse gambar yang ingin dipertahankan (dikirim dari frontend)
+    let imagesToKeep = existingImages; // default: pertahankan semua
+    if (keepImages !== undefined) {
+      try { imagesToKeep = JSON.parse(keepImages); } catch { imagesToKeep = []; }
+    }
+
+    // Hapus file yang dihapus user
+    const removedImages = existingImages.filter((p) => !imagesToKeep.includes(p));
+    if (removedImages.length > 0) deleteRecordImages(JSON.stringify(removedImages));
+
+    // Upload gambar baru (jika ada)
+    const newImagePaths = (req.files && req.files.length > 0)
+      ? req.files.map((f) => `/uploads/${f.filename}`)
+      : [];
+
+    const finalImages = [...imagesToKeep, ...newImagePaths];
+    const i_alat = finalImages.length > 0 ? JSON.stringify(finalImages) : null;
 
     await db.query(
       "UPDATE m_record SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_alat = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
-      [
-        deskripsi,
-        awal,
-        tindakan,
-        tambahan,
-        akhir,
-        berikutnya,
-        keterangan,
-        petugas,
-        processed_i_alat,
-        id_m_alat,
-        tanggal,
-        req.params.id,
-      ],
+      [deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal, req.params.id],
     );
 
     res.json({
-      id: req.params.id,
-      ...req.body,
+      id: Number(req.params.id),
+      deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, id_m_alat, tanggal,
+      i_alat: finalImages.length > 0 ? finalImages : null,
     });
   } catch (error) {
     console.error(error);
@@ -362,50 +360,44 @@ const createCorrectiveRecord = async (req, res) => {
 const updateCorrectiveRecord = async (req, res) => {
   try {
     const {
-      deskripsi,
-      awal,
-      tindakan,
-      tambahan,
-      akhir,
-      berikutnya,
-      keterangan,
-      petugas,
-      i_alat,
-      id_m_alat,
-      tanggal,
+      deskripsi, awal, tindakan, tambahan, akhir,
+      berikutnya, keterangan, petugas, id_m_alat, tanggal,
+      keepImages,
     } = req.body;
 
-    const processImage = (base64String) => {
-      if (!base64String) return null;
-      if (base64String.startsWith("data:image")) {
-        return base64String.split(",")[1];
-      }
-      return base64String;
-    };
+    // Ambil data lama
+    const [rows] = await db.query("SELECT i_alat FROM m_record_corrective WHERE id = ?", [req.params.id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Record tidak ditemukan" });
+    }
 
-    const processed_i_alat = processImage(i_alat);
+    let existingImages = [];
+    try { existingImages = JSON.parse(rows[0].i_alat || "[]"); } catch { /* empty */ }
+
+    let imagesToKeep = existingImages;
+    if (keepImages !== undefined) {
+      try { imagesToKeep = JSON.parse(keepImages); } catch { imagesToKeep = []; }
+    }
+
+    const removedImages = existingImages.filter((p) => !imagesToKeep.includes(p));
+    if (removedImages.length > 0) deleteRecordImages(JSON.stringify(removedImages));
+
+    const newImagePaths = (req.files && req.files.length > 0)
+      ? req.files.map((f) => `/uploads/${f.filename}`)
+      : [];
+
+    const finalImages = [...imagesToKeep, ...newImagePaths];
+    const i_alat = finalImages.length > 0 ? JSON.stringify(finalImages) : null;
 
     await db.query(
       "UPDATE m_record_corrective SET deskripsi = ?, awal = ?, tindakan = ?, tambahan = ?, akhir = ?, berikutnya = ?, keterangan = ?, petugas = ?, i_alat = ?, id_m_alat = ?, tanggal = ? WHERE id = ?",
-      [
-        deskripsi,
-        awal,
-        tindakan,
-        tambahan,
-        akhir,
-        berikutnya,
-        keterangan,
-        petugas,
-        processed_i_alat,
-        id_m_alat,
-        tanggal,
-        req.params.id,
-      ],
+      [deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, i_alat, id_m_alat, tanggal, req.params.id],
     );
 
     res.json({
-      id: req.params.id,
-      ...req.body,
+      id: Number(req.params.id),
+      deskripsi, awal, tindakan, tambahan, akhir, berikutnya, keterangan, petugas, id_m_alat, tanggal,
+      i_alat: finalImages.length > 0 ? finalImages : null,
     });
   } catch (error) {
     console.error(error);

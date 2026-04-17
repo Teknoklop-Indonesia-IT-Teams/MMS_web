@@ -688,16 +688,14 @@ export const recordService = {
       .post<PreRecord>("/record", data, config)
       .finally(() => AppStateManager.endCriticalOperation());
   },
-  update: (id: string, data: Partial<PreRecord>) => {
+  update: (id: string, data: Partial<PreRecord> | FormData) => {
     AppStateManager.startCriticalOperation("Update record");
-
+    const isFormData = data instanceof FormData;
+    const config = isFormData
+      ? { headers: { "Content-Type": undefined }, transformRequest: [(d: FormData) => d], timeout: 60000 }
+      : { headers: { "Content-Type": "application/json" }, timeout: 60000 };
     return api
-      .put<PreRecord>(`/record/${id}`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 60000,
-      })
+      .put<PreRecord>(`/record/${id}`, data, config)
       .finally(() => AppStateManager.endCriticalOperation());
   },
   delete: (id: number) => {
@@ -735,13 +733,14 @@ export const recordCorrectiveService = {
       .finally(() => AppStateManager.endCriticalOperation());
   },
 
-  update: (id: string, data: Partial<CorRecord>) => {
+  update: (id: string, data: Partial<CorRecord> | FormData) => {
     AppStateManager.startCriticalOperation("Update corrective record");
+    const isFormData = data instanceof FormData;
+    const config = isFormData
+      ? { headers: { "Content-Type": undefined }, transformRequest: [(d: FormData) => d], timeout: 60000 }
+      : { headers: { "Content-Type": "application/json" }, timeout: 60000 };
     return api
-      .put<CorRecord>(`/record/corrective/${id}`, data, {
-        headers: { "Content-Type": "application/json" },
-        timeout: 60000,
-      })
+      .put<CorRecord>(`/record/corrective/${id}`, data, config)
       .finally(() => AppStateManager.endCriticalOperation());
   },
 
