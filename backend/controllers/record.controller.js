@@ -1,4 +1,28 @@
 const { db } = require("../config/db.js");
+const fs = require("fs");
+const path = require("path");
+
+// Hapus file gambar yang tersimpan sebagai JSON array di kolom i_alat
+const deleteRecordImages = (i_alat) => {
+  if (!i_alat) return;
+  let filePaths = [];
+  try {
+    filePaths = JSON.parse(i_alat);
+  } catch {
+    if (typeof i_alat === "string" && i_alat.startsWith("/uploads/")) {
+      filePaths = [i_alat];
+    }
+  }
+  if (!Array.isArray(filePaths)) return;
+  for (const filePath of filePaths) {
+    const absPath = path.join(__dirname, "..", filePath);
+    fs.unlink(absPath, (err) => {
+      if (err && err.code !== "ENOENT") {
+        console.error(`Gagal menghapus gambar ${absPath}:`, err.message);
+      }
+    });
+  }
+};
 
 const getAllRecords = async (req, res) => {
   try {
@@ -207,6 +231,9 @@ const updateRecord = async (req, res) => {
 
 const deleteRecord = async (req, res) => {
   try {
+    const [rows] = await db.query("SELECT i_alat FROM m_record WHERE id = ?", [req.params.id]);
+    if (rows.length > 0) deleteRecordImages(rows[0].i_alat);
+
     await db.query("DELETE FROM m_record WHERE id = ?", [req.params.id]);
     res.json({ message: "Record berhasil dihapus" });
   } catch (error) {
@@ -388,9 +415,10 @@ const updateCorrectiveRecord = async (req, res) => {
 
 const deleteCorrectiveRecord = async (req, res) => {
   try {
-    await db.query("DELETE FROM m_record_corrective WHERE id = ?", [
-      req.params.id,
-    ]);
+    const [rows] = await db.query("SELECT i_alat FROM m_record_corrective WHERE id = ?", [req.params.id]);
+    if (rows.length > 0) deleteRecordImages(rows[0].i_alat);
+
+    await db.query("DELETE FROM m_record_corrective WHERE id = ?", [req.params.id]);
     res.json({ message: "Record berhasil dihapus" });
   } catch (error) {
     console.error(error);
