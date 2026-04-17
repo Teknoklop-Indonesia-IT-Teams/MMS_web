@@ -307,6 +307,7 @@ interface RecordFormProps {
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   uploadInputId: string;
+  isSubmitting?: boolean;
 }
 
 const RecordForm = memo(function RecordForm({
@@ -323,6 +324,7 @@ const RecordForm = memo(function RecordForm({
   onSubmit,
   onCancel,
   uploadInputId,
+  isSubmitting = false,
 }: RecordFormProps) {
   const set = useCallback(
     (key: FormKey) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -478,10 +480,19 @@ const RecordForm = memo(function RecordForm({
         </div>
 
         <div className="flex space-x-3">
-          <button type="submit" className="px-4 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700">
-            {mode === "add" ? "Simpan" : "Update"}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Menyimpan..." : mode === "add" ? "Simpan" : "Update"}
           </button>
-          <button type="button" onClick={onCancel} className="px-4 py-2 text-white transition-colors bg-gray-600 rounded-md hover:bg-gray-700">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="px-4 py-2 text-white transition-colors bg-gray-600 rounded-md hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             Batal
           </button>
         </div>
@@ -500,6 +511,7 @@ export default function EquipmentCorrectiveDetail({
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
   const [showMainImageLightbox, setShowMainImageLightbox] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add form state
   const [addFormData, setAddFormData] = useState<Record<FormKey, string>>(emptyForm);
@@ -624,9 +636,11 @@ export default function EquipmentCorrectiveDetail({
 
   const handleSaveRecord = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!addFormData.tanggal || !addFormData.deskripsi) {
       alert("Tanggal dan Deskripsi harus diisi"); return;
     }
+    setIsSubmitting(true);
     try {
       let payload: Parameters<typeof recordCorrectiveService.create>[0];
       if (addImageFiles.length > 0) {
@@ -647,8 +661,10 @@ export default function EquipmentCorrectiveDetail({
     } catch (error) {
       console.error(error);
       alert("Gagal menyimpan record. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [addFormData, addImageFiles, equipment.id, fetchRecords, resetAddForm, showSuccess]);
+  }, [isSubmitting, addFormData, addImageFiles, equipment.id, fetchRecords, resetAddForm, showSuccess]);
 
   // ─── Edit ───────────────────────────────────────────────────────────────────
   const handleEditRecord = useCallback((record: CorRecord) => {
@@ -680,10 +696,11 @@ export default function EquipmentCorrectiveDetail({
 
   const handleUpdateRecord = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingRecord) return;
+    if (isSubmitting || !editingRecord) return;
     if (!editFormData.tanggal || !editFormData.deskripsi) {
       alert("Tanggal dan Deskripsi harus diisi"); return;
     }
+    setIsSubmitting(true);
     try {
       const fd = new FormData();
       fd.append("id_m_alat", String(equipment.id));
@@ -697,8 +714,10 @@ export default function EquipmentCorrectiveDetail({
     } catch (error) {
       console.error(error);
       alert("Gagal mengupdate record. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [editingRecord, editFormData, editKeepImages, editImageFiles, equipment.id, fetchRecords, resetEditForm, showSuccess]);
+  }, [isSubmitting, editingRecord, editFormData, editKeepImages, editImageFiles, equipment.id, fetchRecords, resetEditForm, showSuccess]);
 
   // ─── Delete ─────────────────────────────────────────────────────────────────
   const handleDeleteRecord = useCallback(async (recordId: number) => {
@@ -739,7 +758,7 @@ export default function EquipmentCorrectiveDetail({
     >
       <div
         className="w-full max-w-6xl bg-white rounded-lg shadow-xl dark:bg-gray-800 flex flex-col"
-        style={{ maxHeight: "95vh", minHeight: "60vh" }}
+        style={{ height: "90vh" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b shrink-0">
@@ -853,6 +872,7 @@ export default function EquipmentCorrectiveDetail({
                 onSubmit={handleSaveRecord}
                 onCancel={handleCancelAdd}
                 uploadInputId="corrective-add-image-upload"
+                isSubmitting={isSubmitting}
               />
             )}
 
@@ -872,11 +892,12 @@ export default function EquipmentCorrectiveDetail({
                 onSubmit={handleUpdateRecord}
                 onCancel={resetEditForm}
                 uploadInputId="corrective-edit-image-upload"
+                isSubmitting={isSubmitting}
               />
             )}
 
             {/* Table */}
-            <div className="overflow-hidden bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-700" style={{ minHeight: "6rem" }}>
+            <div className="overflow-auto bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-700">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
