@@ -6,6 +6,7 @@ import React, {
   memo,
   useRef,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Plus,
@@ -58,9 +59,9 @@ const Lightbox = memo(function Lightbox({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-90"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90"
       onClick={onClose}
     >
       <button
@@ -73,7 +74,8 @@ const Lightbox = memo(function Lightbox({
         <img src={src} alt={alt || "Record Image"} className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
         {alt && <p className="mt-2 text-sm text-center text-white opacity-75">{alt}</p>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 });
 
