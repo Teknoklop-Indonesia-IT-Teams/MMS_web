@@ -21,7 +21,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string>("");
 
   useEffect(() => {
-    // Reset states
+    
     setHasError(false);
     setIsLoading(false);
     setCurrentSrc("");
@@ -32,7 +32,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       return;
     }
 
-    // Process the URL
+    
     let processedUrl = src;
 
     if (processedUrl.startsWith("/uploads/")) {
@@ -52,7 +52,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       }
     }
 
-    // Add cache busting in development mode
+    
     if (import.meta.env.DEV) {
       const urlObj = new URL(processedUrl, window.location.origin);
       if (!urlObj.searchParams.has("t")) {
@@ -61,8 +61,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       }
     }
     setImageUrl(processedUrl);
-    setCurrentSrc(src); // Store original src for comparison
-    setIsLoading(true); // Start loading
+    setCurrentSrc(src); 
+    setIsLoading(true); 
   }, [src, alt]);
 
   const handleImageLoad = () => {
@@ -78,9 +78,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
     if (onError) onError();
   };
 
-  // ========== RENDER LOGIC ==========
 
-  // Jika tidak ada sumber gambar
+
   if (!src || src.trim() === "" || src === "undefined" || src === "null") {
     return (
       <div
@@ -106,7 +105,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
     );
   }
 
-  // Jika error loading gambar
+
   if (hasError) {
     return (
       <div
@@ -132,7 +131,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
     );
   }
 
-  // Render gambar
+
   return (
     <div className={`relative ${className}`}>
       {/* Gambar utama */}
@@ -162,7 +161,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   );
 };
 
-// Versi lebih sederhana untuk debugging
+
 export const SimpleImageDisplay: React.FC<ImageDisplayProps> = ({
   src,
   alt,
@@ -178,7 +177,6 @@ export const SimpleImageDisplay: React.FC<ImageDisplayProps> = ({
 
     let processedUrl = src;
 
-    // Jika hanya filename, tambahkan base URL
     if (
       !processedUrl.startsWith("http") &&
       !processedUrl.startsWith("data:") &&

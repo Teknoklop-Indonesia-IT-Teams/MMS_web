@@ -21,11 +21,9 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
   React.useEffect(() => {
     const generateQR = async () => {
       try {
-        // Gunakan network utils untuk mendapatkan URL terbaik dengan route public
         const urlInfo = await getMostAccessibleUrl(
           `/public/equipment/${equipment.id}`,
         );
-        // Buat QR code dengan error correction yang baik
         const qrUrl = await QRCode.toDataURL(urlInfo.url, {
           width: 256,
           margin: 2,
@@ -33,12 +31,11 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
             dark: "#000000",
             light: "#FFFFFF",
           },
-          errorCorrectionLevel: "M", // Medium error correction untuk scanning yang lebih baik
+          errorCorrectionLevel: "M",
         });
 
         setQrCodeUrl(qrUrl);
       } catch (error) {
-        // Fallback ke metode lama jika network utils gagal
         try {
           const fallbackUrl = `${window.location.protocol}//${
             window.location.hostname
@@ -73,7 +70,6 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
     }
 
     try {
-      // Method 1: Direct download dari QR code data URL
       const link = document.createElement("a");
       link.download = `qr-${equipment.nama
         .replace(/\s+/g, "-")
@@ -85,7 +81,6 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
     } catch (error) {
       console.error("Error downloading QR code:", error);
 
-      // Fallback method: Using html2canvas
       if (qrRef.current) {
         try {
           const canvas = await html2canvas(qrRef.current, {
@@ -137,14 +132,14 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6"
+        className="w-full max-w-md p-6 bg-white rounded-lg dark:bg-gray-800"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             QR Code For Public- {equipment.nama}
           </h3>
@@ -152,13 +147,13 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <X className="h-6 w-6" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* <div className="text-center">
-          <div className="bg-white p-4 rounded-lg inline-block">
-            <div className="text-sm text-gray-600 mb-2">
+          <div className="inline-block p-4 bg-white rounded-lg">
+            <div className="mb-2 text-sm text-gray-600">
               QR Code untuk: {equipment.nama}
             </div>
             <div className="text-xs text-gray-500">URL: {qrUrl}</div>
@@ -168,7 +163,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
         {/* <div className="mt-4 text-center">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             Tutup
           </button>

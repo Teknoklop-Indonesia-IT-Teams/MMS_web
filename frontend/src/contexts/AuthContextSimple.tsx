@@ -19,18 +19,15 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Global flags to prevent logout on refresh
 let isPageRefreshing = false;
 let refreshCount = 0;
 
-// Detect page refresh using AuthStorage utility
 if (typeof window !== "undefined") {
   isPageRefreshing = AuthStorage.isRefreshing();
 
   if (isPageRefreshing) {
     refreshCount++;
 
-    // Block logout for 5 seconds after refresh
     setTimeout(() => {
       isPageRefreshing = false;
     }, 5000);
@@ -44,11 +41,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check for existing auth on mount
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        // Use AuthStorage to load auth data safely
         const authData = AuthStorage.loadAuthData();
 
         if (authData) {
@@ -56,7 +51,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           console.log("ℹ️ No valid stored auth data found");
 
-          // Only clear partial data if not refreshing
           if (!isPageRefreshing) {
             AuthStorage.clearAuthData();
           }
@@ -64,17 +58,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error("❌ Error initializing auth:", error);
 
-        // Only clear data if not refreshing
         if (!isPageRefreshing) {
           AuthStorage.clearAuthData();
         }
       } finally {
-        // Always set loading to false
         setLoading(false);
       }
     };
 
-    // Small delay to prevent race conditions
     setTimeout(initializeAuth, 100);
   }, []);
 
@@ -88,7 +79,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    // Prevent logout during refresh
     if (isPageRefreshing) {
       return;
     }

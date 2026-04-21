@@ -56,7 +56,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
     updatedEmails[index] = value;
     setEmails(updatedEmails);
 
-    // Clear error when user starts typing
+
     if (errors[index]) {
       const newErrors = { ...errors };
       delete newErrors[index];
@@ -65,7 +65,6 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
   };
 
   const handleSave = () => {
-    // Validate all emails
     const newErrors: Record<number, string> = {};
     let hasErrors = false;
 
@@ -84,9 +83,8 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
       return;
     }
 
-    // Filter out empty emails and update service
+
     const validEmails = emails.filter((email) => email.trim());
-    // MaintenanceEmailService.updateMaintenanceEmails(validEmails);
 
     alert(
       `✅ Email maintenance berhasil disimpan!\n${validEmails.length} email tersimpan.\n\n📧 Email akan dikirim SEKALI SAJA untuk setiap equipment dengan status kuning/merah.`
@@ -105,7 +103,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 text-gray-400 transition-colors hover:text-gray-600"
           >
             <X size={20} />
           </button>
@@ -113,7 +111,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
 
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="mb-6">
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="mb-4 text-sm text-gray-600">
               Email-email berikut akan menerima notifikasi otomatis untuk
               maintenance alat:
             </p>
@@ -130,7 +128,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
               />
               <button
                 onClick={handleAddEmail}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
               >
                 <Plus size={16} />
                 Tambah
@@ -140,7 +138,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
             {/* Email list */}
             <div className="space-y-2">
               {emails.map((email, index) => (
-                <div key={index} className="flex gap-2 items-start">
+                <div key={index} className="flex items-start gap-2">
                   <input
                     type="email"
                     value={email}
@@ -152,7 +150,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
                   />
                   <button
                     onClick={() => handleRemoveEmail(index)}
-                    className="p-2 text-red-600 hover:text-red-700 transition-colors"
+                    className="p-2 text-red-600 transition-colors hover:text-red-700"
                     title="Hapus email"
                   >
                     <Trash2 size={16} />
@@ -166,7 +164,7 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
               ))}
 
               {emails.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
+                <div className="py-8 text-center text-gray-500">
                   <p>Belum ada email terdaftar</p>
                   <p className="text-sm">
                     Tambahkan email untuk menerima notifikasi maintenance
@@ -176,11 +174,11 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
             </div>
           </div>
 
-          <div className="bg-green-50 p-4 rounded-md">
-            <h3 className="font-medium text-green-900 mb-2">
+          <div className="p-4 rounded-md bg-green-50">
+            <h3 className="mb-2 font-medium text-green-900">
               ✅ Logika Email Baru:
             </h3>
-            <ul className="text-sm text-green-800 space-y-1">
+            <ul className="space-y-1 text-sm text-green-800">
               <li>
                 • <strong>SEKALI KIRIM SAJA</strong> - Email hanya dikirim 1x
                 untuk setiap equipment
@@ -196,9 +194,9 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
             </ul>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-md">
-            <h3 className="font-medium text-blue-900 mb-2">ℹ️ Cara Kerja:</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="p-4 rounded-md bg-blue-50">
+            <h3 className="mb-2 font-medium text-blue-900">ℹ️ Cara Kerja:</h3>
+            <ul className="space-y-1 text-sm text-blue-800">
               <li>
                 • Email dikirim otomatis ketika equipment pertama kali berstatus
                 kuning/merah
@@ -217,13 +215,13 @@ const EmailSettingsModal: React.FC<EmailSettingsModalProps> = ({
         <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-gray-700 transition-colors border border-gray-300 rounded-md hover:bg-gray-50"
           >
             Batal
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
           >
             <Save size={16} />
             Simpan

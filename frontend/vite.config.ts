@@ -25,27 +25,21 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Core React
           "vendor-react": ["react", "react-dom"],
           "vendor-router": ["react-router-dom"],
 
-          // UI Libraries
           "vendor-ui": ["lucide-react", "react-hot-toast"],
           "vendor-table": ["@tanstack/react-table"],
 
-          // Network & Media
           "vendor-http": ["axios"],
           "vendor-media": ["qrcode", "html2canvas"],
 
-          // Utils & Small libs
           "vendor-utils": [],
 
-          // Large components - split them separately
           "equipment-table": ["src/components/Equipment/EquipmentTable.tsx"],
           "equipment-form": ["src/components/Equipment/EquipmentForm.tsx"],
           dashboard: ["src/components/DashboardTelemetry/Dashboard.tsx"],
         },
-        // Optimize chunk names
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId
             ? chunkInfo.facadeModuleId

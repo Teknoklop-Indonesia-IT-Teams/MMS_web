@@ -4,7 +4,6 @@ const upload = require("../middleware/upload");
 
 const router = express.Router();
 
-// Corrective Maintenance Records
 router.get("/corrective/", recordController.getAllCorrectiveRecords);
 router.get(
   "/corrective/equipment/:id",
@@ -15,7 +14,6 @@ router.post("/corrective/",  upload.array("i_alat", 10), recordController.create
 router.put("/corrective/:id", upload.array("i_alat", 10), recordController.updateCorrectiveRecord);
 router.delete("/corrective/:id", recordController.deleteCorrectiveRecord);
 
-// Preventive Maintenance Records
 router.get("/", recordController.getAllRecords);
 router.get("/equipment/:id", recordController.getRecordByEquipmentId);
 router.get("/:id", recordController.getRecordById);

@@ -2,7 +2,6 @@ const { db } = require("../config/db.js");
 const fs = require("fs");
 const path = require("path");
 
-// Hapus file gambar yang tersimpan sebagai JSON array di kolom i_alat
 const deleteRecordImages = (i_alat) => {
   if (!i_alat) return;
   let filePaths = [];
@@ -130,12 +129,11 @@ const createRecord = async (req, res) => {
       });
     }
 
-    // ✅ Ganti req.file → req.files (array)
     let i_alat = null;
 
     if (req.files && req.files.length > 0) {
       const filenames = req.files.map(f => `/uploads/${f.filename}`);
-      i_alat = JSON.stringify(filenames); // '["/uploads/a.jpg","/uploads/b.jpg"]'
+      i_alat = JSON.stringify(filenames); 
       console.log("✅ Files uploaded:", filenames);
     } else {
       console.log("⚠️ No files uploaded");
@@ -158,7 +156,7 @@ const createRecord = async (req, res) => {
         berikutnya,
         keterangan,
         petugas,
-        i_alat,       // JSON string / null
+        i_alat,
         id_m_alat,
         tanggal,
       ],
@@ -167,7 +165,7 @@ const createRecord = async (req, res) => {
     res.status(201).json({
       id: result.insertId,
       ...req.body,
-      i_alat: i_alat ? JSON.parse(i_alat) : null, // kembalikan sebagai array
+      i_alat: i_alat ? JSON.parse(i_alat) : null,
     });
   } catch (error) {
     console.error(error);
@@ -183,27 +181,26 @@ const updateRecord = async (req, res) => {
       keepImages,
     } = req.body;
 
-    // Ambil data lama untuk keperluan hapus gambar
     const [rows] = await db.query("SELECT i_alat FROM m_record WHERE id = ?", [req.params.id]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Record tidak ditemukan" });
     }
 
-    // Parse gambar lama
+   
     let existingImages = [];
-    try { existingImages = JSON.parse(rows[0].i_alat || "[]"); } catch { /* empty */ }
+    try { existingImages = JSON.parse(rows[0].i_alat || "[]"); } catch { }
 
-    // Parse gambar yang ingin dipertahankan (dikirim dari frontend)
-    let imagesToKeep = existingImages; // default: pertahankan semua
+    
+    let imagesToKeep = existingImages;
     if (keepImages !== undefined) {
       try { imagesToKeep = JSON.parse(keepImages); } catch { imagesToKeep = []; }
     }
 
-    // Hapus file yang dihapus user
+    
     const removedImages = existingImages.filter((p) => !imagesToKeep.includes(p));
     if (removedImages.length > 0) deleteRecordImages(JSON.stringify(removedImages));
 
-    // Upload gambar baru (jika ada)
+    
     const newImagePaths = (req.files && req.files.length > 0)
       ? req.files.map((f) => `/uploads/${f.filename}`)
       : [];
@@ -301,7 +298,6 @@ const getCorrectiveRecordByEquipmentId = async (req, res) => {
       [id],
     );
 
-    // ✅ Pastikan ini ada
     const parsed = records.map(row => ({
       ...row,
       i_alat: (() => {
@@ -311,7 +307,7 @@ const getCorrectiveRecordByEquipmentId = async (req, res) => {
       })()
     }));
 
-    res.json(parsed); // ← kirim parsed, bukan records
+    res.json(parsed); 
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -331,7 +327,7 @@ const createCorrectiveRecord = async (req, res) => {
       });
     }
 
-    // ✅ Ganti base64 logic → req.files
+    
     let i_alat = null;
     if (req.files && req.files.length > 0) {
       const filenames = req.files.map(f => `/uploads/${f.filename}`);
@@ -365,7 +361,6 @@ const updateCorrectiveRecord = async (req, res) => {
       keepImages,
     } = req.body;
 
-    // Ambil data lama
     const [rows] = await db.query("SELECT i_alat FROM m_record_corrective WHERE id = ?", [req.params.id]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Record tidak ditemukan" });
@@ -419,14 +414,12 @@ const deleteCorrectiveRecord = async (req, res) => {
 };
 
 module.exports = {
-  // Preventive Maintenance Records
   getAllRecords,
   getRecordById,
   getRecordByEquipmentId,
   createRecord,
   updateRecord,
   deleteRecord,
-  // Corrective Maintenance Records
   getAllCorrectiveRecords,
   getCorrectiveRecordById,
   getCorrectiveRecordByEquipmentId,

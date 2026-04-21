@@ -4,7 +4,6 @@ import { useAuth } from "../../hooks/useAuthSimple";
 const AuthRedirect = () => {
   const { isAuthenticated, loading } = useAuth();
 
-  // Show loading while checking authentication
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -16,7 +15,6 @@ const AuthRedirect = () => {
     );
   }
 
-  // Redirect based on authentication status
   return isAuthenticated ? (
     <Navigate to="/dashboard-telemetry" replace />
   ) : (

@@ -277,12 +277,11 @@ const createAlat = async (req, res) => {
       isMaintenanceActive,
     } = req.body;
 
-    // ✅ Ambil semua filename dari req.files, simpan sebagai JSON array
     let i_alat = null;
 
     if (req.files && req.files.length > 0) {
       const filenames = req.files.map(f => f.filename);
-      i_alat = JSON.stringify(filenames); // ["img1.jpg", "img2.jpg"]
+      i_alat = JSON.stringify(filenames);
       console.log("✅ Files uploaded successfully:", filenames);
     } else {
       console.log("⚠️ No files uploaded");
@@ -323,15 +322,13 @@ const createAlat = async (req, res) => {
       pelanggan || null,
       pic || null,
       email || null,
-      i_alat,                // JSON string / null
+      i_alat,               
       maintenanceDate || new Date().toISOString().split("T")[0],
       maintenanceInterval || 90,
       is_maintenance_active,
     ];
 
     const [result] = await db.query(query, params);
-
-    // ✅ Parse balik ke array untuk response
     const responseData = {
       id: result.insertId,
       nama,
@@ -346,7 +343,7 @@ const createAlat = async (req, res) => {
       pelanggan: pelanggan || null,
       pic: pic || null,
       email: email || null,
-      i_alat: i_alat ? JSON.parse(i_alat) : [],  // kembalikan sebagai array
+      i_alat: i_alat ? JSON.parse(i_alat) : [],  
       maintenanceDate:
         maintenanceDate || new Date().toISOString().split("T")[0],
       maintenanceInterval: maintenanceInterval || 90,
@@ -614,14 +611,12 @@ const updateMaintenanceSettings = async (req, res) => {
   try {
     const { maintenanceDate, maintenanceInterval, isMaintenanceActive } = req.body;
 
-    // ✅ Langsung pakai ID dari params sebagai database ID
     const originalId = parseInt(req.params.id);
 
     if (!originalId || isNaN(originalId)) {
       return res.status(400).json({ message: "ID tidak valid" });
     }
 
-    // ✅ Cek apakah alat dengan ID tersebut ada
     const [alat] = await db.query("SELECT id FROM m_alat WHERE id = ?", [originalId]);
 
     if (alat.length === 0) {

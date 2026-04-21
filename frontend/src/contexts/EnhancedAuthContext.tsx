@@ -35,10 +35,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
 
-  // Check authentication status
   const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
-      // Check if we have a valid token
       const token = await tokenManager.getValidToken();
 
       if (!token) {
@@ -46,7 +44,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
 
-      // Check if we have user data in localStorage
       const userData = localStorage.getItem("user");
       if (userData) {
         try {
@@ -59,7 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      // If we have a token but no user data, fetch user profile
       try {
         const profileResponse = await authService.getProfile();
         if (profileResponse.data) {
@@ -70,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error("❌ Failed to fetch user profile:", error);
-        // Token might be invalid, clear it
+
         tokenManager.clearTokens();
         return false;
       }
@@ -82,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Refresh authentication (force re-check)
+
   const refreshAuth = useCallback(async (): Promise<void> => {
     setLoading(true);
 
@@ -99,18 +95,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [checkAuth]);
 
-  // Initialize authentication on mount
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Show loading during initialization
         setLoading(true);
         setIsInitializing(true);
 
-        // Give components time to mount before making API calls
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Check authentication status
         const isAuthenticated = await checkAuth();
 
         if (!isAuthenticated) {
@@ -120,10 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error("❌ Authentication initialization failed:", error);
         setUser(null);
       } finally {
-        // Complete initialization
         setLoading(false);
-
-        // Keep initialization flag for a bit longer to prevent premature redirects
         setTimeout(() => {
           setIsInitializing(false);
         }, 500);
@@ -133,19 +122,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, [checkAuth]);
 
-  // Login function
   const login = useCallback(
     async (token: string, userData: User): Promise<void> => {
       try {
-        // Save tokens using token manager
         tokenManager.saveTokens({
           accessToken: token,
-          refreshToken: token, // Use same token as refresh token for now
-          expiresIn: 3600, // 1 hour
+          refreshToken: token,
+          expiresIn: 3600,
           expiresAt: Date.now() + 3600 * 1000,
         });
 
-        // Save user data
         localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
       } catch (error) {
@@ -156,10 +142,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     []
   );
 
-  // Logout function
+
   const logout = useCallback(async (): Promise<void> => {
     try {
-      // Call API logout (if available)
+  
       try {
         await authService.logout();
       } catch (error) {
@@ -169,25 +155,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
       }
 
-      // Clear tokens and user data
       tokenManager.clearTokens();
       localStorage.removeItem("user");
       localStorage.removeItem("rememberMe");
 
-      // Clear user state
+
       setUser(null);
 
-      // Navigate to login page
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("❌ Logout failed:", error);
-      // Even if logout fails, clear local state
       setUser(null);
       navigate("/login", { replace: true });
     }
   }, [navigate]);
 
-  // Context value
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,

@@ -121,7 +121,6 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({
   const [clientList, setClientList] = useState<ClientItem[]>([]);
   const [loadingClient, setLoadingClient] = useState(false);
 
-  // Fetch jenis telemetry dari API
   useEffect(() => {
     const fetchJenis = async () => {
       try {

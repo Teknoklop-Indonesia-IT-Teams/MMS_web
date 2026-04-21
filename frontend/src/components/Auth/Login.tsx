@@ -21,11 +21,10 @@ const Login: React.FC = () => {
   const { showSuccess, showError, showLoadingToast } = useToast();
   const { login } = useAuth();
 
-  // Animation configuration - Lottie animations
   const ANIMATIONS = {
-    login: "https://assets3.lottiefiles.com/packages/lf20_jcikwtux.json", // Security/Lock animation
-    loading: "https://assets1.lottiefiles.com/packages/lf20_p8bfn5to.json", // Loading spinner
-    success: "https://assets9.lottiefiles.com/packages/lf20_lk80fpsm.json", // Success checkmark
+    login: "https://assets3.lottiefiles.com/packages/lf20_jcikwtux.json", 
+    loading: "https://assets1.lottiefiles.com/packages/lf20_p8bfn5to.json", 
+    success: "https://assets9.lottiefiles.com/packages/lf20_lk80fpsm.json", 
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +35,6 @@ const Login: React.FC = () => {
     try {
       const response = await authService.login(credentials);
 
-      // Type assertion for response data with enhanced parsing
       const responseData = response.data as {
         token?: string;
         accessToken?: string;
@@ -49,26 +47,23 @@ const Login: React.FC = () => {
         };
         message?: string;
       };
-      // Extract token and user data
       const token = responseData.token || responseData.accessToken;
       const user = responseData.user;
-      const expiresIn = responseData.expiresIn || 86400; // Default 24 hours
+      const expiresIn = responseData.expiresIn || 86400; 
 
       if (!token || !user) {
         throw new Error("Invalid response format: missing token or user data");
       }
 
-      // Convert response to proper User format
       const userData = {
         id: parseInt(user.userId, 10),
-        nama: user.name, // Use 'nama' instead of 'name' to match User type
+        nama: user.name,
         role: user.role,
-        username: user.email, // Use email as username
+        username: user.email, 
         petugas: user.name,
         email: user.email,
       };
 
-      // Use robust login with expiration time
       login(token, userData, expiresIn);
 
       if (rememberMe) {
@@ -82,24 +77,20 @@ const Login: React.FC = () => {
         )} hours.`,
       );
 
-      // Show success animation dengan urutan yang benar
       setLoginSuccess(true);
-      setIsLoading(false); // Stop loading animation
+      setIsLoading(false); 
 
-      // Delay untuk menampilkan pesan "Login Successful"
       setTimeout(() => {
         setShowSuccessMessage(true);
-      }, 1000); // 1 detik setelah animasi success muncul
+      }, 1000); 
 
-      // Mulai countdown redirect
       setTimeout(() => {
         setIsRedirecting(true);
       }, 2500);
 
-      // Delay navigation untuk memberikan waktu user melihat pesan success
       setTimeout(() => {
         navigate("/dashboard-telemetry");
-      }, 3500); // Total 3.5 detik untuk experience yang optimal
+      }, 3500);
     } catch (error: unknown) {
       console.error("❌ Robust Login: Login failed:", error);
 
@@ -387,12 +378,12 @@ const Login: React.FC = () => {
           </div>
 
           {/* Sign Up Link - Always clickable */}
-          <div className="mt-6 text-center space-y-3">
+          <div className="mt-6 space-y-3 text-center">
             {/* Forgot Password Link */}
             {/* <div>
               <button
                 type="button"
-                className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-500"
                 onClick={() => navigate("/forgot-password")}
               >
                 Forgot password?
@@ -405,7 +396,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate("/register")}
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                className="font-medium text-blue-600 transition-colors hover:text-blue-500"
               >
                 Sign up
               </button>

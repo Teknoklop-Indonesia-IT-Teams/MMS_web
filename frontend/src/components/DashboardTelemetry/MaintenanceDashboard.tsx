@@ -32,13 +32,11 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
     equipment.forEach((item) => {
       const isActive = Boolean(item.isMaintenanceActive);
 
-      // 1️⃣ Jika selesai
       if (item.maintenanceStatus === "selesai") {
         selesai++;
         return;
       }
-
-      // 2️⃣ Jika tidak aktif
+      
       if (!isActive) {
         inactive++;
         return;
@@ -67,7 +65,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
   const total = equipment.length;
   const activeMaintenanceCount = total - stats.inactive;
 
-  // Helper function to check if equipment matches category
+
   const getWillMatchCategory = (item: Equipment, category: string) => {
     switch (category) {
       case "selesai":
@@ -99,7 +97,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
     }
   };
 
-  // Get equipment by category for detail view
+
   const getEquipmentByCategory = (category: string) => {
     switch (category) {
       case "selesai":
@@ -262,7 +260,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
           : "Equipment Tidak Aktif";
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
             <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b dark:border-gray-700 shrink-0">
@@ -283,7 +281,7 @@ export const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({
               </div>
 
               {/* Modal Body */}
-              <div className="overflow-y-auto flex-1 p-6">
+              <div className="flex-1 p-6 overflow-y-auto">
                 {paginatedItems.length === 0 ? (
                   <div className="py-8 text-center text-gray-500 dark:text-gray-400">
                     Tidak ada peralatan dalam kategori ini

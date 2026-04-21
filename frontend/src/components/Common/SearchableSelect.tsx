@@ -36,7 +36,6 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
         ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
         : options;
 
-    // Close on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -48,7 +47,6 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    // Focus search input when opened
     useEffect(() => {
         if (open) setTimeout(() => inputRef.current?.focus(), 50);
     }, [open]);

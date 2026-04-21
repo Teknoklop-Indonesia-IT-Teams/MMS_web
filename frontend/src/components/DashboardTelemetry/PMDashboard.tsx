@@ -51,19 +51,18 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
     fetchMaintenanceRecords();
   }, [fetchMaintenanceRecords]);
 
-  // Reset ke halaman 1 saat filter / search berubah
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedFilter, equipment, search]);
 
-  // Build equipment map dari prop (tidak perlu fetch ulang)
+
   const equipmentMap = useMemo(() => {
     const map = new Map<number, Equipment>();
     equipment.forEach((eq) => map.set(Number(eq.id), eq));
     return map;
   }, [equipment]);
 
-  // Filter records: berdasarkan equipment IDs + 1 search (tanggal atau peralatan)
   const filteredRecords = useMemo(() => {
     const equipmentIds = new Set(equipment.map((e) => Number(e.id)));
     return maintenanceRecords.filter((r) => {

@@ -11,14 +11,12 @@ import AuthProvider from "./contexts/AuthContext";
 import { EquipmentProvider } from "./contexts/EquipmentContext";
 import { usePageLifecycle } from "./hooks/usePageLifecycle";
 
-// Critical auth components - keep immediate loading for better UX
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import AuthRedirect from "./components/Auth/AuthRedirect";
 import LayoutWrapper from "./components/Layout/LayoutWrapper";
 import UsersProfile from "./components/Users/UsersProfile";
 import MaintenanceEquipmentDetailQR from "./components/Equipment/MaintenanceEquipmentDetailQR";
 
-// Lazy load ALL components for maximum code splitting
 const Dashboard = lazy(
   () => import("./components/DashboardTelemetry/Dashboard"),
 );
@@ -39,14 +37,12 @@ const PublicClientDashboard = lazy(
   () => import("./components/DashboardTelemetry/PublicClientDashboard"),
 );
 
-// Auth components
 const Login = lazy(() => import("./components/Auth/Login"));
 const Unauthorized = lazy(() => import("./components/Auth/Unauthorized"));
 const ForgotPassword = lazy(() => import("./components/Auth/ForgotPassword"));
 const SignUp = lazy(() => import("./components/Auth/SignUp"));
 const ResetPassword = lazy(() => import("./components/Auth/ResetPassword"));
 
-// Loading component untuk suspense
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen bg-gray-50">
     <div className="flex flex-col items-center space-y-4">
@@ -56,7 +52,6 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// App State Component
 function AppStateComponent() {
   const pageLifecycle = usePageLifecycle();
 

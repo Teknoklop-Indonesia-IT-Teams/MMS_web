@@ -60,7 +60,6 @@ const RecordForm: React.FC<RecordFormProps> = ({
     }
   }, [record]);
 
-  // Fetch staff data for petugas dropdown
   useEffect(() => {
     const fetchStaff = async () => {
       try {
@@ -85,7 +84,6 @@ const RecordForm: React.FC<RecordFormProps> = ({
     fetchStaff();
   }, []);
 
-  // Fetch equipment data for id_m_alat dropdown
   useEffect(() => {
     const fetchEquipment = async () => {
       try {

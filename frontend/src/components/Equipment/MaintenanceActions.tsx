@@ -31,8 +31,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
       return;
     }
 
-    if (isLoading) return; // Prevent double-click
-
+    if (isLoading) return;
     try {
       setIsLoading(true);
 
@@ -44,15 +43,13 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
         response?.data?.message || "Maintenance berhasil diselesaikan!"
       );
 
-      // Refresh equipment context to sync all components
       await refreshEquipment();
 
-      // Call onUpdate if provided
       onUpdate?.();
     } catch (error: any) {
       console.error("❌ Error completing maintenance:", error);
 
-      // Handle different error cases
+
       const status = error?.response?.status;
       const message = error?.response?.data?.message;
 
@@ -61,7 +58,6 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
       } else if (status === 404) {
         toast.error("Peralatan tidak ditemukan");
       } else if (status === 409) {
-        // Conflict - operation already in progress (from optimisticLockManager)
         toast.error("Operasi sedang berjalan, mohon tunggu");
       } else {
         toast.error(message || "Gagal menyelesaikan maintenance");
@@ -72,7 +68,7 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
   };
 
   const handleUpdateSettings = async () => {
-    if (isLoading) return; // Prevent double-click
+    if (isLoading) return;
 
     try {
       setIsLoading(true);
@@ -92,7 +88,6 @@ export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({
     } catch (error: any) {
       console.error("❌ Error updating maintenance settings:", error);
 
-      // Handle different error cases
       const status = error?.response?.status;
       const message = error?.response?.data?.message;
 

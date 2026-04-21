@@ -40,7 +40,6 @@ interface StaffResponse {
   role?: string;
 }
 
-// ─── Lightbox ────────────────────────────────────────────────────────────────
 const Lightbox = memo(function Lightbox({
   src,
   alt,
@@ -87,7 +86,6 @@ const Lightbox = memo(function Lightbox({
   );
 });
 
-// ─── ImageThumbnail ───────────────────────────────────────────────────────────
 const getFullUrl = (path: string): string => {
   if (path.startsWith("http")) return path;
   const baseUrl =
@@ -129,7 +127,7 @@ const ImageThumbnail = memo(function ImageThumbnail({
   );
 });
 
-// ─── RecordRow ────────────────────────────────────────────────────────────────
+
 interface RecordRowProps {
   record: CorRecord;
   isExpanded: boolean;
@@ -244,7 +242,7 @@ const RecordRow = memo(function RecordRow({
   );
 });
 
-// ─── SensorList ───────────────────────────────────────────────────────────────
+
 const SensorList = memo(function SensorList({ sensor }: { sensor: Equipment["sensor"] }) {
   const sensorArr: string[] = useMemo(() => {
     if (Array.isArray(sensor)) return sensor;
@@ -261,12 +259,12 @@ const SensorList = memo(function SensorList({ sensor }: { sensor: Equipment["sen
           const [nama, id] = item.split(",").map((s) => s.trim());
           return (
             <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
-              <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-700 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full shrink-0">
+              <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300 shrink-0">
                 {idx + 1}
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{nama || "-"}</p>
-                {id && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">ID: {id}</p>}
+                <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{nama || "-"}</p>
+                {id && <p className="text-xs text-gray-400 truncate dark:text-gray-500">ID: {id}</p>}
               </div>
             </div>
           );
@@ -276,7 +274,6 @@ const SensorList = memo(function SensorList({ sensor }: { sensor: Equipment["sen
   );
 });
 
-// ─── Form Fields config ───────────────────────────────────────────────────────
 const TEXTAREA_FIELDS = [
   { label: "Kondisi Awal", key: "awal" as const, required: true, placeholder: "Kondisi alat sebelum maintenance..." },
   { label: "Tindakan", key: "tindakan" as const, required: true, placeholder: "Tindakan yang dilakukan..." },
@@ -292,22 +289,18 @@ const emptyForm: Record<FormKey, string> = {
   tambahan: "", akhir: "", berikutnya: "", keterangan: "", petugas: "",
 };
 
-// ─── RecordForm (Add / Edit) ──────────────────────────────────────────────────
+
 interface RecordFormProps {
   mode: "add" | "edit";
   formData: Record<FormKey, string>;
   setFormData: React.Dispatch<React.SetStateAction<Record<FormKey, string>>>;
-  // new images
   imagePreviews: string[];
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveNewImage: (idx: number) => void;
-  // existing images (edit mode only)
   keepImages?: string[];
   onRemoveExistingImage?: (path: string) => void;
-  // staff
   petugasOptions: { value: string; label: string }[];
   staffDisabled: boolean;
-  // submit / cancel
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   uploadInputId: string;
@@ -505,7 +498,7 @@ const RecordForm = memo(function RecordForm({
   );
 });
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function EquipmentCorrectiveDetail({
   equipment,
   onClose,
@@ -515,15 +508,13 @@ export default function EquipmentCorrectiveDetail({
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
   const [showMainImageLightbox, setShowMainImageLightbox] = useState(false);
-  const submittingRef = useRef(false);           // guard: tidak punya stale closure
-  const [isSubmitting, setIsSubmitting] = useState(false); // hanya untuk UI (disabled/teks)
+  const submittingRef = useRef(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Add form state
   const [addFormData, setAddFormData] = useState<Record<FormKey, string>>(emptyForm);
   const [addImageFiles, setAddImageFiles] = useState<File[]>([]);
   const [addImagePreviews, setAddImagePreviews] = useState<string[]>([]);
 
-  // Edit form state
   const [editingRecord, setEditingRecord] = useState<CorRecord | null>(null);
   const [editFormData, setEditFormData] = useState<Record<FormKey, string>>(emptyForm);
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
@@ -563,7 +554,6 @@ export default function EquipmentCorrectiveDetail({
     [staffList],
   );
 
-  // ─── Helpers for image state ────────────────────────────────────────────────
   const makeImageChangeHandler = (
     setFiles: React.Dispatch<React.SetStateAction<File[]>>,
     setPreviews: React.Dispatch<React.SetStateAction<string[]>>,
@@ -606,7 +596,6 @@ export default function EquipmentCorrectiveDetail({
     const compressed = await Promise.all(raw.map((f) => compressImage(f)));
     setEditImageFiles((prev) => [...prev, ...compressed]);
     setEditImagePreviews((prev) => [...prev, ...compressed.map((f) => URL.createObjectURL(f))]);
-    // Gambar lama otomatis dihapus saat gambar baru diupload
     setEditKeepImages([]);
   }, []);
 
@@ -624,7 +613,6 @@ export default function EquipmentCorrectiveDetail({
     setEditKeepImages((prev) => prev.filter((p) => p !== path));
   }, []);
 
-  // ─── Add ────────────────────────────────────────────────────────────────────
   const resetAddForm = useCallback(() => {
     setAddFormData(emptyForm);
     setAddImagePreviews((prev) => { prev.forEach(URL.revokeObjectURL); return []; });
@@ -643,7 +631,7 @@ export default function EquipmentCorrectiveDetail({
 
   const handleSaveRecord = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submittingRef.current) return;          // ref-guard: selalu current, tidak stale
+    if (submittingRef.current) return;
     if (!addFormData.tanggal || !addFormData.deskripsi) {
       alert("Tanggal dan Deskripsi harus diisi"); return;
     }
@@ -675,7 +663,7 @@ export default function EquipmentCorrectiveDetail({
     }
   }, [addFormData, addImageFiles, equipment.id, fetchRecords, resetAddForm, showSuccess]);
 
-  // ─── Edit ───────────────────────────────────────────────────────────────────
+
   const handleEditRecord = useCallback((record: CorRecord) => {
     setShowAddRecord(false);
     setEditingRecord(record);
@@ -730,7 +718,6 @@ export default function EquipmentCorrectiveDetail({
     }
   }, [editingRecord, editFormData, editKeepImages, editImageFiles, equipment.id, fetchRecords, resetEditForm, showSuccess]);
 
-  // ─── Delete ─────────────────────────────────────────────────────────────────
   const handleDeleteRecord = useCallback(async (recordId: number) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus record ini?")) return;
     try {
@@ -744,7 +731,6 @@ export default function EquipmentCorrectiveDetail({
     }
   }, [fetchRecords, showSuccess, editingRecord, resetEditForm]);
 
-  // ─── Toggle detail ──────────────────────────────────────────────────────────
   const toggleRecordDetail = useCallback((id: number) => {
     setExpandedRecordId((prev) => (prev === id ? null : id));
   }, []);
@@ -768,7 +754,7 @@ export default function EquipmentCorrectiveDetail({
       onClick={handleBackdropClick}
     >
       <div
-        className="w-full max-w-6xl bg-white rounded-lg shadow-xl dark:bg-gray-800 flex flex-col"
+        className="flex flex-col w-full max-w-6xl bg-white rounded-lg shadow-xl dark:bg-gray-800"
         style={{ height: "90vh" }}
       >
         {/* Header */}
@@ -782,7 +768,7 @@ export default function EquipmentCorrectiveDetail({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 p-6 overflow-y-auto">
           {/* Equipment info */}
           <div className="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
             <div className="grid grid-cols-2 gap-4">
@@ -799,7 +785,7 @@ export default function EquipmentCorrectiveDetail({
                   <p className="text-gray-900 dark:text-gray-100">{value || "-"}</p>
                 </div>
               ))}
-              <div className="col-span-2 grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 col-span-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Device</label>
                   <p className="text-gray-900 dark:text-gray-100">
