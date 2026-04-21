@@ -4,7 +4,6 @@ import {
   enhancedStaffService,
 } from "./apiSimple";
 
-// Re-export enhanced services untuk backward compatibility
 export const alatService = {
   getAll: async () => {
     try {
@@ -65,7 +64,6 @@ export const alatService = {
     }
   },
 
-  // Additional maintenance methods
   stopMaintenance: async (id: string) => {
     try {
       const response = await enhancedEquipmentService.stopMaintenance(id);

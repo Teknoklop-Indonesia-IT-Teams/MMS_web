@@ -53,8 +53,7 @@ export class AuthStorage {
       const userData = JSON.parse(userDataStr);
       const timestamp = timestampStr ? parseInt(timestampStr) : Date.now();
 
-      // Validate auth age (max 30 days)
-      const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+      const maxAge = 30 * 24 * 60 * 60 * 1000; 
       const age = Date.now() - timestamp;
 
       if (age > maxAge) {
@@ -97,7 +96,6 @@ export class AuthStorage {
         return true;
       }
 
-      // Update page load time
       localStorage.setItem(this.AUTH_REFRESH_KEY, now.toString());
       return false;
     } catch (error) {
@@ -106,21 +104,15 @@ export class AuthStorage {
     }
   }
 
-  /**
-   * Extend refresh protection period
-   */
   static extendRefreshProtection(ms: number = 5000): void {
     try {
-      const extendedTime = Date.now() - 3000 + ms; // Extend the window
+      const extendedTime = Date.now() - 3000 + ms;
       localStorage.setItem(this.AUTH_REFRESH_KEY, extendedTime.toString());
     } catch (error) {
       console.error("❌ Error extending refresh protection:", error);
     }
   }
 
-  /**
-   * Get auth token safely
-   */
   static getToken(): string | null {
     try {
       return localStorage.getItem(this.AUTH_TOKEN_KEY);
@@ -130,9 +122,6 @@ export class AuthStorage {
     }
   }
 
-  /**
-   * Check if user is remembered
-   */
   static isRemembered(): boolean {
     try {
       return localStorage.getItem(this.AUTH_REMEMBER_KEY) === "true";

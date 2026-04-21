@@ -20,9 +20,6 @@ export class EnhancedAuthStorage {
   private static readonly REFRESH_PROTECTION_KEY = "refreshProtection";
   private static readonly LAST_ACTIVITY_KEY = "lastActivity";
 
-  /**
-   * Save auth data with enhanced persistence
-   */
   static saveAuthData(
     token: string,
     userData: User,
@@ -30,16 +27,14 @@ export class EnhancedAuthStorage {
   ): boolean {
     try {
       const now = Date.now();
-      const expiresAt = now + expiresIn * 1000; // Convert seconds to milliseconds
+      const expiresAt = now + expiresIn * 1000;
 
-      // Save all auth data
       localStorage.setItem(this.TOKEN_KEY, token);
       localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
       localStorage.setItem(this.EXPIRES_KEY, expiresAt.toString());
       localStorage.setItem(this.ISSUED_KEY, now.toString());
       localStorage.setItem(this.LAST_ACTIVITY_KEY, now.toString());
 
-      // Legacy support
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
 
@@ -50,9 +45,6 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Load auth data with validation
-   */
   static loadAuthData(): TokenData | null {
     try {
       const token =
@@ -71,13 +63,11 @@ export class EnhancedAuthStorage {
       const issuedAt = issuedStr ? parseInt(issuedStr) : 0;
       const now = Date.now();
 
-      // Check if token is expired
       if (expiresAt && now > expiresAt) {
         this.clearAuthData();
         return null;
       }
 
-      // Update last activity
       localStorage.setItem(this.LAST_ACTIVITY_KEY, now.toString());
 
       return {
@@ -93,36 +83,23 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Check if token is valid and not expired
-   */
   static isTokenValid(): boolean {
     const authData = this.loadAuthData();
     return authData !== null;
   }
 
-  /**
-   * Get token if valid
-   */
   static getValidToken(): string | null {
     const authData = this.loadAuthData();
     return authData ? authData.token : null;
   }
 
-  /**
-   * Get user data if token is valid
-   */
   static getValidUser(): User | null {
     const authData = this.loadAuthData();
     return authData ? authData.user : null;
   }
 
-  /**
-   * Clear all auth data
-   */
   static clearAuthData(): void {
     try {
-      // Remove enhanced keys
       localStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.USER_KEY);
       localStorage.removeItem(this.EXPIRES_KEY);
@@ -130,7 +107,6 @@ export class EnhancedAuthStorage {
       localStorage.removeItem(this.LAST_ACTIVITY_KEY);
       localStorage.removeItem(this.REFRESH_PROTECTION_KEY);
 
-      // Remove legacy keys
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("rememberMe");
@@ -142,9 +118,6 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Refresh protection to prevent logout during page refresh
-   */
   static setRefreshProtection(durationMs: number = 10000): void {
     try {
       const protectUntil = Date.now() + durationMs;
@@ -157,9 +130,6 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Check if currently in refresh protection period
-   */
   static isRefreshProtected(): boolean {
     try {
       const protectUntilStr = localStorage.getItem(this.REFRESH_PROTECTION_KEY);
@@ -180,9 +150,6 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Clear refresh protection (force)
-   */
   static clearRefreshProtection(): void {
     try {
       localStorage.removeItem(this.REFRESH_PROTECTION_KEY);
@@ -191,9 +158,6 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Update last activity timestamp
-   */
   static updateActivity(): void {
     try {
       localStorage.setItem(this.LAST_ACTIVITY_KEY, Date.now().toString());
@@ -202,9 +166,6 @@ export class EnhancedAuthStorage {
     }
   }
 
-  /**
-   * Get authentication status for debugging
-   */
   static getAuthStatus() {
     const authData = this.loadAuthData();
     const isProtected = this.isRefreshProtected();

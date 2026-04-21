@@ -11,29 +11,27 @@ interface EquipmentStatusHistory {
   lastWarningEmailSent?: Date;
   lastUrgentEmailSent?: Date;
   reminderEmailsSent: Date[];
-  yellowEmailSent: boolean; // Flag to track if yellow email was sent
-  redEmailSent: boolean; // Flag to track if red email was sent
+  yellowEmailSent: boolean; 
+  redEmailSent: boolean; 
 }
 
 class MaintenanceReminderService {
   private statusHistory = new Map<number, EquipmentStatusHistory>();
   private reminderIntervals = new Map<number, NodeJS.Timeout>();
 
-  // Configuration for reminders
   private readonly REMINDER_CONFIGS = {
     red: {
-      initialDelay: 0, // Send immediately when status changes to red
-      reminderInterval: 14 * 24 * 60 * 60 * 1000, // Every 14 days (not used since maxReminders = 1)
-      maxReminders: 1, // Maximum 1 email per red status
+      initialDelay: 0, 
+      reminderInterval: 14 * 24 * 60 * 60 * 1000, 
+      maxReminders: 1,
     },
     yellow: {
-      initialDelay: 0, // Send immediately when status changes to yellow
-      reminderInterval: 14 * 24 * 60 * 60 * 1000, // Every 14 days (not used since maxReminders = 1)
-      maxReminders: 1, // Maximum 1 email per yellow status
+      initialDelay: 0, 
+      reminderInterval: 14 * 24 * 60 * 60 * 1000, 
+      maxReminders: 1,
     },
   };
 
-  // Check for status changes and trigger emails
   async processEquipmentStatusChanges(
     equipmentList: Equipment[]
   ): Promise<void> {
@@ -43,16 +41,13 @@ class MaintenanceReminderService {
     }
   }
 
-  // Check if equipment status has changed
   private async checkStatusChange(equipment: Equipment): Promise<void> {
     const equipmentId = equipment.id;
     const currentStatus = equipment.maintenanceAlertLevel || "green";
     const existingHistory = this.statusHistory.get(equipmentId);
-    // First time seeing this equipment or status changed
     if (!existingHistory || existingHistory.currentStatus !== currentStatus) {
       const previousStatus = existingHistory?.currentStatus || "unknown";
 
-      // Update status history
       const newHistory: EquipmentStatusHistory = {
         equipmentId,
         previousStatus,
@@ -65,29 +60,23 @@ class MaintenanceReminderService {
 
       this.statusHistory.set(equipmentId, newHistory);
 
-      // Send immediate notification for status change
       await this.handleStatusChange(equipment, previousStatus, currentStatus);
 
-      // Setup reminder system for red/yellow status
       this.setupReminders(equipment);
     }
   }
 
-  // Handle status change notifications
   private async handleStatusChange(
     equipment: Equipment,
     previousStatus: string,
     currentStatus: string
   ): Promise<void> {
-    // Send email for yellow status (warning)
     if (currentStatus === "yellow" && previousStatus !== "yellow") {
       const history = this.statusHistory.get(equipment.id);
 
-      // Check if warning email was already sent for this equipment
       if (!history?.yellowEmailSent) {
         await this.sendStatusChangeEmail(equipment, "warning");
 
-        // Update flag to mark yellow email as sent
         if (history) {
           history.lastWarningEmailSent = new Date();
           history.yellowEmailSent = true;
@@ -96,15 +85,12 @@ class MaintenanceReminderService {
       }
     }
 
-    // For equipment that's already yellow but was unknown/first time, also send email
     if (currentStatus === "yellow" && previousStatus === "unknown") {
       const history = this.statusHistory.get(equipment.id);
 
-      // Check if warning email was already sent for this equipment
       if (!history?.yellowEmailSent) {
         await this.sendStatusChangeEmail(equipment, "warning");
 
-        // Update flag to mark yellow email as sent
         if (history) {
           history.lastWarningEmailSent = new Date();
           history.yellowEmailSent = true;
@@ -113,15 +99,12 @@ class MaintenanceReminderService {
       }
     }
 
-    // Send email for red status (urgent)
     if (currentStatus === "red" && previousStatus !== "red") {
       const history = this.statusHistory.get(equipment.id);
 
-      // Check if urgent email was already sent for this equipment
       if (!history?.redEmailSent) {
         await this.sendStatusChangeEmail(equipment, "urgent");
 
-        // Update flag to mark red email as sent
         if (history) {
           history.lastUrgentEmailSent = new Date();
           history.redEmailSent = true;
@@ -130,15 +113,12 @@ class MaintenanceReminderService {
       }
     }
 
-    // For equipment that's already red but was unknown/first time, also send email
     if (currentStatus === "red" && previousStatus === "unknown") {
       const history = this.statusHistory.get(equipment.id);
 
-      // Check if urgent email was already sent for this equipment
       if (!history?.redEmailSent) {
         await this.sendStatusChangeEmail(equipment, "urgent");
 
-        // Update flag to mark red email as sent
         if (history) {
           history.lastUrgentEmailSent = new Date();
           history.redEmailSent = true;
@@ -147,17 +127,14 @@ class MaintenanceReminderService {
       }
     }
 
-    // Send green status (resolved) notification
     if (
       currentStatus === "green" &&
       (previousStatus === "yellow" || previousStatus === "red")
     ) {
       await this.sendStatusChangeEmail(equipment, "resolved");
 
-      // Clear reminders for this equipment
       this.clearReminders(equipment.id);
 
-      // Reset email flags when status is resolved
       const history = this.statusHistory.get(equipment.id);
       if (history) {
         history.yellowEmailSent = false;
@@ -167,13 +144,10 @@ class MaintenanceReminderService {
     }
   }
 
-  // Setup automatic reminders based on status
   private setupReminders(equipment: Equipment): void {
-    // Clear existing reminders first
     this.clearReminders(equipment.id);
   }
 
-  // Check if reminder is needed based on time elapsed
   private async checkReminderNeeded(equipment: Equipment): Promise<void> {
     const history = this.statusHistory.get(equipment.id);
     if (!history) {
@@ -181,7 +155,6 @@ class MaintenanceReminderService {
     }
 
     const currentStatus = equipment.maintenanceAlertLevel || "green";
-    // Only send reminders for red/yellow status
     if (currentStatus !== "red" && currentStatus !== "yellow") {
       return;
     }
@@ -192,12 +165,10 @@ class MaintenanceReminderService {
       ];
     const now = new Date();
 
-    // Check if we've reached max reminders
     if (history.reminderEmailsSent.length >= config.maxReminders) {
       return;
     }
 
-    // Check if enough time has passed since last reminder
     const lastReminder =
       history.reminderEmailsSent[history.reminderEmailsSent.length - 1];
     const timeSinceLastReminder = lastReminder
@@ -209,7 +180,6 @@ class MaintenanceReminderService {
     }
   }
 
-  // Send reminder email
   private async sendReminderEmail(
     equipment: Equipment,
     status: string
@@ -220,7 +190,6 @@ class MaintenanceReminderService {
     const config =
       this.REMINDER_CONFIGS[status as keyof typeof this.REMINDER_CONFIGS];
 
-    // Check if we haven't exceeded max reminders
     if (history.reminderEmailsSent.length >= config.maxReminders) {
       return;
     }
@@ -239,11 +208,9 @@ class MaintenanceReminderService {
     }
 
     if (success) {
-      // Update reminder history
       history.reminderEmailsSent.push(new Date());
       this.statusHistory.set(equipment.id, history);
 
-      // Schedule next reminder if not at max
       if (history.reminderEmailsSent.length < config.maxReminders) {
         const nextReminderTimeout = setTimeout(() => {
           this.sendReminderEmail(equipment, status);
@@ -254,7 +221,6 @@ class MaintenanceReminderService {
     }
   }
 
-  // Send status change email
   private async sendStatusChangeEmail(
     equipment: Equipment,
     type: "warning" | "urgent" | "resolved"
@@ -270,7 +236,6 @@ class MaintenanceReminderService {
     }
   }
 
-  // Send warning reminder email
   private async sendWarningReminderEmail(
     equipment: Equipment,
     reminderNumber: number
@@ -305,7 +270,6 @@ class MaintenanceReminderService {
     }
   }
 
-  // Send urgent reminder email
   private async sendUrgentReminderEmail(
     equipment: Equipment,
     reminderNumber: number
@@ -340,7 +304,6 @@ class MaintenanceReminderService {
     }
   }
 
-  // Clear reminders for equipment
   private clearReminders(equipmentId: number): void {
     const existingTimeout = this.reminderIntervals.get(equipmentId);
     if (existingTimeout) {
@@ -349,22 +312,18 @@ class MaintenanceReminderService {
     }
   }
 
-  // Get email from equipment using staff data
   private async getEmailFromEquipment(equipment: Equipment): Promise<string> {
-    // First check if equipment has direct email
+
     if (equipment.email && equipment.email.trim()) {
       return equipment.email.trim();
     }
-    // Try to get email from staff data based on PIC name or ID
     try {
       const response = await staffService.getAll();
 
-      // Handle direct array response from staff API
       const staffData = Array.isArray(response)
         ? response
         : response?.data || [];
 
-      // Find staff member by name, petugas, or ID
       const staffMember = staffData.find(
         (staff: {
           id?: number;
@@ -373,16 +332,13 @@ class MaintenanceReminderService {
           petugas?: string;
           email?: string;
         }) => {
-          // Check if PIC is numeric (ID) or string (name)
           const picAsNumber = parseInt(equipment.pic);
           const isNumericPIC =
             !isNaN(picAsNumber) && equipment.pic === picAsNumber.toString();
 
           if (isNumericPIC) {
-            // Match by ID
             return staff.id === picAsNumber;
           } else {
-            // Match by name
             return (
               staff.name === equipment.pic ||
               staff.nama === equipment.pic ||
@@ -403,24 +359,19 @@ class MaintenanceReminderService {
     return "admin@company.com";
   }
 
-  // Get name from PIC (same as emailService)
   private getNameFromPIC(pic: string): string {
     return pic || "Admin";
   }
 
-  // Get status history for debugging
   getStatusHistory(): Map<number, EquipmentStatusHistory> {
     return this.statusHistory;
   }
 
-  // Get reminder intervals for debugging
   getReminderIntervals(): Map<number, NodeJS.Timeout> {
     return this.reminderIntervals;
   }
 
-  // Reset all tracking (for testing)
   resetTracking(): void {
-    // Clear all timeouts
     this.reminderIntervals.forEach((timeout) => clearTimeout(timeout));
     this.reminderIntervals.clear();
     this.statusHistory.clear();

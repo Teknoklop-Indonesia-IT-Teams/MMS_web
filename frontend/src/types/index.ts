@@ -59,7 +59,6 @@ export interface Equipment {
   nextMaintenanceDate?: string;
   maintenanceActivities?: MaintenanceActivity[];
   hasValidDate?: boolean;
-  // maintenanceEnabled?: boolean | number | undefined;
   dateSource?: "record" | "instalasi" | "none";
 }
 

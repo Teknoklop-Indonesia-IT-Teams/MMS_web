@@ -14,13 +14,9 @@ class MaintenanceEmailService {
   }
 
   static isConfigured(): boolean {
-    return false; // Email service is disabled
+    return false; 
   }
 
-  /**
-   * DISABLED: Automatic email processing disabled per user request
-   * Only manual test emails via buttons are allowed
-   */
   static async processMaintenanceNotifications(
     equipmentList: Equipment[]
   ): Promise<void> {
@@ -28,7 +24,6 @@ class MaintenanceEmailService {
       "🚫 AUTOMATIC EMAIL DISABLED - Hanya kirim via tombol Test Email"
     );
 
-    // Just log the stats for monitoring
     const alertCounts = { yellow: 0, red: 0, green: 0, blue: 0, other: 0 };
     equipmentList.forEach((eq) => {
       if (eq.maintenanceAlertLevel === "yellow") {
@@ -48,7 +43,6 @@ class MaintenanceEmailService {
       ` Status: Yellow=${alertCounts.yellow} Red=${alertCounts.red} Green=${alertCounts.green} Blue=${alertCounts.blue}`
     );
 
-    // Return immediately - no emails sent
     return;
   }
 
@@ -94,7 +88,6 @@ class MaintenanceEmailService {
     }
   }
 
-  // Utility methods for compatibility with EquipmentTable
   static updateMaintenanceEmails(emails: string[]): void {
     this.MAINTENANCE_EMAILS.length = 0;
     this.MAINTENANCE_EMAILS.push(...emails);

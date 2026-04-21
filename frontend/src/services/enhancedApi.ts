@@ -1,12 +1,3 @@
-/**
- * Enhanced API Service with Robust Authentication
- * Fixes logout on refresh issues with:
- * 1. Enhanced Auth Storage integration
- * 2. Proper token management
- * 3. Better error handling
- * 4. Consistent domain/port handling
- */
-
 import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from "axios";
 import { EnhancedAuthStorage } from "../utils/enhancedAuthStorage";
 import { User } from "../types";
@@ -14,14 +5,12 @@ import { User } from "../types";
 const API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 
-// Request queue for handling requests during token refresh
 interface QueuedRequest {
   resolve: (config: AxiosRequestConfig) => void;
   reject: (error: Error) => void;
   config: AxiosRequestConfig;
 }
 
-// Auth response types
 interface AuthResponse {
   token?: string;
   accessToken?: string;
@@ -51,11 +40,9 @@ class ApiService {
   }
 
   private setupInterceptors() {
-    // Request interceptor
     this.api.interceptors.request.use(
       async (config) => {
         try {
-          // Get valid token using enhanced storage
           const token = EnhancedAuthStorage.getValidToken();
 
           if (token) {
@@ -63,7 +50,6 @@ class ApiService {
             config.headers.Authorization = `Bearer ${token}`;
           }
 
-          // Ensure consistent domain/port
           if (config.baseURL?.includes("localhost")) {
             config.baseURL = config.baseURL.replace("127.0.0.1", "localhost");
           }
@@ -72,8 +58,6 @@ class ApiService {
         } catch (error) {
           console.error("❌ Failed to get valid token for request:", error);
 
-          // If token retrieval fails, proceed without token
-          // Let the response interceptor handle 401
           return config;
         }
       },
@@ -82,7 +66,6 @@ class ApiService {
       }
     );
 
-    // Response interceptor
     this.api.interceptors.response.use(
       (response: AxiosResponse) => {
         return response;
@@ -93,19 +76,15 @@ class ApiService {
         };
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-          // Mark this request as retried to prevent infinite loop
           originalRequest._retry = true;
 
           try {
-            // Try to refresh token
             const newToken = EnhancedAuthStorage.getValidToken();
 
             if (newToken) {
-              // Update the authorization header
               originalRequest.headers = originalRequest.headers || {};
               originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
-              // Retry the original request
               return this.api(originalRequest);
             }
           } catch (refreshError) {
@@ -114,7 +93,6 @@ class ApiService {
               refreshError
             );
 
-            // If refresh fails, clear tokens and redirect to login
             EnhancedAuthStorage.clearAuthData();
             this.redirectToLogin();
 
@@ -128,17 +106,13 @@ class ApiService {
   }
 
   private redirectToLogin() {
-    // Check if we're already on login page
     if (window.location.pathname === "/login") return;
 
-    // Use history API to avoid refresh
     window.history.pushState({}, "", "/login");
 
-    // Dispatch custom event for React Router to pick up
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
-  // Public API methods
   async get<T>(
     url: string,
     config?: AxiosRequestConfig
@@ -177,19 +151,14 @@ class ApiService {
     return this.api.delete<T>(url, config);
   }
 
-  // Get the underlying axios instance for advanced usage
   getInstance() {
     return this.api;
   }
 }
 
-// Create singleton instance
 export const apiService = new ApiService();
-
-// Export the axios instance for backward compatibility
 export const api = apiService.getInstance();
 
-// Enhanced Auth Service
 export const authService = {
   login: async (credentials: { username: string; password: string }) => {
     const response = await apiService.post<AuthResponse>(
@@ -197,7 +166,6 @@ export const authService = {
       credentials
     );
 
-    // Save tokens using enhanced storage
     if (response.data && (response.data.token || response.data.accessToken)) {
       const token = response.data.token || response.data.accessToken || "";
       const userData = response.data.user || {
@@ -208,7 +176,7 @@ export const authService = {
         username: "",
         petugas: "Unknown",
       };
-      const expiresIn = response.data.expiresIn || 86400; // 24 hours default
+      const expiresIn = response.data.expiresIn || 86400;
 
       EnhancedAuthStorage.saveAuthData(token, userData as User, expiresIn);
     }
@@ -218,13 +186,10 @@ export const authService = {
 
   logout: async () => {
     try {
-      // Call logout endpoint
       await apiService.post("/auth/logout");
     } catch (error) {
       console.error("❌ Logout API call failed:", error);
-      // Continue with local logout even if API fails
     } finally {
-      // Always clear local tokens
       EnhancedAuthStorage.clearAuthData();
     }
   },
@@ -242,7 +207,6 @@ export const authService = {
   },
 };
 
-// Equipment/Alat Service
 export const alatService = {
   getAll: () => apiService.get("/alat"),
   getById: (id: string) => apiService.get(`/alat/${id}`),
@@ -255,7 +219,6 @@ export const alatService = {
     apiService.patch(`/alat/${id}/maintenance`, data),
 };
 
-// Record Service
 export const recordService = {
   getAll: () => apiService.get("/record"),
   getById: (id: string) => apiService.get(`/record/${id}`),
@@ -265,7 +228,6 @@ export const recordService = {
   delete: (id: string) => apiService.delete(`/record/${id}`),
 };
 
-// Staff Service
 export const staffService = {
   getAll: () => apiService.get("/staff"),
   getById: (id: string) => apiService.get(`/staff/${id}`),
@@ -275,7 +237,6 @@ export const staffService = {
   delete: (id: string) => apiService.delete(`/staff/${id}`),
 };
 
-// Users Service
 export const usersService = {
   getAll: () => apiService.get("/users"),
   getById: (id: string) => apiService.get(`/users/${id}`),
@@ -288,7 +249,6 @@ export const usersService = {
     apiService.patch(`/users/${id}/password`, data),
 };
 
-// Items Service
 export const itemsService = {
   getAll: () => apiService.get("/items"),
   getById: (id: string) => apiService.get(`/items/${id}`),
@@ -297,21 +257,17 @@ export const itemsService = {
     apiService.put(`/items/${id}`, data),
   delete: (id: string) => apiService.delete(`/items/${id}`),
 };
-
-// Email Service
 export const emailService = {
   send: (data: Record<string, unknown>) => apiService.post("/email/send", data),
   getTemplates: () => apiService.get("/email/templates"),
 };
 
-// Roles Service
 export const rolesService = {
   getAll: () => apiService.get("/roles"),
   getPermissions: (roleId: string) =>
     apiService.get(`/roles/${roleId}/permissions`),
 };
 
-// Debug helper for development
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   (window as Window & { apiService?: typeof apiService }).apiService =
     apiService;
