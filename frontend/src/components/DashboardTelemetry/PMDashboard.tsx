@@ -131,7 +131,7 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ari peralatan atau tanggal (contoh: 01 Jan 2026)"
+                  placeholder="Cari peralatan atau tanggal (contoh: 01 Jan 2026)"
                   className="w-full py-2 pl-8 pr-3 text-sm border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
