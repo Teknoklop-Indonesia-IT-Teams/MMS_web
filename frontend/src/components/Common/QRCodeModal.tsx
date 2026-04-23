@@ -17,11 +17,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
   React.useEffect(() => {
     const generateQR = async () => {
       try {
-        // Gunakan network utils untuk mendapatkan URL terbaik dengan route public
         const urlInfo = await getMostAccessibleUrl(
           `/qr/telemetri/detail/${equipment.id}`,
         );
-        // Buat QR code dengan error correction yang baik
         const qrUrl = await QRCode.toDataURL(urlInfo.url, {
           width: 256,
           margin: 2,
@@ -29,12 +27,11 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
             dark: "#000000",
             light: "#FFFFFF",
           },
-          errorCorrectionLevel: "M", // Medium error correction untuk scanning yang lebih baik
+          errorCorrectionLevel: "M",
         });
 
         setQrCodeUrl(qrUrl);
       } catch (error) {
-        // Fallback ke metode lama jika network utils gagal
         try {
           const fallbackUrl = `${window.location.protocol}//${
             window.location.hostname
@@ -69,7 +66,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
     }
 
     try {
-      // Method 1: Direct download dari QR code data URL
       const link = document.createElement("a");
       link.download = `qr-${equipment.nama
         .replace(/\s+/g, "-")
@@ -81,7 +77,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ equipment, onClose }) => {
     } catch (error) {
       console.error("Error downloading QR code:", error);
 
-      // Fallback method: Using html2canvas
       if (qrRef.current) {
         try {
           const canvas = await html2canvas(qrRef.current, {

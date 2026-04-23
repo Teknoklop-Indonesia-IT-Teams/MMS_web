@@ -8,12 +8,6 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-/**
- * Enhanced ProtectedRoute Component with Robust Authentication
- * - No more accidental redirects on refresh
- * - Proper loading states
- * - Enhanced debug logging
- */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireAuth = true,
@@ -22,7 +16,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner during auth check
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -34,7 +27,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }

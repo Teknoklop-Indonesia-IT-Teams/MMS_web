@@ -14,7 +14,6 @@ const AuthRedirect = () => {
 
     return () => clearTimeout(timer);
   }, []);
-  console.log("AUTH STATE:", { loading, isAuthenticated });
   if (loading && !forceReady) {
     return (
       <div className="flex items-center justify-center min-h-screen">

@@ -12,10 +12,8 @@ import { AuthStorage } from "../utils/authStorage";
 const API_URL = import.meta.env.VITE_API_URL;
 const API_TIMEOUT = 30000;
 
-// Simple refresh detection - sync with AuthContext using AuthStorage
 let isRefreshing = false;
 
-// Detect refresh from AuthStorage utility
 if (typeof window !== "undefined") {
   isRefreshing = AuthStorage.isRefreshing();
 
@@ -39,7 +37,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = AuthStorage.getToken();
@@ -53,15 +50,12 @@ api.interceptors.request.use(
   },
 );
 
-// Simple but effective response interceptor
 api.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    // Handle 401 errors with refresh protection
     if (error.response?.status === 401) {
-      // Block auto-logout if currently refreshing
       if (isRefreshing) {
         return Promise.reject(error);
       }
@@ -189,7 +183,6 @@ export const rolesService = {
   getPermissions: (roleId: string) => api.get(`/roles/${roleId}/permissions`),
 };
 
-// Simple function to extend logout protection
 export const extendLogoutProtection = (ms: number) => {
   AuthStorage.extendRefreshProtection(ms);
   isRefreshing = true;
@@ -200,7 +193,6 @@ export const extendLogoutProtection = (ms: number) => {
 
 export { api };
 
-// Enhanced Services for better authentication
 export const enhancedEquipmentService = {
   getAll: async () => {
     try {
@@ -300,7 +292,7 @@ export const enhancedStaffService = {
 
 const getImageSrc = (img?: string | null) => {
   if (!img) return null;
-  if (img.startsWith("data:")) return img; // already a data URI (records)
+  if (img.startsWith("data:")) return img;
   return `${import.meta.env.VITE_URL}/uploads/${img}`;
 };
 

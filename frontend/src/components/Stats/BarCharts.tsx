@@ -1,4 +1,3 @@
-// StatusBarChart.tsx
 import {
   BarChart,
   Bar,
@@ -16,20 +15,20 @@ interface StatusChartItem {
 
 interface BarChartProps {
   statusChartData: StatusChartItem[];
-  colors?: string[]; // Ubah menjadi array
+  colors?: string[]; 
 }
 
 const statusColors = [
-  "#ef4444", // urgent
-  "#f59e0b", // warning
-  "#22c55e", // normal
-  "#3b82f6", // selesai
-  "#6b7280", // inactive
+  "#ef4444", 
+  "#f59e0b", 
+  "#22c55e", 
+  "#3b82f6",
+  "#6b7280",
 ];
 
 const StatusBarChart: React.FC<BarChartProps> = ({
   statusChartData,
-  colors = statusColors, // Default colors
+  colors = statusColors,
 }) => {
   return (
     <ResponsiveContainer width="100%" height={200}>

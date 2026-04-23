@@ -18,30 +18,30 @@ export const AuthLoading: React.FC<AuthLoadingProps> = ({
   progress = 0,
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="w-full max-w-md p-8 mx-4 bg-white rounded-lg shadow-xl">
         <div className="text-center">
           {/* Logo/Icon */}
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <Shield className="h-12 w-12 text-blue-600" />
-              <Loader2 className="h-6 w-6 text-blue-400 animate-spin absolute -top-1 -right-1" />
+              <Shield className="w-12 h-12 text-blue-600" />
+              <Loader2 className="absolute w-6 h-6 text-blue-400 animate-spin -top-1 -right-1" />
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">
             Loading Application
           </h2>
 
           {/* Message */}
-          <p className="text-gray-600 mb-6">{message}</p>
+          <p className="mb-6 text-gray-600">{message}</p>
 
           {/* Progress Bar */}
           {showProgress && (
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div className="w-full h-2 mb-4 bg-gray-200 rounded-full">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                className="h-2 transition-all duration-300 ease-out bg-blue-600 rounded-full"
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
@@ -49,7 +49,7 @@ export const AuthLoading: React.FC<AuthLoadingProps> = ({
 
           {/* Loading Spinner */}
           <div className="flex items-center justify-center space-x-2">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+            <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
             <span className="text-sm text-gray-500">Please wait...</span>
           </div>
 
@@ -64,15 +64,14 @@ export const AuthLoading: React.FC<AuthLoadingProps> = ({
   );
 };
 
-// Simple loading overlay for smaller components
 export const LoadingOverlay: React.FC<{ message?: string }> = ({
   message = "Loading...",
 }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="w-full max-w-sm p-6 mx-4 bg-white rounded-lg">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 mx-auto mb-4 text-blue-600 animate-spin" />
           <p className="text-gray-700">{message}</p>
         </div>
       </div>
@@ -80,7 +79,6 @@ export const LoadingOverlay: React.FC<{ message?: string }> = ({
   );
 };
 
-// Inline loading component
 export const InlineLoading: React.FC<{
   message?: string;
   size?: "sm" | "md" | "lg";
@@ -92,7 +90,7 @@ export const InlineLoading: React.FC<{
   };
 
   return (
-    <div className="flex items-center justify-center space-x-2 py-4">
+    <div className="flex items-center justify-center py-4 space-x-2">
       <Loader2 className={`animate-spin text-blue-600 ${sizeClasses[size]}`} />
       <span className="text-gray-600">{message}</span>
     </div>

@@ -11,7 +11,6 @@ const Unauthorized: React.FC = () => {
   };
 
   const handleGoHome = () => {
-    // Navigate based on user role
     switch (user?.role) {
       case "admin":
         navigate("/dashboard-telemetry");
@@ -31,11 +30,11 @@ const Unauthorized: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-lg w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+    <div className="flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="w-full max-w-lg">
+        <div className="p-8 text-center bg-white shadow-xl rounded-2xl">
           {/* Icon */}
-          <div className="mx-auto w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
+          <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full">
             <svg
               className="w-12 h-12 text-red-600"
               fill="none"
@@ -52,17 +51,17 @@ const Unauthorized: React.FC = () => {
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">
             Akses Ditolak
           </h1>
 
           {/* Message */}
-          <p className="text-gray-600 mb-2">
+          <p className="mb-2 text-gray-600">
             Maaf, Anda tidak memiliki izin untuk mengakses halaman ini.
           </p>
 
           {user && (
-            <p className="text-sm text-gray-500 mb-8">
+            <p className="mb-8 text-sm text-gray-500">
               Role Anda:{" "}
               <span className="font-semibold text-blue-600">{user.role}</span>
             </p>
@@ -72,21 +71,21 @@ const Unauthorized: React.FC = () => {
           <div className="space-y-3">
             <button
               onClick={handleGoHome}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 ease-in-out transform hover:scale-105"
+              className="w-full px-6 py-3 font-semibold text-white transition duration-200 ease-in-out transform bg-blue-600 rounded-lg hover:bg-blue-700 hover:scale-105"
             >
               Kembali ke Halaman Utama
             </button>
 
             <button
               onClick={handleGoBack}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition duration-200 ease-in-out"
+              className="w-full px-6 py-3 font-semibold text-gray-700 transition duration-200 ease-in-out bg-gray-100 rounded-lg hover:bg-gray-200"
             >
               Kembali ke Halaman Sebelumnya
             </button>
 
             <button
               onClick={logout}
-              className="w-full text-red-600 hover:text-red-700 font-medium py-2 transition duration-200"
+              className="w-full py-2 font-medium text-red-600 transition duration-200 hover:text-red-700"
             >
               Logout dan Login dengan Akun Lain
             </button>

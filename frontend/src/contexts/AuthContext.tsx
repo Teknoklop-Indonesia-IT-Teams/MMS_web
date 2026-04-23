@@ -31,15 +31,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  /**
-   * Check authentication status on mount and after refresh
-   */
   const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
-      // Set refresh protection to prevent logout during this check
-      EnhancedAuthStorage.setRefreshProtection(15000); // 15 seconds protection
+      EnhancedAuthStorage.setRefreshProtection(15000);
 
-      // Try to get valid auth data from enhanced storage
       const authData = EnhancedAuthStorage.loadAuthData();
 
       if (!authData) {
@@ -48,12 +43,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
 
-      // Verify token with backend
       try {
         const response = await authService.getProfile();
 
         if (response.data) {
-          // Adapt backend response to frontend User type
           const backendUser = response.data as {
             id: number;
             nama: string;
@@ -74,7 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           setUser(adaptedUser);
 
-          // Update stored user data with fresh data from server
           EnhancedAuthStorage.saveAuthData(
             authData.token,
             adaptedUser,
@@ -86,16 +78,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error: unknown) {
         console.error("❌ Enhanced Auth: Server verification failed:", error);
 
-        // If server verification fails but we have valid local data, use it
-        // This handles cases where server is down but token is still valid
         const axiosError = error as { response?: { status?: number } };
         if (axiosError.response?.status !== 401) {
-          // Use cached user data directly since it's already in correct format
           setUser(authData.user);
           return true;
         }
 
-        // If 401, token is invalid - clear data
         EnhancedAuthStorage.clearAuthData();
         setUser(null);
         return false;
@@ -109,15 +97,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  /**
-   * Initialize auth on component mount
-   */
   useEffect(() => {
     let isMounted = true;
 
     const initializeAuth = async () => {
       try {
-        // Small delay to ensure localStorage is ready
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         if (!isMounted) return;
@@ -165,13 +149,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [checkAuth, navigate]);
 
-  /**
-   * Login function with enhanced storage
-   */
   const login = useCallback(
     (token: string, userData: User, expiresIn: number = 86400) => {
       try {
-        // Save auth data with enhanced storage
         const success = EnhancedAuthStorage.saveAuthData(
           token,
           userData,
@@ -180,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (success) {
           setUser(userData);
-          // Navigate to dashboard
+
           navigate("/dashboard-telemetry", { replace: true });
         } else {
           console.error("❌ Enhanced Auth: Failed to save auth data");
@@ -198,49 +178,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser((prev) => (prev ? { ...prev, ...newUser } : prev));
   };
 
-  /**
-   * Logout function with proper cleanup
-   */
   const logout = useCallback(async () => {
     try {
-      // Check if we're in refresh protection period
       if (EnhancedAuthStorage.isRefreshProtected()) {
-        // Force logout anyway - user explicitly clicked logout
         EnhancedAuthStorage.clearRefreshProtection();
       }
 
-      // Call API logout
       try {
         await authService.logout();
       } catch (error) {
         console.error("⚠️ Enhanced Auth: API logout failed:", error);
-        // Continue with local logout even if API fails
       }
 
-      // Clear all auth data
       EnhancedAuthStorage.clearAuthData();
       setUser(null);
 
-      // Navigate to login
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("❌ Enhanced Auth: Logout error:", error);
-      // Force logout even on error
       EnhancedAuthStorage.clearAuthData();
       setUser(null);
       navigate("/login", { replace: true });
     }
   }, [navigate]);
 
-  /**
-   * Handle page visibility change to detect refresh
-   */
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         EnhancedAuthStorage.updateActivity();
 
-        // Re-check auth after page becomes visible
         if (user) {
           checkAuth();
         }
@@ -248,7 +214,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const handleBeforeUnload = () => {
-      EnhancedAuthStorage.setRefreshProtection(10000); // 10 seconds
+      EnhancedAuthStorage.setRefreshProtection(10000);
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -260,7 +226,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [user, checkAuth]);
 
-  // Log auth status for debugging
   useEffect(() => {
     const authStatus = EnhancedAuthStorage.getAuthStatus();
   }, [user]);

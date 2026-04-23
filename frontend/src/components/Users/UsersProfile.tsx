@@ -17,7 +17,6 @@ const UserProfile: React.FC = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  // Form state for profile
   const [formData, setFormData] = useState({
     email: "",
     nama: "",
@@ -26,14 +25,12 @@ const UserProfile: React.FC = () => {
     role: "",
   });
 
-  // Password change state
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  // Fetch current user profile
   const fetchCurrentUser = async () => {
     try {
       setLoading(true);
@@ -125,18 +122,18 @@ const UserProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="text-center py-12">
-        <span className="text-4xl text-gray-400 mb-4 block">👤</span>
+      <div className="py-12 text-center">
+        <span className="block mb-4 text-4xl text-gray-400">👤</span>
         <p className="text-gray-500">User tidak ditemukan</p>
-        <p className="text-sm text-gray-400 mt-2">Silakan login kembali</p>
+        <p className="mt-2 text-sm text-gray-400">Silakan login kembali</p>
       </div>
     );
   }
@@ -156,18 +153,18 @@ const UserProfile: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Profile Card */}
         <div className="lg:col-span-2">
-          <div className="bg-blue-500 dark:bg-gray-900 rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
+          <div className="p-6 bg-blue-500 rounded-lg shadow dark:bg-gray-900">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-white">
                 Informasi Profile
               </h2>
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   Edit Profile
                 </button>
@@ -190,7 +187,7 @@ const UserProfile: React.FC = () => {
                   </button>
                   <button
                     onClick={handleProfileSubmit}
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
                   >
                     <Save size={16} />
                     Simpan
@@ -202,7 +199,7 @@ const UserProfile: React.FC = () => {
             <div className="space-y-6">
               {/* Avatar and Name */}
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="flex items-center justify-center w-20 h-20 text-2xl font-bold text-white bg-blue-600 rounded-full">
                   {user.nama?.charAt(0)?.toUpperCase() || "U"}
                 </div>
                 <div>
@@ -214,7 +211,7 @@ const UserProfile: React.FC = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, nama: e.target.value })
                         }
-                        className="w-full max-w-md border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Nama Lengkap"
                       />
                       <p className="text-sm text-white dark:text-gray-400">
@@ -239,7 +236,7 @@ const UserProfile: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white dark:text-gray-300 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-white dark:text-gray-300">
                     Username
                   </label>
                   {isEditing ? (
@@ -249,7 +246,7 @@ const UserProfile: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, username: e.target.value })
                       }
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   ) : (
@@ -261,7 +258,7 @@ const UserProfile: React.FC = () => {
               {/* Profile Details */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white dark:text-gray-300 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-white dark:text-gray-300">
                     Email
                   </label>
                   {isEditing ? (
@@ -271,7 +268,7 @@ const UserProfile: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   ) : (
@@ -280,7 +277,7 @@ const UserProfile: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white dark:text-gray-300 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-white dark:text-gray-300">
                     Nomor Telepon
                   </label>
                   {isEditing ? (
@@ -290,7 +287,7 @@ const UserProfile: React.FC = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, telp: e.target.value })
                       }
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="0812-3456-7890"
                     />
                   ) : (
@@ -299,7 +296,7 @@ const UserProfile: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white dark:text-gray-300 mb-1">
+                  <label className="block mb-1 text-sm font-medium text-white dark:text-gray-300">
                     Role
                   </label>
                   <p className="text-white capitalize">{user.role || "-"}</p>
@@ -311,23 +308,23 @@ const UserProfile: React.FC = () => {
 
         {/* Security Card */}
         <div className="lg:col-span-1">
-          <div className="bg-blue-500 dark:bg-gray-900 rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">
+          <div className="p-6 bg-blue-500 rounded-lg shadow dark:bg-gray-900">
+            <h2 className="mb-6 text-xl font-semibold text-white">
               Keamanan Akun
             </h2>
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-white dark:text-gray-300 mb-2">
+                <h3 className="mb-2 text-sm font-medium text-white dark:text-gray-300">
                   Password
                 </h3>
-                <p className="text-sm text-white mb-4">
+                <p className="mb-4 text-sm text-white">
                   Perbarui password Anda secara berkala untuk menjaga keamanan
                   akun
                 </p>
                 <button
                   onClick={() => setShowPasswordModal(true)}
-                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                  className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                 >
                   <Key size={18} />
                   Ubah Password
@@ -336,8 +333,8 @@ const UserProfile: React.FC = () => {
 
               {/* Session Info (optional) */}
               {/* <div className="pt-4 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Informasi Login</h3>
-                <div className="text-sm text-gray-500 space-y-1">
+                <h3 className="mb-2 text-sm font-medium text-gray-700">Informasi Login</h3>
+                <div className="space-y-1 text-sm text-gray-500">
                   <p>Terakhir login: {user.lastLogin ? new Date(user.lastLogin).toLocaleString('id-ID') : "Tidak tersedia"}</p>
                   <p>Akun dibuat: {user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID') : "Tidak tersedia"}</p>
                 </div>
@@ -349,9 +346,9 @@ const UserProfile: React.FC = () => {
 
       {/* Password Change Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900">Ubah Password</h2>
               <button
                 onClick={() => {
@@ -366,7 +363,7 @@ const UserProfile: React.FC = () => {
 
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   Password Lama
                 </label>
 
@@ -379,8 +376,7 @@ const UserProfile: React.FC = () => {
                       oldPassword: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10
-               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Masukkan password lama"
                   required
                 />
@@ -388,14 +384,14 @@ const UserProfile: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowOld(!showOld)}
-                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                  className="absolute text-gray-500 right-3 top-9 hover:text-gray-700"
                 >
                   {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
 
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   Password Baru
                 </label>
 
@@ -408,8 +404,7 @@ const UserProfile: React.FC = () => {
                       newPassword: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10
-               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Minimal 6 karakter"
                   required
                   minLength={6}
@@ -418,14 +413,14 @@ const UserProfile: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowNew(!showNew)}
-                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                  className="absolute text-gray-500 right-3 top-9 hover:text-gray-700"
                 >
                   {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
 
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   Konfirmasi Password Baru
                 </label>
 
@@ -438,8 +433,7 @@ const UserProfile: React.FC = () => {
                       confirmPassword: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10
-               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Konfirmasi password baru"
                   required
                   minLength={6}
@@ -448,7 +442,7 @@ const UserProfile: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                  className="absolute text-gray-500 right-3 top-9 hover:text-gray-700"
                 >
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -468,7 +462,7 @@ const UserProfile: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
                   >
                     Ubah Password
                   </button>

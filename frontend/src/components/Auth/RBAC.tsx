@@ -9,10 +9,6 @@ interface RBACProps {
   redirectTo?: string;
 }
 
-/**
- * RBAC (Role-Based Access Control) Component
- * Controls access to components based on user roles
- */
 export function RBAC({
   allowedRoles,
   children,
@@ -21,17 +17,14 @@ export function RBAC({
 }: RBACProps) {
   const { user, isAuthenticated } = useAuth();
 
-  // If no user, redirect to login
   if (!isAuthenticated || !user) {
     console.log("❌ RBAC: No user, redirecting to login");
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Check if user role is allowed
   const hasAccess = allowedRoles.includes(user.role);
 
   if (!hasAccess) {
-    // If fallback provided, show it. Otherwise redirect
     if (fallback) {
       return <>{fallback}</>;
     }

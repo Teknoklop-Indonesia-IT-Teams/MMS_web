@@ -14,7 +14,6 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -34,7 +33,6 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
         await logout();
       } catch (error) {
         console.error("❌ Header: Logout failed:", error);
-        // Force reload as fallback
         window.location.href = "/login";
       }
     }
@@ -109,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
 
               {/* Dropdown Menu */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                <div className="absolute right-0 z-50 w-48 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
                   {/* <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {user.nama}

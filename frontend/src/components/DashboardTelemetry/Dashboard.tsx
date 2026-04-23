@@ -30,7 +30,6 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   const [activityPage, setActivityPage] = useState(1);
   const activityPerPage = 5;
   const [telemetryList, setTelemetryList] = useState<{ id: number; name: string }[]>([]);
-  // Use lazy loading dashboard data - only fetch when dashboard is opened
   const { loading, isDataLoaded, stats, equipment } = useDashboardData();
 
   const { user } = useAuth();
@@ -48,7 +47,6 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
     console.log("Dashboard equipment count:", equipment.length);
   }, [equipment]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (clickTimeout) {
@@ -69,7 +67,6 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
     );
   }, [equipment]);
 
-  // Device cards mengikuti data dari m_telemetry
   const telemetryCards = useMemo(() => {
     return telemetryList.map((t) => ({
       type: t.name,
@@ -109,13 +106,11 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
     data.forEach((item) => {
       const isActive = Boolean(item.isMaintenanceActive);
 
-      // selesai
       if (item.maintenanceStatus === "selesai") {
         selesai++;
         return;
       }
 
-      // tidak aktif
       if (!isActive) {
         inactive++;
         return;
@@ -144,7 +139,6 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
     return hideEmptyCards ? telemetryCards.filter((c) => c.count > 0) : telemetryCards;
   }, [telemetryCards, hideEmptyCards]);
 
-  // Filter equipment berdasarkan jenis yang dipilih
   const filteredEquipment = useMemo(() => {
     if (selectedFilter === "all") {
       return equipment;
@@ -160,7 +154,6 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
     return base.map(({ type, count }) => ({ name: type, value: count }));
   }, [telemetryCards, selectedFilter]);
 
-  // Cek apakah ada filter aktif
   const hasActiveFilter = selectedFilter !== "all";
 
   const maintenanceStats = getMaintenanceStats(filteredEquipment);
@@ -200,14 +193,13 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   );
 
   const statusColors = [
-    "#ef4444", // urgent
-    "#f59e0b", // warning
-    "#22c55e", // normal
-    "#3b82f6", // selesai
-    "#6b7280", // inactive
+    "#ef4444",
+    "#f59e0b",
+    "#22c55e",
+    "#3b82f6", 
+    "#6b7280", 
   ];
 
-  // Show loading state
   if (loading && !isDataLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -371,7 +363,6 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
           <div className="space-y-3 text-sm">
             {paginatedActivity.length > 0 ? (
               paginatedActivity.map((item, index) => {
-                // Generate status berdasarkan data peralatan
                 const getStatusInfo = (equipment: Equipment) => {
                   if (equipment.remot === "on") {
                     return {

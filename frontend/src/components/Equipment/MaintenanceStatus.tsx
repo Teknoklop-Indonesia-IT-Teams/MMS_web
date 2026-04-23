@@ -17,11 +17,10 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
   const [note, setNote] = useState("");
   const [image, setImage] = useState<File | null>(null);
 
-  // Tentukan apakah maintenance aktif (handle semua kemungkinan)
+
   const isMaintenanceActive = (() => {
     const value = equipment.isMaintenanceActive;
 
-    // Handle false
     if (
       value === false ||
       value === 0 ||
@@ -31,7 +30,6 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
       return false;
     }
 
-    // Handle true
     if (
       value === true ||
       value === 1 ||
@@ -41,11 +39,9 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
       return true;
     }
 
-    // Default: false
     return false;
   })();
 
-  // Jika status selesai, tampilkan selesai
   if (equipment.maintenanceStatus === "selesai") {
     const colors = {
       bg: "bg-blue-100 dark:bg-blue-900",
@@ -101,7 +97,6 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
     );
   }
 
-  // Jika tidak aktif
   if (!isMaintenanceActive) {
     return (
       <div className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
@@ -110,9 +105,7 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
       </div>
     );
   }
-  // Tentukan status berdasarkan data yang ada
   const getStatusInfo = () => {
-    // Prioritaskan maintenanceStatusText jika ada
     if (equipment.maintenanceStatusText) {
       return {
         text: equipment.maintenanceStatusText,
@@ -120,7 +113,6 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
       };
     }
 
-    // Gunakan maintenanceStatus jika ada
     if (equipment.maintenanceStatus) {
       const status = equipment.maintenanceStatus.toLowerCase();
       const daysLeft = equipment.maintenanceDaysLeft || 0;
@@ -161,7 +153,6 @@ export const MaintenanceStatus: React.FC<MaintenanceStatusProps> = ({
       }
     }
 
-    // Default jika tidak ada data
     return {
       text: "Status maintenance",
       type: "unknown",

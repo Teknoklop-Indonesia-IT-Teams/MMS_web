@@ -44,7 +44,6 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
 
     const service = tableType === "telemetry" ? telemetryService : clientService;
 
-    // ── Fetch ──
     const fetchItems = useCallback(async () => {
         try {
             setLoading(true);
@@ -65,7 +64,6 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
         fetchItems();
     }, [fetchItems]);
 
-    // ── Add ──
     const handleAdd = async (value: string) => {
         const loadingToastId = showLoadingToast(
             `Menambahkan ${displayLabel}...`,
@@ -87,7 +85,6 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
         }
     };
 
-    // ── Delete ──
     const handleDelete = useCallback(
         (id: number, name: string) => {
             showConfirmationToast(
@@ -114,7 +111,6 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
         [service, fetchItems],
     );
 
-    // ── Columns ──
     const columns = useMemo<ColumnDef<MasterItem>[]>(
         () => [
             {

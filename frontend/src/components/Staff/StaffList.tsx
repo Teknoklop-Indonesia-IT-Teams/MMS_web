@@ -25,16 +25,15 @@ interface StaffResponse {
 
 const StaffList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false); // Start with false, hanya loading ketika fetch
-  const [dataLoaded, setDataLoaded] = useState(false); // Track apakah data sudah dimuat
+  const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Clear equipment data karena tidak diperlukan di halaman staff
+
   useNoEquipmentData();
 
-  // Get user permissions
   const { hasAnyRole } = useAuth();
   const canManageStaff = hasAnyRole([...PERMISSIONS.DASHBOARD_FULL_ACCESS]);
 
@@ -46,7 +45,6 @@ const StaffList: React.FC = () => {
       const response = await staffService.getAll();
 
       if (response && response.status === 200 && response.data) {
-        // Ensure data is an array and map to User interface
         const staffData = Array.isArray(response.data) ? response.data : [];
 
         const userData: User[] = (staffData as unknown as StaffResponse[]).map(
@@ -60,7 +58,6 @@ const StaffList: React.FC = () => {
           }),
         );
 
-        // Sort by ID in ascending order
         userData.sort((a, b) => a.id - b.id);
 
         setUsers(userData);
@@ -84,7 +81,6 @@ const StaffList: React.FC = () => {
     }
   }, []);
 
-  // Lazy loading - hanya fetch ketika komponen mount dan data belum dimuat
   useEffect(() => {
     if (!dataLoaded) {
       fetchUsers();
@@ -128,7 +124,7 @@ const StaffList: React.FC = () => {
           }
         },
         () => {
-          // User cancelled - no action needed
+          
         },
         "Tindakan ini tidak dapat dibatalkan",
       );
@@ -143,7 +139,6 @@ const StaffList: React.FC = () => {
       const loadingToastId = showLoadingToast(`Sedang ${action} petugas...`);
 
       try {
-        // Create data for API - backend only expects nama and email
         const apiData = {
           nama: userData.nama,
           email: userData.email || undefined,
@@ -189,7 +184,7 @@ const StaffList: React.FC = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
           <div className="flex items-center justify-center h-64">
             <div className="w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin"></div>
             <span className="ml-3 text-gray-600">Memuat data petugas...</span>
@@ -238,7 +233,7 @@ const StaffList: React.FC = () => {
           {canManageStaff && (
             <button
               onClick={handleAddUser}
-              className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800"
+              className="flex items-center justify-center w-full gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg md:w-auto dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800"
             >
               <Plus className="w-4 h-4" />
               Tambah Petugas

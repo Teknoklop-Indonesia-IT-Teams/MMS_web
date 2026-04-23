@@ -22,14 +22,12 @@ export interface EmailConfig {
 
 class EmailNotificationService {
   private baseURL = `${import.meta.env.VITE_API_URL}`;
-  private sentNotifications = new Set<string>(); // Track sent notifications to avoid spam
+  private sentNotifications = new Set<string>();
 
-  // Generate unique key for equipment notification
   private getNotificationKey(equipmentId: number, alertLevel: string): string {
     return `${equipmentId}-${alertLevel}-${new Date().toDateString()}`;
   }
 
-  // Check if notification was already sent today
   private wasNotificationSent(
     equipmentId: number,
     alertLevel: string
@@ -38,15 +36,12 @@ class EmailNotificationService {
     return this.sentNotifications.has(key);
   }
 
-  // Mark notification as sent
   private markNotificationSent(equipmentId: number, alertLevel: string): void {
     const key = this.getNotificationKey(equipmentId, alertLevel);
     this.sentNotifications.add(key);
   }
 
-  // Get email address based on equipment email or PIC
   private getEmailFromEquipment(equipment: Equipment): string {
-    // Prioritas: 1. Email dari equipment, 2. Email dari PIC mapping, 3. Default email
     if (equipment.email && equipment.email.trim()) {
       return equipment.email.trim();
     }
@@ -60,10 +55,9 @@ class EmailNotificationService {
       "Revan Ardian": "revan.ardian@company.com",
     };
 
-    return emailMapping[equipment.pic] || "alirohman857@gmail.com"; // Default ke email testing
+    return emailMapping[equipment.pic] || "alirohman857@gmail.com";
   }
 
-  // Get name from PIC
   private getNameFromPIC(pic: string): string {
     const nameMapping: { [key: string]: string } = {
       "1": "Admin 1",
@@ -77,10 +71,8 @@ class EmailNotificationService {
     return nameMapping[pic] || pic || "Tim Maintenance";
   }
 
-  // Send email notification for yellow status (warning)
   async sendMaintenanceWarningEmail(equipment: Equipment): Promise<boolean> {
     try {
-      // Check if notification was already sent today
       if (this.wasNotificationSent(equipment.id, "yellow")) {
         console.log(
           `Warning email already sent today for equipment ${equipment.nama}`
@@ -124,10 +116,8 @@ class EmailNotificationService {
     }
   }
 
-  // Send email notification for red status (urgent)
   async sendMaintenanceUrgentEmail(equipment: Equipment): Promise<boolean> {
     try {
-      // Check if notification was already sent today
       if (this.wasNotificationSent(equipment.id, "red")) {
         console.log(
           `Urgent email already sent today for equipment ${equipment.nama}`
@@ -165,7 +155,6 @@ class EmailNotificationService {
     }
   }
 
-  // Check and send notifications for equipment with yellow/red status
   async checkAndSendNotifications(equipmentList: Equipment[]): Promise<void> {
     const yellowEquipment = equipmentList.filter(
       (eq) => eq.maintenanceAlertLevel === "yellow" && eq.isMaintenanceActive
@@ -178,22 +167,17 @@ class EmailNotificationService {
         eq.maintenanceStatus !== "selesai"
     );
 
-    // Send yellow status notifications
     for (const equipment of yellowEquipment) {
       await this.sendMaintenanceWarningEmail(equipment);
-      // Add small delay to prevent overwhelming the email service
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
-    // Send red status notifications
     for (const equipment of redEquipment) {
       await this.sendMaintenanceUrgentEmail(equipment);
-      // Add small delay to prevent overwhelming the email service
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 
-  // Manual trigger for testing
   async testEmail(equipment: Equipment): Promise<boolean> {
     if (equipment.maintenanceAlertLevel === "yellow") {
       return await this.sendMaintenanceWarningEmail(equipment);

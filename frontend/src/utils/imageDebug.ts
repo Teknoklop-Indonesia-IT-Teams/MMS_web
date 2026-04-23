@@ -1,4 +1,3 @@
-// utils/imageDebug.ts
 export const debugImageLoad = async (
   src: string,
 ): Promise<{
@@ -24,7 +23,6 @@ export const debugImageLoad = async (
       });
     };
 
-    // Set timeout
     setTimeout(() => {
       if (!img.complete) {
         console.error(`⏰ Debug: Image load timeout: ${src}`);
@@ -47,8 +45,8 @@ export const testImageUrls = async (filename: string) => {
     `${baseUrl}/uploads/${filename}?t=${Date.now()}`,
     `http://localhost:3001/uploads/${filename}`,
     `http://localhost:3001/uploads/${filename}?test=123`,
-    filename, // Original
-    `/uploads/${filename}`, // With leading slash
+    filename, 
+    `/uploads/${filename}`,
   ];
 
   console.log(`🧪 Testing image URLs for: ${filename}`);
@@ -61,9 +59,9 @@ export const testImageUrls = async (filename: string) => {
     );
 
     if (result.success) {
-      return url; // Return first working URL
+      return url;
     }
   }
 
-  return null; // No URL worked
+  return null;
 };

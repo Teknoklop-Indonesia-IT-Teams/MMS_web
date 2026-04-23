@@ -25,6 +25,9 @@ import {
   Wrench,
   ChevronDown,
   History,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Equipment } from "../../types";
@@ -156,6 +159,7 @@ const EquipmentTable: React.FC = () => {
         header: "No",
         id: "rowNumber",
         size: 70,
+        enableSorting: false,
         cell: ({ row, table }) => {
           const pageIndex = table.getState().pagination.pageIndex;
           const pageSize = table.getState().pagination.pageSize;
@@ -268,6 +272,7 @@ const EquipmentTable: React.FC = () => {
         header: "Gambar",
         accessorKey: "i_alat",
         size: 100,
+        enableSorting: false,
         cell: ({ row }) => {
           const equipment = row.original;
           const imageFilename = equipment.i_alat;
@@ -292,6 +297,7 @@ const EquipmentTable: React.FC = () => {
         header: "Actions",
         id: "actions",
         size: 340,
+        enableSorting: false,
         cell: ({ row }) => {
           const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -451,6 +457,12 @@ const EquipmentTable: React.FC = () => {
 
   const uniqueTypes = Array.from(new Set(equipment.map((item) => item.jenis)));
 
+  const SortIcon = ({ sorted }: { sorted: false | "asc" | "desc" }) => {
+    if (sorted === "asc") return <ArrowUp size={13} className="ml-1 shrink-0" />;
+    if (sorted === "desc") return <ArrowDown size={13} className="ml-1 shrink-0" />;
+    return <ArrowUpDown size={13} className="ml-1 shrink-0 opacity-30" />;
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -549,20 +561,33 @@ const EquipmentTable: React.FC = () => {
             <thead className="sticky top-0 shadow-sm bg-gray-50 dark:bg-gray-700">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-4 py-3 text-sm font-medium tracking-wider text-left text-gray-500 uppercase cursor-pointer dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
+                  {headerGroup.headers.map((header) => {
+                    const canSort = header.column.getCanSort();
+                    const sorted = header.column.getIsSorted();
+                    return (
+                      <th
+                        key={header.id}
+                        className={`px-4 py-3 text-sm font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300 select-none ${
+                          canSort
+                            ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                            : ""
+                        }`}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <div className="flex items-center">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                          {canSort && (
+                            <SortIcon sorted={sorted} />
                           )}
-                    </th>
-                  ))}
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
@@ -649,7 +674,6 @@ const EquipmentTable: React.FC = () => {
         </div>
       </div>
 
-      {/* Di bagian return, setelah semua modal */}
       {dropdownEquipment && (
         <div
           className="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-lg w-52 dark:bg-gray-700 dark:border-gray-600 dropdown-menu-container"

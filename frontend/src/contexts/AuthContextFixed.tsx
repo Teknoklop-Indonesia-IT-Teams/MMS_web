@@ -18,18 +18,17 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Global flags to prevent logout on refresh
+
 let isPageRefreshing = false;
 
-// Detect page refresh
+
 if (typeof window !== "undefined") {
   const now = Date.now();
   const pageLoadTime = parseInt(localStorage.getItem("pageLoadTime") || "0");
 
-  // If page loaded within 5 seconds of last load, it's a refresh
+
   if (pageLoadTime && now - pageLoadTime < 5000) {
     isPageRefreshing = true;
-    // Block logout for 10 seconds after refresh
     setTimeout(() => {
       isPageRefreshing = false;
     }, 10000);
@@ -43,7 +42,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check for existing auth on mount
   useEffect(() => {
     const initializeAuth = () => {
       try {
@@ -65,7 +63,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    // Small delay to prevent race conditions
     setTimeout(initializeAuth, 100);
   }, []);
 
@@ -76,7 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    // Prevent logout during refresh
     if (isPageRefreshing) {
       return;
     }

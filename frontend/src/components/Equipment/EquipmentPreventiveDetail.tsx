@@ -43,7 +43,6 @@ interface StaffResponse {
   role?: string;
 }
 
-// ─── Lightbox ────────────────────────────────────────────────────────────────
 const Lightbox = memo(function Lightbox({
   src,
   alt,
@@ -79,7 +78,6 @@ const Lightbox = memo(function Lightbox({
   );
 });
 
-// ─── ImageThumbnail ───────────────────────────────────────────────────────────
 const getFullUrl = (path: string): string => {
   if (path.startsWith("http")) return path;
   const baseUrl =
@@ -115,7 +113,6 @@ const ImageThumbnail = memo(function ImageThumbnail({ src, alt }: { src: string;
   );
 });
 
-// ─── RecordRow ────────────────────────────────────────────────────────────────
 interface RecordRowProps {
   record: PreRecord;
   isExpanded: boolean;
@@ -221,7 +218,7 @@ const RecordRow = memo(function RecordRow({
   );
 });
 
-// ─── SensorList ───────────────────────────────────────────────────────────────
+
 const SensorList = memo(function SensorList({ sensor }: { sensor: Equipment["sensor"] }) {
   const sensorArr: string[] = useMemo(() => {
     if (Array.isArray(sensor)) return sensor;
@@ -238,12 +235,12 @@ const SensorList = memo(function SensorList({ sensor }: { sensor: Equipment["sen
           const [nama, id] = item.split(",").map((s) => s.trim());
           return (
             <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
-              <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-700 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full shrink-0">
+              <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300 shrink-0">
                 {idx + 1}
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{nama || "-"}</p>
-                {id && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">ID: {id}</p>}
+                <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{nama || "-"}</p>
+                {id && <p className="text-xs text-gray-400 truncate dark:text-gray-500">ID: {id}</p>}
               </div>
             </div>
           );
@@ -253,7 +250,6 @@ const SensorList = memo(function SensorList({ sensor }: { sensor: Equipment["sen
   );
 });
 
-// ─── Form Fields config ───────────────────────────────────────────────────────
 const TEXTAREA_FIELDS = [
   { label: "Kondisi Awal", key: "awal" as const, required: true, placeholder: "Kondisi alat sebelum maintenance..." },
   { label: "Tindakan", key: "tindakan" as const, required: true, placeholder: "Tindakan yang dilakukan..." },
@@ -269,7 +265,6 @@ const emptyForm: Record<FormKey, string> = {
   tambahan: "", akhir: "", berikutnya: "", keterangan: "", petugas: "",
 };
 
-// ─── RecordForm ───────────────────────────────────────────────────────────────
 interface RecordFormProps {
   mode: "add" | "edit";
   formData: Record<FormKey, string>;
@@ -462,7 +457,6 @@ const RecordForm = memo(function RecordForm({
   );
 });
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function EquipmentDetail({
   equipment,
   onClose,
@@ -473,16 +467,14 @@ export default function EquipmentDetail({
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
   const [equipmentWithStatus, setEquipmentWithStatus] = useState<Equipment>(equipment);
-  const submittingRef = useRef(false);           // guard: tidak punya stale closure
-  const [isSubmitting, setIsSubmitting] = useState(false); // hanya untuk UI (disabled/teks)
+  const submittingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMainImageLightbox, setShowMainImageLightbox] = useState(false);
 
-  // Add form state
   const [addFormData, setAddFormData] = useState<Record<FormKey, string>>(emptyForm);
   const [addImageFiles, setAddImageFiles] = useState<File[]>([]);
   const [addImagePreviews, setAddImagePreviews] = useState<string[]>([]);
 
-  // Edit form state
   const [editingRecord, setEditingRecord] = useState<PreRecord | null>(null);
   const [editFormData, setEditFormData] = useState<Record<FormKey, string>>(emptyForm);
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
@@ -539,7 +531,6 @@ export default function EquipmentDetail({
     [staffList],
   );
 
-  // ─── Image handlers ─────────────────────────────────────────────────────────
   const handleAddImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = Array.from(e.target.files || []).filter((f) => {
       if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(f.type)) { alert(`${f.name}: Format tidak didukung.`); return false; }
@@ -563,7 +554,6 @@ export default function EquipmentDetail({
     if (compressed.length > 0) {
       setEditImageFiles((prev) => [...prev, ...compressed]);
       setEditImagePreviews((prev) => [...prev, ...compressed.map((f) => URL.createObjectURL(f))]);
-      // Gambar lama otomatis dihapus saat gambar baru diupload
       setEditKeepImages([]);
     }
   }, []);
@@ -582,7 +572,7 @@ export default function EquipmentDetail({
     setEditKeepImages((prev) => prev.filter((p) => p !== path));
   }, []);
 
-  // ─── Add ────────────────────────────────────────────────────────────────────
+
   const resetAddForm = useCallback(() => {
     setAddFormData(emptyForm);
     setAddImagePreviews((prev) => { prev.forEach(URL.revokeObjectURL); return []; });
@@ -601,7 +591,7 @@ export default function EquipmentDetail({
 
   const handleSaveRecord = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submittingRef.current) return;          // ref-guard: selalu current, tidak stale
+    if (submittingRef.current) return;
     if (!addFormData.tanggal || !addFormData.deskripsi) {
       alert("Tanggal dan Deskripsi harus diisi"); return;
     }
@@ -634,7 +624,6 @@ export default function EquipmentDetail({
     }
   }, [addFormData, addImageFiles, equipment.id, fetchRecords, fetchEquipmentStatus, resetAddForm, showSuccess]);
 
-  // ─── Edit ───────────────────────────────────────────────────────────────────
   const handleEditRecord = useCallback((record: PreRecord) => {
     setShowAddRecord(false);
     setEditingRecord(record);
@@ -689,7 +678,6 @@ export default function EquipmentDetail({
     }
   }, [editingRecord, editFormData, editKeepImages, editImageFiles, equipment.id, fetchRecords, resetEditForm, showSuccess]);
 
-  // ─── Delete ─────────────────────────────────────────────────────────────────
   const handleDeleteRecord = useCallback(async (recordId: number) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus record ini?")) return;
     try {
@@ -721,7 +709,7 @@ export default function EquipmentDetail({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="w-full max-w-6xl bg-white rounded-lg shadow-xl dark:bg-gray-800 flex flex-col"
+        className="flex flex-col w-full max-w-6xl bg-white rounded-lg shadow-xl dark:bg-gray-800"
         style={{ height: "90vh" }}
       >
         {/* Header */}
@@ -735,7 +723,7 @@ export default function EquipmentDetail({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 p-6 overflow-y-auto">
           {/* Equipment info */}
           <div className="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
             <div className="space-y-4">
@@ -754,7 +742,7 @@ export default function EquipmentDetail({
                   </div>
                 ))}
 
-                <div className="col-span-2 grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 col-span-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Device</label>
                     <p className="text-gray-900 dark:text-gray-100">

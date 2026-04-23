@@ -17,8 +17,6 @@ export const useAuth = () => {
   };
 
   const hasPermission = (): boolean => {
-    // For now, just check if user is authenticated
-    // Can be extended later for more granular permissions
     return isAuthenticated;
   };
 

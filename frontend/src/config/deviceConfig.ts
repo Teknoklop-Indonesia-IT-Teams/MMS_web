@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 export const DEVICE_CONFIG: Record<string, { icon: any; color: string }> = {
-  // Telemetry
   ARR: {
     icon: Droplets,
     color: "from-blue-500 to-blue-600",

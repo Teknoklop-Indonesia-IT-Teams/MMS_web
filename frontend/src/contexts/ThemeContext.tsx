@@ -17,13 +17,13 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage first, then system preference, default to light
+
     const savedTheme = localStorage.getItem("theme") as Theme;
     if (savedTheme) {
       return savedTheme;
     }
 
-    // Check system preference
+
     if (
       window.matchMedia &&
       window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -43,7 +43,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    // Apply theme to document
+
     const root = document.documentElement;
     if (theme === "dark") {
       root.classList.add("dark");

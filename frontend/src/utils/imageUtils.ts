@@ -1,18 +1,11 @@
 import { useEffect, useState } from "react";
 
-/**
- * Kompres gambar sebelum upload menggunakan Canvas API.
- * - Resize ke max 1920px (sisi terpanjang)
- * - Konversi ke JPEG quality 0.82
- * - Skip jika file sudah < 300 KB (tidak perlu dikompres)
- */
 export const compressImage = (
   file: File,
   maxSizePx = 1920,
   quality = 0.82,
 ): Promise<File> => {
   return new Promise((resolve) => {
-    // Skip jika bukan gambar atau sudah kecil
     if (!file.type.startsWith("image/") || file.size < 300 * 1024) {
       resolve(file);
       return;
@@ -26,7 +19,6 @@ export const compressImage = (
 
       let { width, height } = img;
 
-      // Hanya resize jika melebihi batas
       if (width > maxSizePx || height > maxSizePx) {
         const ratio = Math.min(maxSizePx / width, maxSizePx / height);
         width = Math.round(width * ratio);
@@ -44,7 +36,6 @@ export const compressImage = (
       canvas.toBlob(
         (blob) => {
           if (!blob) { resolve(file); return; }
-          // Ganti ekstensi ke .jpg untuk konsistensi
           const newName = file.name.replace(/\.[^.]+$/, ".jpg");
           resolve(new File([blob], newName, { type: "image/jpeg" }));
         },
@@ -55,7 +46,7 @@ export const compressImage = (
 
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      resolve(file); // fallback: pakai file asli
+      resolve(file);
     };
 
     img.src = objectUrl;
@@ -67,7 +58,6 @@ export const buildImageUrl = (filename: string): string => {
     return "";
   }
 
-  // Jika sudah URL lengkap, return langsung
   if (
     filename.startsWith("http://") ||
     filename.startsWith("https://") ||
@@ -76,10 +66,8 @@ export const buildImageUrl = (filename: string): string => {
     return filename;
   }
 
-  // Jika hanya filename, tambahkan base URL
   const baseUrl = import.meta.env.VITE_URL || window.location.origin;
 
-  // Clean filename - remove any leading slashes
   const cleanFilename = filename.replace(/^\/+/, "");
 
   return `${baseUrl}/uploads/${cleanFilename}`;
@@ -90,7 +78,6 @@ export const isValidImage = (src: string): boolean => {
     return false;
   }
 
-  // Cek ekstensi file
   const validExtensions = [
     ".jpg",
     ".jpeg",
@@ -106,7 +93,6 @@ export const isValidImage = (src: string): boolean => {
   return validExtensions.some((ext) => lowerSrc.endsWith(ext));
 };
 
-// Hook untuk handle image loading
 export const useImageLoader = (src: string) => {
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -125,7 +111,6 @@ export const useImageLoader = (src: string) => {
     const url = buildImageUrl(src);
     setImageUrl(url);
 
-    // Pre-load image untuk cek error
     const img = new Image();
     img.onload = () => {
       setIsLoading(false);

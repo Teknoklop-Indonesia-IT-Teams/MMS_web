@@ -8,10 +8,6 @@ interface RoleBasedContentProps {
   showFallback?: boolean;
 }
 
-/**
- * RoleBasedContent Component
- * Shows/hides content based on user roles without redirecting
- */
 const RoleBasedContent: React.FC<RoleBasedContentProps> = ({
   allowedRoles,
   children,
@@ -20,12 +16,10 @@ const RoleBasedContent: React.FC<RoleBasedContentProps> = ({
 }) => {
   const { user, isAuthenticated } = useAuth();
 
-  // If not authenticated, don't show anything
   if (!isAuthenticated || !user) {
     return showFallback ? <>{fallback}</> : null;
   }
 
-  // Check if user role is allowed
   const hasAccess = allowedRoles.includes(user.role);
 
   if (!hasAccess) {

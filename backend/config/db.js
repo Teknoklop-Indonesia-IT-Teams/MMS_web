@@ -24,7 +24,6 @@ console.log("Attempting to connect to database:", {
 const pool = mysql.createPool(config);
 const db = pool.promise();
 
-// Test the connection
 db.query("SELECT 1")
   .then(() => {
     console.log("Database connection successful");

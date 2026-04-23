@@ -1,25 +1,19 @@
-// Utility to manage app state persistence
 export const AppStateManager = {
-  // Track if app is in critical operation (prevent logout during operations)
   isCriticalOperation: false,
   criticalOperationTimeout: null as NodeJS.Timeout | null,
 
-  // Mark start of critical operation (like saving, loading, etc.)
   startCriticalOperation: (description = "Unknown operation") => {
     AppStateManager.isCriticalOperation = true;
 
-    // Clear any existing timeout
     if (AppStateManager.criticalOperationTimeout) {
       clearTimeout(AppStateManager.criticalOperationTimeout);
     }
 
-    // Auto-end critical operation after 60 seconds as safety - MUCH longer
     AppStateManager.criticalOperationTimeout = setTimeout(() => {
       AppStateManager.endCriticalOperation();
-    }, 60000); // 60 seconds instead of 10
+    }, 60000);
   },
 
-  // Mark end of critical operation
   endCriticalOperation: () => {
     AppStateManager.isCriticalOperation = false;
 
@@ -29,12 +23,10 @@ export const AppStateManager = {
     }
   },
 
-  // Check if currently in critical operation
   isInCriticalOperation: () => {
     return AppStateManager.isCriticalOperation;
   },
 
-  // Save current state to localStorage
   saveState: (key: string, value: unknown) => {
     try {
       localStorage.setItem(key, JSON.stringify(value));
@@ -43,7 +35,6 @@ export const AppStateManager = {
     }
   },
 
-  // Load state from localStorage
   loadState: <T>(key: string, defaultValue: T | null = null): T | null => {
     try {
       const saved = localStorage.getItem(key);
@@ -54,7 +45,6 @@ export const AppStateManager = {
     }
   },
 
-  // Clear specific state
   clearState: (key: string) => {
     try {
       localStorage.removeItem(key);
@@ -63,10 +53,8 @@ export const AppStateManager = {
     }
   },
 
-  // Clear all app states
   clearAllStates: () => {
     try {
-      // Clear all app-related keys but keep theme
       const keysToKeep = ["theme"];
       const allKeys = Object.keys(localStorage);
 
@@ -80,9 +68,7 @@ export const AppStateManager = {
     }
   },
 
-  // Reset to initial state (called on refresh)
   resetToInitialState: () => {
-    // Only clear non-persistent data, keep theme preference
     const persistentKeys = ["theme"];
     const allKeys = Object.keys(localStorage);
 

@@ -8,8 +8,6 @@ const RolesList: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const { showSuccess, showError } = useToast();
-
-  // Form state
   const [formData, setFormData] = useState({
     roleName: "",
   });
@@ -31,7 +29,7 @@ const RolesList: React.FC = () => {
 
   useEffect(() => {
     fetchRoles();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,8 +91,8 @@ const RolesList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -102,11 +100,11 @@ const RolesList: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Manajemen Roles</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <span>+</span>
           Tambah Role
@@ -115,15 +113,15 @@ const RolesList: React.FC = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg">
+            <h2 className="mb-4 text-xl font-bold">
               {editingRole ? "Edit Role" : "Tambah Role"}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   Nama Role
                 </label>
                 <input
@@ -132,7 +130,7 @@ const RolesList: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, roleName: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                   placeholder="Contoh: Admin, User, Manager"
                 />
@@ -148,7 +146,7 @@ const RolesList: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   {editingRole ? "Perbarui" : "Simpan"}
                 </button>
@@ -159,20 +157,20 @@ const RolesList: React.FC = () => {
       )}
 
       {/* Roles Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="overflow-hidden bg-white rounded-lg shadow-md">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 Nama Role
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 Dibuat
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 Aksi
               </th>
             </tr>
@@ -180,16 +178,16 @@ const RolesList: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {roles.map((role) => (
               <tr key={role.roleId} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                   {role.roleId}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                   {role.roleName}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                   {new Date(role.createdDtm).toLocaleDateString("id-ID")}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(role)}
@@ -214,8 +212,8 @@ const RolesList: React.FC = () => {
       </div>
 
       {roles.length === 0 && (
-        <div className="text-center py-12">
-          <span className="text-4xl text-gray-400 mb-4 block">👥</span>
+        <div className="py-12 text-center">
+          <span className="block mb-4 text-4xl text-gray-400">👥</span>
           <p className="text-gray-500">Belum ada role yang ditambahkan</p>
         </div>
       )}
