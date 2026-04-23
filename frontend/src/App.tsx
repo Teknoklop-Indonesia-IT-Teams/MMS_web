@@ -178,7 +178,7 @@ function App() {
                   />
 
                   {/* Root redirect - check authentication first */}
-                  <Route path="/" element={<Navigate to="/login" replace />} />
+                  <Route path="/" element={<LoadingSpinner />} />
 
                   {/* Catch all redirect - redirect to login if not authenticated */}
                   <Route path="*" element={<AuthRedirect />} />

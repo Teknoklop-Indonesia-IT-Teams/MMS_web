@@ -122,12 +122,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (!isMounted) return;
 
+        const currentPath = window.location.pathname;
+
+        if (currentPath === "/") {
+          navigate("/login", { replace: true });
+          setLoading(false);
+          return;
+        }
+
         const isAuthenticated = await checkAuth();
 
         if (!isAuthenticated) {
-          const currentPath = window.location.pathname;
-
-          // Define public paths that don't require authentication
           const publicPaths = [
             "/login",
             "/register",
@@ -137,7 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           ];
 
           const isPublicPath =
-            publicPaths.some((path) => currentPath === path) ||
+            publicPaths.includes(currentPath) ||
             currentPath.startsWith("/public");
 
           if (!isPublicPath) {
@@ -269,6 +274,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth,
     updateUser,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Initializing...
+      </div>
+    );
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
