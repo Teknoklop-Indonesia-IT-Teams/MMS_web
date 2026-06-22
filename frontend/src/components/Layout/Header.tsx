@@ -88,14 +88,6 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
                 </div>
                 <div className="hidden text-left sm:block">
                   <div className="text-sm font-medium">Hai {user.nama}!</div>
-
-                  {/* <div
-                    className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(
-                      user.role,
-                    )}`}
-                  >
-                    {user.role}
-                  </div> */}
                 </div>
                 <ChevronDown
                   size={16}
@@ -108,22 +100,6 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle, onMenuClick }) => {
               {/* Dropdown Menu */}
               {showUserMenu && (
                 <div className="absolute right-0 z-50 w-48 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
-                  {/* <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user.nama}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.username}
-                    </div>
-                    <div
-                      className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${getRoleBadgeColor(
-                        user.role,
-                      )}`}
-                    >
-                      {user.role}
-                    </div>
-                  </div> */}
-
                   <div className="p-2 space-y-2">
                     <a
                       href="/profile"
