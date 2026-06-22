@@ -23,7 +23,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
 
   const color =
     config?.color ||
-    "from-slate-500 to-slate-600 dark:from-slate-600 dark:to-slate-700";
+    "from-[#7288AE] to-[#4B5694] dark:from-[#7288AE] dark:to-[#4B5694]";
 
   return (
     <div

@@ -47,7 +47,7 @@ export const DEVICE_CONFIG: Record<string, { icon: any; color: string }> = {
   },
   EWS: {
     icon: Antenna,
-    color: "from-gray-500 to-gray-600",
+    color: "from-[#A3485A] to-[#842A3B]",
   },
   PLC: {
     icon: CircuitBoard,

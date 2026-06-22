@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Filter,
   BarChart,
@@ -18,6 +18,7 @@ import LocationPieChart from "../Stats/LineChart";
 import PMDashboard from "./PMDashboard";
 import CMDashboard from "./CMDashboard";
 import { telemetryService } from "../../services/api";
+import ThemeToggle from "../Common/ThemeToggle";
 
 interface DashboardProps {
   hideEmptyCards?: boolean;
@@ -29,7 +30,9 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const [activityPage, setActivityPage] = useState(1);
   const activityPerPage = 5;
-  const [telemetryList, setTelemetryList] = useState<{ id: number; name: string }[]>([]);
+  const [telemetryList, setTelemetryList] = useState<
+    { id: number; name: string }[]
+  >([]);
   const { loading, isDataLoaded, stats, equipment } = useDashboardData();
 
   const { user } = useAuth();
@@ -40,7 +43,10 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   );
 
   useEffect(() => {
-    telemetryService.getAll().then(setTelemetryList).catch(() => setTelemetryList([]));
+    telemetryService
+      .getAll()
+      .then(setTelemetryList)
+      .catch(() => setTelemetryList([]));
   }, []);
 
   useEffect(() => {
@@ -75,7 +81,9 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   }, [telemetryList, equipmentCountByType]);
 
   const deviceTypes = hideEmptyCards
-    ? telemetryList.filter((t) => (equipmentCountByType[t.name] || 0) > 0).map((t) => t.name)
+    ? telemetryList
+        .filter((t) => (equipmentCountByType[t.name] || 0) > 0)
+        .map((t) => t.name)
     : telemetryList.map((t) => t.name);
 
   const handleCardClick = (type: string) => {
@@ -136,7 +144,9 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   };
 
   const filteredData = useMemo(() => {
-    return hideEmptyCards ? telemetryCards.filter((c) => c.count > 0) : telemetryCards;
+    return hideEmptyCards
+      ? telemetryCards.filter((c) => c.count > 0)
+      : telemetryCards;
   }, [telemetryCards, hideEmptyCards]);
 
   const filteredEquipment = useMemo(() => {
@@ -148,9 +158,10 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   }, [equipment, selectedFilter]);
 
   const locationChartData = useMemo(() => {
-    const base = selectedFilter === "all"
-      ? telemetryCards
-      : telemetryCards.filter((c) => c.type === selectedFilter);
+    const base =
+      selectedFilter === "all"
+        ? telemetryCards
+        : telemetryCards.filter((c) => c.type === selectedFilter);
     return base.map(({ type, count }) => ({ name: type, value: count }));
   }, [telemetryCards, selectedFilter]);
 
@@ -191,14 +202,51 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
     activityStart,
     activityStart + activityPerPage,
   );
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const statusColors = [
-    "#ef4444",
-    "#f59e0b",
-    "#22c55e",
-    "#3b82f6", 
-    "#6b7280", 
-  ];
+  useEffect(() => {
+    if (hasFullAccess) return;
+
+    let direction = 1; // 1 = turun, -1 = naik
+    let paused = false;
+
+    const interval = setInterval(() => {
+      if (paused) return;
+
+      window.scrollBy({
+        top: direction * 1,
+        behavior: "auto",
+      });
+
+      const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 5;
+
+      const atTop = window.scrollY <= 0;
+
+      if (atBottom) {
+        paused = true;
+
+        setTimeout(() => {
+          direction = -1; // mulai naik
+          paused = false;
+        }, 2500); // berhenti 2.5 detik di bawah
+      }
+
+      if (atTop && direction === -1) {
+        paused = true;
+
+        setTimeout(() => {
+          direction = 1; // mulai turun lagi
+          paused = false;
+        }, 2500); // berhenti 2.5 detik di atas
+      }
+    }, 20);
+
+    return () => clearInterval(interval);
+  }, [hasFullAccess]);
+
+  const statusColors = ["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#6b7280"];
 
   if (loading && !isDataLoaded) {
     return (
@@ -214,222 +262,235 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
   }
 
   return (
-    <div className="p-6">
-      {/* Header Section */}
-      <div className="mb-6">
-        <div className="flex flex-col items-start justify-between gap-4 mb-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="flex items-center text-2xl font-bold text-gray-800 dark:text-gray-200">
-              <span className="mr-2">
-                <BarChart />
-              </span>
-              Dashboard
-              {!hasFullAccess && (
-                <span className="px-2 py-1 ml-3 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
-                  View Only
-                </span>
-              )}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">Control panel</p>
-          </div>
-
-          <div className="flex items-center justify-between w-full px-4 py-2 space-x-2 bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto dark:bg-gray-800 dark:border-gray-600">
-            <Filter size={20} className="text-gray-500 dark:text-gray-400" />
-            <div className="relative flex-grow">
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center justify-between w-full px-3 py-2 text-gray-900 transition-colors rounded dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+    <div ref={bottomRef}>
+      <div className={`p-6 ${!hasFullAccess && "bg-gray-700"}`}>
+        {/* Header Section */}
+        <div className="mb-6">
+          <div className="flex flex-col items-start justify-between gap-4 mb-4 md:flex-row md:items-center">
+            <div>
+              <h1
+                className={`flex items-center text-2xl font-bold text-gray-800 dark:text-gray-200 ${!hasFullAccess && " text-white"}`}
               >
-                <span>
-                  {selectedFilter === "all" ? "Semua Jenis" : selectedFilter}
+                <span className="mr-2">
+                  <BarChart />
                 </span>
-                <ChevronDown
-                  className={`w-4 h-4 ml-2 transition-transform ${showDropdown ? "rotate-180" : ""}`}
-                />
-              </button>
+                Dashboard
+                {!hasFullAccess && (
+                  <span className="px-2 py-1 ml-3 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                    View Only
+                  </span>
+                )}
+              </h1>
+              <p
+                className={`text-gray-600 dark:text-gray-400 ${!hasFullAccess && "text-white"}`}
+              >
+                Control panel
+              </p>
+            </div>
 
-              {showDropdown && (
-                <div className="absolute left-0 right-0 z-10 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg top-full dark:bg-gray-700 dark:border-gray-600">
-                  <button
-                    onClick={() => {
-                      setSelectedFilter("all");
-                      setShowDropdown(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg dark:text-gray-100"
-                  >
-                    Semua Jenis
-                  </button>
-                  {deviceTypes.map((type) => (
+            <div
+              className={`flex items-center justify-between w-full px-4 py-2 space-x-2 bg-white border border-gray-200 rounded-lg shadow-sm md:w-auto `}
+            >
+              <Filter
+                size={20}
+                className={`text-gray-500 dark:text-gray-400 `}
+              />
+              <div className="relative flex-grow">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className={`flex items-center justify-between w-full px-3 py-2 transition-colors rounded `}
+                >
+                  <span>
+                    {selectedFilter === "all" ? "Semua Jenis" : selectedFilter}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 ml-2 transition-transform ${showDropdown ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {showDropdown && (
+                  <div className="absolute left-0 right-0 z-10 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg top-full dark:bg-gray-700 dark:border-gray-600">
                     <button
-                      key={type}
                       onClick={() => {
-                        setSelectedFilter(type);
+                        setSelectedFilter("all");
                         setShowDropdown(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-100"
+                      className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg dark:text-gray-100"
                     >
-                      {type}
+                      Semua Jenis
                     </button>
-                  ))}
-                </div>
-              )}
+                    {deviceTypes.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => {
+                          setSelectedFilter(type);
+                          setShowDropdown(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-gray-900 transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-100"
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Device Cards */}
-      <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-        {filteredData.length > 0 ? (
-          filteredData.map(({ type, count }) => (
-            <DeviceCard
-              key={type}
-              type={type}
-              count={count}
-              onClick={() => handleCardClick(type)}
-              isSelected={selectedFilter === type}
-              hasActiveFilter={hasActiveFilter}
-            />
-          ))
-        ) : (
-          <div className="py-8 text-center col-span-full">
-            <p className="text-lg text-gray-500 dark:text-gray-400">
-              Tidak ada data untuk jenis peralatan "{selectedFilter}"
-            </p>
-          </div>
-        )}
-      </div>
+        {/* Device Cards */}
+        <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+          {filteredData.length > 0 ? (
+            filteredData.map(({ type, count }) => (
+              <DeviceCard
+                key={type}
+                type={type}
+                count={count}
+                onClick={() => handleCardClick(type)}
+                isSelected={selectedFilter === type}
+                hasActiveFilter={hasActiveFilter}
+              />
+            ))
+          ) : (
+            <div className="py-8 text-center col-span-full">
+              <p className="text-lg text-gray-500 dark:text-gray-400">
+                Tidak ada data untuk jenis peralatan "{selectedFilter}"
+              </p>
+            </div>
+          )}
+        </div>
 
-      {/* Maintenance Dashboard */}
-      <MaintenanceDashboard equipment={filteredEquipment} />
+        {/* Maintenance Dashboard */}
+        <MaintenanceDashboard equipment={filteredEquipment} />
 
-      {/* History Maintenance Section */}
-      <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-2">
-        <PMDashboard
-          selectedFilter={selectedFilter}
-          hasActiveFilter={hasActiveFilter}
-          equipment={filteredEquipment}
-        />
-        <CMDashboard
-          selectedFilter={selectedFilter}
-          hasActiveFilter={hasActiveFilter}
-          equipment={filteredEquipment}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-3">
-        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-          <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            <ChartNoAxesCombined />{" "}
-            <span className="ml-2">Status Peralatan</span>
-            {hasActiveFilter && (
-              <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
-                {selectedFilter}
-              </span>
-            )}
-          </h3>
-          <StatusBarChart
-            statusChartData={statusChartData}
-            colors={statusColors}
+        {/* History Maintenance Section */}
+        <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-2">
+          <PMDashboard
+            selectedFilter={selectedFilter}
+            hasActiveFilter={hasActiveFilter}
+            equipment={filteredEquipment}
+          />
+          <CMDashboard
+            selectedFilter={selectedFilter}
+            hasActiveFilter={hasActiveFilter}
+            equipment={filteredEquipment}
           />
         </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-          <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            <ChartPie />{" "}
-            <span className="ml-2">Peralatan Berdasarkan Jenis</span>
-            {hasActiveFilter && (
-              <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
-                {selectedFilter}
-              </span>
-            )}
-          </h3>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <LocationPieChart data={locationChartData} />
+        <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-3">
+          <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+            <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+              <ChartNoAxesCombined />{" "}
+              <span className="ml-2">Status Peralatan</span>
+              {hasActiveFilter && (
+                <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                  {selectedFilter}
+                </span>
+              )}
+            </h3>
+            <StatusBarChart
+              statusChartData={statusChartData}
+              colors={statusColors}
+            />
+          </div>
+
+          <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+            <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+              <ChartPie />{" "}
+              <span className="ml-2">Peralatan Berdasarkan Jenis</span>
+              {hasActiveFilter && (
+                <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                  {selectedFilter}
+                </span>
+              )}
+            </h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <LocationPieChart data={locationChartData} />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
-          <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-            <History /> <span className="ml-2">Aktivitas Terbaru</span>
-            {hasActiveFilter && (
-              <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
-                {selectedFilter}
-              </span>
-            )}
-          </h3>
-          <div className="space-y-3 text-sm">
-            {paginatedActivity.length > 0 ? (
-              paginatedActivity.map((item, index) => {
-                const getStatusInfo = (equipment: Equipment) => {
-                  if (equipment.remot === "on") {
-                    return {
-                      color: "bg-green-500",
-                      status: "Data normal",
-                    };
-                  } else if (equipment.status === "habis") {
-                    return {
-                      color: "bg-red-500",
-                      status: "Garansi habis",
-                    };
-                  } else {
-                    return {
-                      color: "bg-yellow-500",
-                      status: "Maintenance",
-                    };
-                  }
-                };
-
-                const statusInfo = getStatusInfo(item);
-
-                return (
-                  <div
-                    key={`${item.id}-${index}`}
-                    className="flex items-center space-x-2"
-                  >
-                    <div
-                      className={`w-2 h-2 ${statusInfo.color} rounded-full`}
-                    ></div>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {item.jenis} {item.lokasi} - {statusInfo.status}
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="py-4 text-center">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {hasActiveFilter
-                    ? `Tidak ada aktivitas untuk ${selectedFilter}`
-                    : "Tidak ada aktivitas terbaru"}
-                </p>
-              </div>
-            )}
-            {activityTotalPages > 1 && (
-              <div className="flex justify-between mt-3">
-                <button
-                  disabled={activityPage === 1}
-                  onClick={() => setActivityPage((prev) => prev - 1)}
-                  className="px-2 py-1 text-xs bg-gray-200 rounded disabled:opacity-50"
-                >
-                  Prev
-                </button>
-
-                <span className="text-xs text-gray-500">
-                  {activityPage} / {activityTotalPages}
+          <div className="p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+            <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+              <History /> <span className="ml-2">Aktivitas Terbaru</span>
+              {hasActiveFilter && (
+                <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                  {selectedFilter}
                 </span>
+              )}
+            </h3>
+            <div className="space-y-3 text-sm">
+              {paginatedActivity.length > 0 ? (
+                paginatedActivity.map((item, index) => {
+                  const getStatusInfo = (equipment: Equipment) => {
+                    if (equipment.remot === "on") {
+                      return {
+                        color: "bg-green-500",
+                        status: "Data normal",
+                      };
+                    } else if (equipment.status === "habis") {
+                      return {
+                        color: "bg-red-500",
+                        status: "Garansi habis",
+                      };
+                    } else {
+                      return {
+                        color: "bg-yellow-500",
+                        status: "Maintenance",
+                      };
+                    }
+                  };
 
-                <button
-                  disabled={activityPage === activityTotalPages}
-                  onClick={() => setActivityPage((prev) => prev + 1)}
-                  className="px-2 py-1 text-xs bg-gray-200 rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+                  const statusInfo = getStatusInfo(item);
+
+                  return (
+                    <div
+                      key={`${item.id}-${index}`}
+                      className="flex items-center space-x-2"
+                    >
+                      <div
+                        className={`w-2 h-2 ${statusInfo.color} rounded-full`}
+                      ></div>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {item.jenis} {item.lokasi} - {statusInfo.status}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-4 text-center">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {hasActiveFilter
+                      ? `Tidak ada aktivitas untuk ${selectedFilter}`
+                      : "Tidak ada aktivitas terbaru"}
+                  </p>
+                </div>
+              )}
+              {activityTotalPages > 1 && (
+                <div className="flex justify-between mt-3">
+                  <button
+                    disabled={activityPage === 1}
+                    onClick={() => setActivityPage((prev) => prev - 1)}
+                    className="px-2 py-1 text-xs bg-gray-200 rounded disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+
+                  <span className="text-xs text-gray-500">
+                    {activityPage} / {activityTotalPages}
+                  </span>
+
+                  <button
+                    disabled={activityPage === activityTotalPages}
+                    onClick={() => setActivityPage((prev) => prev + 1)}
+                    className="px-2 py-1 text-xs bg-gray-200 rounded disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
