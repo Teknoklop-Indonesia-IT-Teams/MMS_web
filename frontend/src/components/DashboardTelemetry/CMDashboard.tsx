@@ -11,18 +11,12 @@ import {
   ChevronRight,
   X,
   Search,
-<<<<<<< HEAD
   Image as ImageIcon,
-} from "lucide-react";
-import { CorRecord, Equipment } from "../../types";
-import { recordCorrectiveService } from "../../services/api";
-import ZoomableImage from "../Common/ZoomableImage";
-=======
   FileText,
 } from "lucide-react";
+import ZoomableImage from "../Common/ZoomableImage";
 import { CorRecord, Equipment } from "../../types";
 import { recordCorrectiveService, openPdfPreview } from "../../services/api";
->>>>>>> 0ba62e05aae6049c2f288be149914031b40a5948
 
 interface CMDashboardProps {
   selectedFilter: string;
@@ -78,12 +72,20 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
       if (search.trim()) {
         const q = search.toLowerCase();
         const eq = equipmentMap.get(Number(r.id_m_alat));
-        const peralatanMatch = `${eq?.nama || ""} ${eq?.jenis || ""} ${eq?.lokasi || ""}`.toLowerCase().includes(q);
-        const tanggalFormatted = new Date(r.tanggal).toLocaleDateString("id-ID", {
-          day: "2-digit", month: "short", year: "numeric",
-        }).toLowerCase();
+        const peralatanMatch =
+          `${eq?.nama || ""} ${eq?.jenis || ""} ${eq?.lokasi || ""}`
+            .toLowerCase()
+            .includes(q);
+        const tanggalFormatted = new Date(r.tanggal)
+          .toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+          .toLowerCase();
         const tanggalIso = new Date(r.tanggal).toISOString().split("T")[0];
-        const tanggalMatch = tanggalFormatted.includes(q) || tanggalIso.includes(q);
+        const tanggalMatch =
+          tanggalFormatted.includes(q) || tanggalIso.includes(q);
         if (!peralatanMatch && !tanggalMatch) return false;
       }
 
@@ -133,7 +135,10 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 {filteredRecords.length} records
               </p>
               <div className="relative">
-                <Search size={14} className="absolute text-gray-400 -translate-y-1/2 left-3 top-1/2" />
+                <Search
+                  size={14}
+                  className="absolute text-gray-400 -translate-y-1/2 left-3 top-1/2"
+                />
                 <input
                   type="text"
                   value={search}
@@ -152,7 +157,9 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="w-8 h-8 mx-auto mb-3 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-                <p className="text-gray-600 dark:text-gray-400">Loading maintenance history...</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Loading maintenance history...
+                </p>
               </div>
             </div>
           ) : filteredRecords.length === 0 ? (
@@ -171,16 +178,28 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center"><Calendar size={14} className="mr-2" />Tanggal</div>
+                    <div className="flex items-center">
+                      <Calendar size={14} className="mr-2" />
+                      Tanggal
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center"><Wrench size={14} className="mr-2" />Peralatan</div>
+                    <div className="flex items-center">
+                      <Wrench size={14} className="mr-2" />
+                      Peralatan
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center"><AlertCircle size={14} className="mr-2" />Deskripsi</div>
+                    <div className="flex items-center">
+                      <AlertCircle size={14} className="mr-2" />
+                      Deskripsi
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
-                    <div className="flex items-center"><User size={14} className="mr-2" />Petugas</div>
+                    <div className="flex items-center">
+                      <User size={14} className="mr-2" />
+                      Petugas
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-300">
                     Aksi
@@ -191,7 +210,10 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 {paginatedRecords.map((record) => {
                   const eq = equipmentMap.get(Number(record.id_m_alat));
                   return (
-                    <tr key={record.id} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr
+                      key={record.id}
+                      className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                       <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">
                         {formatDate(record.tanggal)}
                       </td>
@@ -199,13 +221,22 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                         {eq ? (
                           <div className="text-sm text-gray-900 dark:text-gray-100">
                             <div className="font-medium">{eq.nama}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{eq.jenis}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {eq.jenis}
+                            </div>
                             <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                              {eq.lokasi || "-"} | {Array.isArray(eq.device) ? (eq.device.length > 0 ? eq.device.join(", ") : "-") : (eq.device || "-")}
+                              {eq.lokasi || "-"} |{" "}
+                              {Array.isArray(eq.device)
+                                ? eq.device.length > 0
+                                  ? eq.device.join(", ")
+                                  : "-"
+                                : eq.device || "-"}
                             </div>
                           </div>
                         ) : (
-                          <div className="text-sm italic text-gray-400">Equipment #{record.id_m_alat}</div>
+                          <div className="text-sm italic text-gray-400">
+                            Equipment #{record.id_m_alat}
+                          </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -226,7 +257,9 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                             Detail
                           </button>
                           <button
-                            onClick={() => openPdfPreview("corrective", record.id)}
+                            onClick={() =>
+                              openPdfPreview("corrective", record.id)
+                            }
                             className="inline-flex items-center px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60"
                             title="Buka laporan PDF di tab baru"
                           >
@@ -248,7 +281,9 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredRecords.length)} dari {filteredRecords.length} records
+                {(currentPage - 1) * PAGE_SIZE + 1}–
+                {Math.min(currentPage * PAGE_SIZE, filteredRecords.length)} dari{" "}
+                {filteredRecords.length} records
               </span>
               <div className="flex items-center space-x-1">
                 <button
@@ -262,7 +297,9 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                   {currentPage} / {totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -287,14 +324,17 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                   {formatDate(selectedRecord.tanggal)}
                   {equipmentMap.get(Number(selectedRecord.id_m_alat)) && (
                     <span className="ml-2 font-medium">
-                      — {equipmentMap.get(Number(selectedRecord.id_m_alat))?.nama}
+                      —{" "}
+                      {equipmentMap.get(Number(selectedRecord.id_m_alat))?.nama}
                     </span>
                   )}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => openPdfPreview("corrective", selectedRecord.id)}
+                  onClick={() =>
+                    openPdfPreview("corrective", selectedRecord.id)
+                  }
                   className="inline-flex items-center px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60 text-sm font-medium"
                   title="Buka laporan PDF di tab baru"
                 >
@@ -312,21 +352,36 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
 
             <div className="p-6 space-y-4 overflow-y-auto max-h-[65vh]">
               {/* Info Peralatan */}
-              {equipmentMap.get(Number(selectedRecord.id_m_alat)) && (() => {
-                const eq = equipmentMap.get(Number(selectedRecord.id_m_alat))!;
-                return (
-                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                    <p className="mb-1 text-xs font-medium text-blue-600 uppercase dark:text-blue-400">Peralatan</p>
-                    <p className="font-semibold text-gray-900 dark:text-gray-100">{eq.nama}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{eq.jenis} · {eq.lokasi || "-"} · {Array.isArray(eq.device) ? (eq.device.length > 0 ? eq.device.join(", ") : "-") : (eq.device || "-")}</p>
-                  </div>
-                );
-              })()}
+              {equipmentMap.get(Number(selectedRecord.id_m_alat)) &&
+                (() => {
+                  const eq = equipmentMap.get(
+                    Number(selectedRecord.id_m_alat),
+                  )!;
+                  return (
+                    <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <p className="mb-1 text-xs font-medium text-blue-600 uppercase dark:text-blue-400">
+                        Peralatan
+                      </p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">
+                        {eq.nama}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {eq.jenis} · {eq.lokasi || "-"} ·{" "}
+                        {Array.isArray(eq.device)
+                          ? eq.device.length > 0
+                            ? eq.device.join(", ")
+                            : "-"
+                          : eq.device || "-"}
+                      </p>
+                    </div>
+                  );
+                })()}
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <User size={14} className="mr-1.5" />Petugas
+                    <User size={14} className="mr-1.5" />
+                    Petugas
                   </h4>
                   <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                     {selectedRecord.petugas || "-"}
@@ -334,7 +389,8 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 </div>
                 <div>
                   <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <AlertCircle size={14} className="mr-1.5" />Deskripsi
+                    <AlertCircle size={14} className="mr-1.5" />
+                    Deskripsi
                   </h4>
                   <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                     {selectedRecord.deskripsi || "-"}
@@ -342,7 +398,8 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 </div>
                 <div>
                   <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <AlertCircle size={14} className="mr-1.5" />Kondisi Awal
+                    <AlertCircle size={14} className="mr-1.5" />
+                    Kondisi Awal
                   </h4>
                   <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                     {selectedRecord.awal || "-"}
@@ -350,7 +407,8 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 </div>
                 <div>
                   <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <Wrench size={14} className="mr-1.5" />Tindakan
+                    <Wrench size={14} className="mr-1.5" />
+                    Tindakan
                   </h4>
                   <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                     {selectedRecord.tindakan || "-"}
@@ -358,7 +416,9 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 </div>
                 {selectedRecord.tambahan && (
                   <div>
-                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Tindakan Tambahan</h4>
+                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Tindakan Tambahan
+                    </h4>
                     <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                       {selectedRecord.tambahan}
                     </p>
@@ -366,7 +426,9 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 )}
                 {selectedRecord.akhir && (
                   <div>
-                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Kondisi Akhir</h4>
+                    <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Kondisi Akhir
+                    </h4>
                     <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                       {selectedRecord.akhir}
                     </p>
@@ -375,7 +437,8 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 {selectedRecord.berikutnya && (
                   <div className="md:col-span-2">
                     <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      <CheckCircle size={14} className="mr-1.5" />Rencana Berikutnya
+                      <CheckCircle size={14} className="mr-1.5" />
+                      Rencana Berikutnya
                     </h4>
                     <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                       {selectedRecord.berikutnya}
@@ -385,11 +448,16 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                 {selectedRecord.i_alat && selectedRecord.i_alat.length > 0 && (
                   <div className="md:col-span-2">
                     <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      <ImageIcon size={14} className="mr-1.5" />Gambar ({selectedRecord.i_alat.length})
+                      <ImageIcon size={14} className="mr-1.5" />
+                      Gambar ({selectedRecord.i_alat.length})
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedRecord.i_alat.map((src, idx) => (
-                        <ZoomableImage key={idx} src={src} alt={`${selectedRecord.deskripsi} - ${idx + 1}`} />
+                        <ZoomableImage
+                          key={idx}
+                          src={src}
+                          alt={`${selectedRecord.deskripsi} - ${idx + 1}`}
+                        />
                       ))}
                     </div>
                   </div>
