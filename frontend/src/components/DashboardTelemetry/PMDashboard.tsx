@@ -11,9 +11,11 @@ import {
   ChevronRight,
   X,
   Search,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Equipment, PreRecord } from "../../types";
 import { recordService } from "../../services/api";
+import ZoomableImage from "../Common/ZoomableImage";
 
 interface PMDashboardProps {
   selectedFilter: string;
@@ -353,6 +355,18 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
                     <p className="p-3 text-sm text-gray-600 rounded dark:text-gray-400 bg-gray-50 dark:bg-gray-700">
                       {selectedRecord.berikutnya}
                     </p>
+                  </div>
+                )}
+                {selectedRecord.i_alat && selectedRecord.i_alat.length > 0 && (
+                  <div className="md:col-span-2">
+                    <h4 className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <ImageIcon size={14} className="mr-1.5" />Gambar ({selectedRecord.i_alat.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedRecord.i_alat.map((src, idx) => (
+                        <ZoomableImage key={idx} src={src} alt={`${selectedRecord.deskripsi} - ${idx + 1}`} />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
