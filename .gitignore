@@ -2,3 +2,10 @@
 /.vscode
 /backend/node_modules
 /frontend/node_modules
+
+# env files
+/backend/.env
+/frontend/.env
+
+# database
+/backend/config/db.js

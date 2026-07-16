@@ -11,18 +11,12 @@ import {
   ChevronRight,
   X,
   Search,
-<<<<<<< HEAD
   Image as ImageIcon,
-} from "lucide-react";
-import { Equipment, PreRecord } from "../../types";
-import { recordService } from "../../services/api";
-import ZoomableImage from "../Common/ZoomableImage";
-=======
   FileText,
 } from "lucide-react";
 import { Equipment, PreRecord } from "../../types";
 import { recordService, openPdfPreview } from "../../services/api";
->>>>>>> 0ba62e05aae6049c2f288be149914031b40a5948
+import ZoomableImage from "../Common/ZoomableImage";
 
 interface PMDashboardProps {
   selectedFilter: string;
