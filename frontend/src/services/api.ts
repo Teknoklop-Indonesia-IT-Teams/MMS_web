@@ -760,6 +760,12 @@ export const publicAlatService = {
   },
 };
 
+// PDF Preview
+export function openPdfPreview(type: "preventive" | "corrective", id: number | string): void {
+  const url = `${VITE_API_URL}/maintenance/${type}/${id}/pdf`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 export const clientService = {
   getAll: async () => {
     const res = await api.get<{ id: number; nama_client: string }[]>("/client");

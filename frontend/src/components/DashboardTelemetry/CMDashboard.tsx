@@ -11,9 +11,10 @@ import {
   ChevronRight,
   X,
   Search,
+  FileText,
 } from "lucide-react";
 import { CorRecord, Equipment } from "../../types";
-import { recordCorrectiveService } from "../../services/api";
+import { recordCorrectiveService, openPdfPreview } from "../../services/api";
 
 interface CMDashboardProps {
   selectedFilter: string;
@@ -208,13 +209,23 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                         {record.petugas}
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => setSelectedRecord(record)}
-                          className="inline-flex items-center px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-900 dark:hover:text-blue-200"
-                        >
-                          <Eye size={14} className="mr-1.5" />
-                          Detail
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedRecord(record)}
+                            className="inline-flex items-center px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-900 dark:hover:text-blue-200"
+                          >
+                            <Eye size={14} className="mr-1.5" />
+                            Detail
+                          </button>
+                          <button
+                            onClick={() => openPdfPreview("corrective", record.id)}
+                            className="inline-flex items-center px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60"
+                            title="Buka laporan PDF di tab baru"
+                          >
+                            <FileText size={14} className="mr-1.5" />
+                            Cetak PDF
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -273,12 +284,22 @@ const CMDashboard: React.FC<CMDashboardProps> = ({
                   )}
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedRecord(null)}
-                className="p-2 text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => openPdfPreview("corrective", selectedRecord.id)}
+                  className="inline-flex items-center px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60 text-sm font-medium"
+                  title="Buka laporan PDF di tab baru"
+                >
+                  <FileText size={15} className="mr-1.5" />
+                  Cetak PDF
+                </button>
+                <button
+                  onClick={() => setSelectedRecord(null)}
+                  className="p-2 text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-4 overflow-y-auto max-h-[65vh]">
