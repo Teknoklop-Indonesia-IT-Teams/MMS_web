@@ -7,13 +7,16 @@ const sharp = require("sharp");
 const { db } = require("../config/db.js");
 
 const BACKEND_ROOT = path.join(__dirname, "..");
-const ASSETS_DIR   = path.join(BACKEND_ROOT, "public", "assets");
-const UPLOADS_DIR  = path.join(BACKEND_ROOT, "uploads");
+const ASSETS_DIR = path.join(BACKEND_ROOT, "public", "assets");
+const UPLOADS_DIR = path.join(BACKEND_ROOT, "uploads");
 
 const MIME = {
-  jpg: "image/jpeg", jpeg: "image/jpeg",
-  png: "image/png",  gif: "image/gif",
-  webp: "image/webp", bmp: "image/bmp",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  bmp: "image/bmp",
   jfif: "image/jpeg",
 };
 
@@ -37,25 +40,73 @@ function uploadPathToAbs(dbPath) {
   return path.join(UPLOADS_DIR, path.basename(cleaned));
 }
 
-let _headerUri = null;
-let _footerUri = null;
+// Header/footer banners are resolved per-client's perusahaan: tries
+// `kop-header-{nama_singkat_perusahaan}.{ext}` / `kop-footer-{...}.{ext}`
+// (any common image extension). Clients with no perusahaan assigned (or one
+// that doesn't match any m_perusahaan row) get NO banner at all — no
+// implicit fallback to any single company's letterhead.
+const BANNER_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const _bannerBase64Cache = new Map();
 
-function getHeaderUri() {
-  if (!_headerUri) {
-    _headerUri = imageToBase64(path.join(ASSETS_DIR, "kop-header.jpg"));
-    if (_headerUri) console.log("[PDF] kop-header.jpg loaded");
-    else _headerUri = ""; 
+function loadBannerAsBase64Uri(filename) {
+  if (_bannerBase64Cache.has(filename)) return _bannerBase64Cache.get(filename);
+  const uri = imageToBase64(path.join(ASSETS_DIR, filename));
+  if (uri) {
+    console.log(`[PDF] ${filename} loaded as base64`);
+    _bannerBase64Cache.set(filename, uri);
   }
-  return _headerUri;
+  return uri;
 }
 
-function getFooterUri() {
-  if (!_footerUri) {
-    _footerUri = imageToBase64(path.join(ASSETS_DIR, "kop-footer.jpg"));
-    if (_footerUri) console.log("[PDF] kop-footer.jpg loaded");
-    else _footerUri = "";
+function findBannerFile(prefix, shortname) {
+  for (const ext of BANNER_EXTENSIONS) {
+    const filename = `${prefix}-${shortname}${ext}`;
+    if (fs.existsSync(path.join(ASSETS_DIR, filename))) return filename;
   }
-  return _footerUri;
+  return null;
+}
+
+function resolveBannerUri(prefix, namaSingkatPerusahaan) {
+  const shortname = namaSingkatPerusahaan
+    ? String(namaSingkatPerusahaan).trim().toLowerCase()
+    : null;
+
+  if (!shortname) return "";
+
+  const file = findBannerFile(prefix, shortname);
+  return file ? loadBannerAsBase64Uri(file) || "" : "";
+}
+
+function getHeaderUri(namaSingkatPerusahaan) {
+  return resolveBannerUri("kop-header", namaSingkatPerusahaan);
+}
+
+function getFooterUri(namaSingkatPerusahaan) {
+  return resolveBannerUri("kop-footer", namaSingkatPerusahaan);
+}
+
+// Photos are displayed at ~160x130 CSS px in the report grid; 480px covers
+// that at print/zoom resolution without embedding full-resolution originals.
+const FOTO_MAX_DIMENSION = 480;
+const FOTO_JPEG_QUALITY = 75;
+
+async function imageToBase64Resized(absPath) {
+  try {
+    const buffer = await sharp(absPath)
+      .rotate()
+      .resize({
+        width: FOTO_MAX_DIMENSION,
+        height: FOTO_MAX_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: FOTO_JPEG_QUALITY })
+      .toBuffer();
+    return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+  } catch (err) {
+    console.warn("[PDF] Cannot read/resize photo:", absPath, "—", err.message);
+    return null;
+  }
 }
 
 function parseArrayField(value) {
@@ -116,29 +167,28 @@ function getTemplate() {
   );
 }
 
-
-function buildHtml(record, alat) {
+async function buildHtml(record, alat) {
   const template = getTemplate();
 
   // Alat fields
-  const nama      = alat?.nama   || "-";
-  const lokasi    = alat?.lokasi || "-";
-  const jenis     = alat?.jenis  || "-";
+  const nama = alat?.nama || "-";
+  const lokasi = alat?.lokasi || "-";
+  const jenis = alat?.jenis || "-";
   const deviceStr = parseArrayField(alat?.device).join(", ") || "-";
   const alatDisplay = `${esc(nama)} &nbsp;·&nbsp; ${esc(deviceStr)}`;
 
   // Title
-  const judul    = `Laporan Maintenance ${esc(nama)}`;
+  const judul = `Laporan Maintenance ${esc(nama)}`;
   const subjudul = `${esc(jenis)} &nbsp;·&nbsp; ${esc(lokasi)}`;
 
   // Record fields
-  const tanggal          = formatDateId(record.tanggal);
-  const petugas          = esc(record.petugas);
-  const deskripsi        = esc(record.deskripsi);
-  const kondisiAwal      = esc(record.awal);
-  const tindakan         = esc(record.tindakan);
+  const tanggal = formatDateId(record.tanggal);
+  const petugas = esc(record.petugas);
+  const deskripsi = esc(record.deskripsi);
+  const kondisiAwal = esc(record.awal);
+  const tindakan = esc(record.tindakan);
   const tindakanTambahan = esc(record.tambahan);
-  const kondisiAkhir     = esc(record.akhir);
+  const kondisiAkhir = esc(record.akhir);
   const rencanaBerikutnya = esc(record.berikutnya);
 
   // Optional keterangan
@@ -155,61 +205,54 @@ function buildHtml(record, alat) {
   const fotoPaths = parseArrayField(record.i_alat);
   const fotoUris = (
     await Promise.all(
-      fotoPaths.map((p) => imagePathToBase64Uri(p, backendRoot)),
+      fotoPaths.map((p) => imageToBase64Resized(uploadPathToAbs(p))),
     )
   ).filter(Boolean);
 
-  let fotoContent;
-  if (fotoPaths.length === 0) {
-    fotoContent = `<div class="foto-empty">Tidak ada foto dokumentasi.</div>`;
-  } else {
-    const items = fotoPaths
-      .map((dbPath) => {
-        const absPath = uploadPathToAbs(dbPath);
-        const uri = imageToBase64(absPath);
-        if (!uri) {
-          console.warn("[PDF] Skipping unreadable photo:", dbPath);
-          return null;
-        }
-        return `<div class="foto-item"><img src="${uri}" alt="Foto maintenance" /></div>`;
-      })
-      .filter(Boolean)
-      .join("\n");
-
-    fotoContent = items.length
-      ? `<div class="foto-grid">${items}</div>`
-      : `<div class="foto-empty">Tidak ada foto dokumentasi.</div>`;
-  }
+  const fotoContent = fotoUris.length
+    ? `<div class="foto-grid">${fotoUris
+        .map((uri) => `<div class="foto-item"><img src="${uri}" alt="Foto maintenance" /></div>`)
+        .join("\n")}</div>`
+    : `<div class="foto-empty">Tidak ada foto dokumentasi.</div>`;
 
   return template
-    .replace("{{JUDUL}}",             judul)
-    .replace("{{SUBJUDUL}}",          subjudul)
-    .replace("{{TANGGAL}}",           tanggal)
-    .replace("{{ALAT}}",              alatDisplay)
-    .replace(/{{PETUGAS}}/g,          petugas)
-    .replace("{{DESKRIPSI}}",         deskripsi)
-    .replace("{{KONDISI_AWAL}}",      kondisiAwal)
-    .replace("{{TINDAKAN}}",          tindakan)
+    .replace("{{JUDUL}}", judul)
+    .replace("{{SUBJUDUL}}", subjudul)
+    .replace("{{TANGGAL}}", tanggal)
+    .replace("{{ALAT}}", alatDisplay)
+    .replace(/{{PETUGAS}}/g, petugas)
+    .replace("{{DESKRIPSI}}", deskripsi)
+    .replace("{{KONDISI_AWAL}}", kondisiAwal)
+    .replace("{{TINDAKAN}}", tindakan)
     .replace("{{TINDAKAN_TAMBAHAN}}", tindakanTambahan)
-    .replace("{{KONDISI_AKHIR}}",     kondisiAkhir)
-    .replace("{{RENCANA_BERIKUTNYA}}",rencanaBerikutnya)
-    .replace("{{KETERANGAN_ROW}}",    keteranganRow)
-    .replace("{{FOTO_CONTENT}}",      fotoContent);
+    .replace("{{KONDISI_AKHIR}}", kondisiAkhir)
+    .replace("{{RENCANA_BERIKUTNYA}}", rencanaBerikutnya)
+    .replace("{{KETERANGAN_ROW}}", keteranganRow)
+    .replace("{{FOTO_CONTENT}}", fotoContent);
 }
 
-async function renderPdf(html) {
-  const headerUri = getHeaderUri();
-  const footerUri = getFooterUri();
+// Banners render at their natural size (full page width, height follows the
+// source image's own aspect ratio — never shrunk/cropped). To keep them
+// from overlapping the report title/content, the page margin below reserves
+// clear space for the tallest known banner plus a fixed gap, and the gap
+// itself is added as padding around the image rather than resizing it.
+const BANNER_GAP = 20; // px of breathing room between banner and page content
+const HEADER_MARGIN_TOP = "220px"; // fits the tallest current header banner + gap
+const FOOTER_MARGIN_BOTTOM = "160px"; // fits the tallest current footer banner + gap
+
+async function renderPdf(html, namaSingkatPerusahaan) {
+  const headerUri = getHeaderUri(namaSingkatPerusahaan);
+  const footerUri = getFooterUri(namaSingkatPerusahaan);
 
   const headerTemplate = headerUri
-    ? `<div style="width:100%;margin:0;padding:0;line-height:0;">
-         <img src="${headerUri}" style="width:100%;display:block;margin:0;padding:0;" />
+    ? `<div style="width:100%;margin:0;padding:0 0 ${BANNER_GAP}px 0;line-height:0;">
+         <img src="${headerUri}" style="width:100%;height:auto;display:block;margin:0;padding:0;" />
        </div>`
     : `<div></div>`;
 
   const footerTemplate = footerUri
-    ? `<div style="width:100%;margin:0;padding:0;line-height:0;">
-         <img src="${footerUri}" style="width:100%;display:block;margin:0;padding:0;" />
+    ? `<div style="width:100%;margin:0;padding:${BANNER_GAP}px 0 0 0;line-height:0;">
+         <img src="${footerUri}" style="width:100%;height:auto;display:block;margin:0;padding:0;" />
        </div>`
     : `<div></div>`;
 
@@ -235,10 +278,10 @@ async function renderPdf(html) {
       headerTemplate,
       footerTemplate,
       margin: {
-        top:    "140px",  
-        bottom: "100px",  
-        left:   "40px",
-        right:  "40px",
+        top: HEADER_MARGIN_TOP,
+        bottom: FOOTER_MARGIN_BOTTOM,
+        left: "40px",
+        right: "40px",
       },
     });
 
@@ -248,39 +291,38 @@ async function renderPdf(html) {
   }
 }
 
-
 function buildRecord(row) {
   return {
-    id:         row.id,
-    deskripsi:  row.deskripsi,
-    awal:       row.awal,
-    tindakan:   row.tindakan,
-    tambahan:   row.tambahan,
-    akhir:      row.akhir,
+    id: row.id,
+    deskripsi: row.deskripsi,
+    awal: row.awal,
+    tindakan: row.tindakan,
+    tambahan: row.tambahan,
+    akhir: row.akhir,
     berikutnya: row.berikutnya,
     keterangan: row.keterangan,
-    petugas:    row.petugas,
-    i_alat:     row.i_alat,      
-    id_m_alat:  row.id_m_alat,
-    tanggal:    row.tanggal,
+    petugas: row.petugas,
+    i_alat: row.i_alat,
+    id_m_alat: row.id_m_alat,
+    tanggal: row.tanggal,
   };
 }
 
 function buildAlat(row) {
   if (!row.nama) return null;
   return {
-    nama:   row.nama,
+    nama: row.nama,
     lokasi: row.lokasi,
-    jenis:  row.jenis,
+    jenis: row.jenis,
     device: row.device,
     sensor: row.sensor,
   };
 }
 
 function sendPdf(res, pdfBuffer, prefix, alatNama, tanggal, id) {
-  const namaAlat    = (alatNama || `record-${id}`).replace(/\s+/g, "-");
+  const namaAlat = (alatNama || `record-${id}`).replace(/\s+/g, "-");
   const tanggalSlug = formatDateSlug(tanggal);
-  const filename    = `Laporan-${prefix}-${namaAlat}-${tanggalSlug}.pdf`;
+  const filename = `Laporan-${prefix}-${namaAlat}-${tanggalSlug}.pdf`;
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
@@ -292,12 +334,8 @@ const getPreventivePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await db.query(
-<<<<<<< HEAD
-      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor,
               p.nama_singkat_perusahaan
-=======
-      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor
->>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
        FROM m_record r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
        LEFT JOIN m_client c ON a.pelanggan = c.id
@@ -307,44 +345,12 @@ const getPreventivePdf = async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ message: "Record tidak ditemukan" });
 
-    const row    = rows[0];
-    const record = buildRecord(row);
-    const alat   = buildAlat(row);
-
-<<<<<<< HEAD
     const row = rows[0];
+    const record = buildRecord(row);
+    const alat = buildAlat(row);
 
-    const record = {
-      id: row.id,
-      deskripsi: row.deskripsi,
-      awal: row.awal,
-      tindakan: row.tindakan,
-      tambahan: row.tambahan,
-      akhir: row.akhir,
-      berikutnya: row.berikutnya,
-      keterangan: row.keterangan,
-      petugas: row.petugas,
-      i_alat: row.i_alat,
-      id_m_alat: row.id_m_alat,
-      tanggal: row.tanggal,
-    };
-
-    const alat = row.nama
-      ? {
-          nama: row.nama,
-          lokasi: row.lokasi,
-          jenis: row.jenis,
-          device: row.device,
-          sensor: row.sensor,
-          i_alat: row.alat_foto,
-        }
-      : null;
-
-    const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
-=======
-    const html      = buildHtml(record, alat);
->>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
-    const pdfBuffer = await renderPdf(html);
+    const html = await buildHtml(record, alat);
+    const pdfBuffer = await renderPdf(html, row.nama_singkat_perusahaan);
     return sendPdf(res, pdfBuffer, "Preventive", alat?.nama, record.tanggal, id);
   } catch (err) {
     console.error("[PDF] Preventive error:", err);
@@ -356,12 +362,8 @@ const getCorrectivePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await db.query(
-<<<<<<< HEAD
-      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor,
               p.nama_singkat_perusahaan
-=======
-      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor
->>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
        FROM m_record_corrective r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
        LEFT JOIN m_client c ON a.pelanggan = c.id
@@ -371,44 +373,12 @@ const getCorrectivePdf = async (req, res) => {
     );
     if (!rows.length) return res.status(404).json({ message: "Record tidak ditemukan" });
 
-    const row    = rows[0];
-    const record = buildRecord(row);
-    const alat   = buildAlat(row);
-
-<<<<<<< HEAD
     const row = rows[0];
+    const record = buildRecord(row);
+    const alat = buildAlat(row);
 
-    const record = {
-      id: row.id,
-      deskripsi: row.deskripsi,
-      awal: row.awal,
-      tindakan: row.tindakan,
-      tambahan: row.tambahan,
-      akhir: row.akhir,
-      berikutnya: row.berikutnya,
-      keterangan: row.keterangan,
-      petugas: row.petugas,
-      i_alat: row.i_alat,
-      id_m_alat: row.id_m_alat,
-      tanggal: row.tanggal,
-    };
-
-    const alat = row.nama
-      ? {
-          nama: row.nama,
-          lokasi: row.lokasi,
-          jenis: row.jenis,
-          device: row.device,
-          sensor: row.sensor,
-          i_alat: row.alat_foto,
-        }
-      : null;
-
-    const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
-=======
-    const html      = buildHtml(record, alat);
->>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
-    const pdfBuffer = await renderPdf(html);
+    const html = await buildHtml(record, alat);
+    const pdfBuffer = await renderPdf(html, row.nama_singkat_perusahaan);
     return sendPdf(res, pdfBuffer, "Corrective", alat?.nama, record.tanggal, id);
   } catch (err) {
     console.error("[PDF] Corrective error:", err);
