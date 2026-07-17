@@ -1,56 +1,67 @@
+"use strict";
+
 const path = require("path");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
 const sharp = require("sharp");
 const { db } = require("../config/db.js");
 
-const ASSETS_DIR = path.join(__dirname, "..", "public", "assets");
-const DEFAULT_KOP_FILENAME = "kop-tekno.jpg";
-const FALLBACK_PIXEL_URI =
-  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-const _kopBase64Cache = new Map();
+const BACKEND_ROOT = path.join(__dirname, "..");
+const ASSETS_DIR   = path.join(BACKEND_ROOT, "public", "assets");
+const UPLOADS_DIR  = path.join(BACKEND_ROOT, "uploads");
 
-function loadKopAsBase64Uri(filename) {
-  if (_kopBase64Cache.has(filename)) return _kopBase64Cache.get(filename);
+const MIME = {
+  jpg: "image/jpeg", jpeg: "image/jpeg",
+  png: "image/png",  gif: "image/gif",
+  webp: "image/webp", bmp: "image/bmp",
+  jfif: "image/jpeg",
+};
+
+function imageToBase64(absPath) {
   try {
-    const imgBuffer = fs.readFileSync(path.join(ASSETS_DIR, filename));
-    const b64 = imgBuffer.toString("base64");
-    const uri = `data:image/jpeg;base64,${b64}`;
-    _kopBase64Cache.set(filename, uri);
-    console.log(
-      `[PDF] ${filename} loaded as base64, size:`,
-      Math.round(b64.length / 1024),
-      "KB",
-    );
-    return uri;
+    const buf = fs.readFileSync(absPath);
+    const ext = path.extname(absPath).replace(".", "").toLowerCase();
+    const mime = MIME[ext] || "image/jpeg";
+    return `data:${mime};base64,${buf.toString("base64")}`;
   } catch (err) {
-    console.error(`[PDF] Could not load ${filename}:`, err.message);
+    console.warn("[PDF] Cannot read image:", absPath, "—", err.message);
     return null;
   }
 }
 
-function resolveKopBase64Uri(namaSingkatPerusahaan) {
-  const candidate = namaSingkatPerusahaan
-    ? `kop-${String(namaSingkatPerusahaan).trim().toLowerCase()}.jpg`
-    : null;
-
-  if (candidate && candidate !== DEFAULT_KOP_FILENAME) {
-    const candidatePath = path.join(ASSETS_DIR, candidate);
-    if (fs.existsSync(candidatePath)) {
-      const uri = loadKopAsBase64Uri(candidate);
-      if (uri) return uri;
-    }
+function uploadPathToAbs(dbPath) {
+  const cleaned = String(dbPath || "").replace(/^\/+/, "");
+  if (cleaned.startsWith("uploads/")) {
+    return path.join(BACKEND_ROOT, cleaned);
   }
+  return path.join(UPLOADS_DIR, path.basename(cleaned));
+}
 
-  return loadKopAsBase64Uri(DEFAULT_KOP_FILENAME) || FALLBACK_PIXEL_URI;
+let _headerUri = null;
+let _footerUri = null;
+
+function getHeaderUri() {
+  if (!_headerUri) {
+    _headerUri = imageToBase64(path.join(ASSETS_DIR, "kop-header.jpg"));
+    if (_headerUri) console.log("[PDF] kop-header.jpg loaded");
+    else _headerUri = ""; 
+  }
+  return _headerUri;
+}
+
+function getFooterUri() {
+  if (!_footerUri) {
+    _footerUri = imageToBase64(path.join(ASSETS_DIR, "kop-footer.jpg"));
+    if (_footerUri) console.log("[PDF] kop-footer.jpg loaded");
+    else _footerUri = "";
+  }
+  return _footerUri;
 }
 
 function parseArrayField(value) {
   if (!value) return [];
   if (typeof value !== "string") return [];
-
   const trimmed = value.trim();
-
   if (trimmed.startsWith("[")) {
     try {
       const parsed = JSON.parse(trimmed);
@@ -59,7 +70,8 @@ function parseArrayField(value) {
           .map((v) => (typeof v === "string" ? v.trim() : String(v)))
           .filter(Boolean);
       }
-    } catch {}
+    } catch {
+    }
   }
   return trimmed ? [trimmed] : [];
 }
@@ -67,27 +79,19 @@ function parseArrayField(value) {
 function formatDateId(dateString) {
   if (!dateString) return "-";
   try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric", month: "long", year: "numeric",
     });
   } catch {
-    return dateString;
+    return String(dateString);
   }
 }
 
 function formatDateSlug(dateString) {
   if (!dateString) return "tanpa-tanggal";
   try {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+    return new Date(dateString)
+      .toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
       .replace(/ /g, "-");
   } catch {
     return "tanpa-tanggal";
@@ -105,76 +109,41 @@ function esc(str) {
     .replace(/\n/g, "<br/>");
 }
 
-// Photos are displayed at ~160x130 CSS px in the report grid; 480px covers
-// that at print/zoom resolution without embedding full-resolution originals.
-const FOTO_MAX_DIMENSION = 480;
-const FOTO_JPEG_QUALITY = 75;
-
-async function imagePathToBase64Uri(relativePath, backendRoot) {
-  try {
-    const cleaned = relativePath.replace(/^\/+/, "");
-    const abs = path.join(backendRoot, cleaned);
-    const buffer = await sharp(abs)
-      .rotate()
-      .resize({
-        width: FOTO_MAX_DIMENSION,
-        height: FOTO_MAX_DIMENSION,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .jpeg({ quality: FOTO_JPEG_QUALITY })
-      .toBuffer();
-    return `data:image/jpeg;base64,${buffer.toString("base64")}`;
-  } catch (err) {
-    console.error(`[PDF] Could not load foto ${relativePath}:`, err.message);
-    return null;
-  }
-}
-
 function getTemplate() {
-  const templatePath = path.join(
-    __dirname,
-    "..",
-    "templates",
-    "maintenance-report.html",
+  return fs.readFileSync(
+    path.join(BACKEND_ROOT, "templates", "maintenance-report.html"),
+    "utf-8",
   );
-  return fs.readFileSync(templatePath, "utf-8");
 }
 
-async function buildHtml(record, alat, backendRoot, namaSingkatPerusahaan) {
-  let template = getTemplate();
 
-  template = template.replace(
-    "{{KOP_BG_URI}}",
-    resolveKopBase64Uri(namaSingkatPerusahaan),
-  );
+function buildHtml(record, alat) {
+  const template = getTemplate();
 
-  const nama = alat?.nama || "-";
-  const lokasi = alat?.lokasi || "-";
-  const jenis = alat?.jenis || "-";
-
-  const deviceArr = parseArrayField(alat?.device);
-  const sensorArr = parseArrayField(alat?.sensor);
-  const deviceStr = deviceArr.length ? deviceArr.join(", ") : "-";
-  const sensorStr = sensorArr.length ? sensorArr.join(", ") : "-";
-
+  // Alat fields
+  const nama      = alat?.nama   || "-";
+  const lokasi    = alat?.lokasi || "-";
+  const jenis     = alat?.jenis  || "-";
+  const deviceStr = parseArrayField(alat?.device).join(", ") || "-";
   const alatDisplay = `${esc(nama)} &nbsp;·&nbsp; ${esc(deviceStr)}`;
 
-  const judul = `Laporan Maintenance ${esc(nama)}`;
+  // Title
+  const judul    = `Laporan Maintenance ${esc(nama)}`;
   const subjudul = `${esc(jenis)} &nbsp;·&nbsp; ${esc(lokasi)}`;
 
   // Record fields
-  const tanggal = formatDateId(record.tanggal);
-  const petugas = esc(record.petugas);
-  const deskripsi = esc(record.deskripsi);
-  const kondisiAwal = esc(record.awal);
-  const tindakan = esc(record.tindakan);
+  const tanggal          = formatDateId(record.tanggal);
+  const petugas          = esc(record.petugas);
+  const deskripsi        = esc(record.deskripsi);
+  const kondisiAwal      = esc(record.awal);
+  const tindakan         = esc(record.tindakan);
   const tindakanTambahan = esc(record.tambahan);
-  const kondisiAkhir = esc(record.akhir);
-  const rencanaBeriktnya = esc(record.berikutnya);
+  const kondisiAkhir     = esc(record.akhir);
+  const rencanaBerikutnya = esc(record.berikutnya);
 
+  // Optional keterangan
   let keteranganRow = "";
-  if (record.keterangan && record.keterangan.trim()) {
+  if (record.keterangan && String(record.keterangan).trim()) {
     keteranganRow = `
       <tr>
         <td class="label">Keterangan</td>
@@ -190,36 +159,60 @@ async function buildHtml(record, alat, backendRoot, namaSingkatPerusahaan) {
     )
   ).filter(Boolean);
 
-  let fotoContent = "";
-  if (fotoUris.length === 0) {
+  let fotoContent;
+  if (fotoPaths.length === 0) {
     fotoContent = `<div class="foto-empty">Tidak ada foto dokumentasi.</div>`;
   } else {
-    const items = fotoUris
-      .map(
-        (uri) =>
-          `<div class="foto-item"><img src="${uri}" alt="Foto maintenance" /></div>`,
-      )
+    const items = fotoPaths
+      .map((dbPath) => {
+        const absPath = uploadPathToAbs(dbPath);
+        const uri = imageToBase64(absPath);
+        if (!uri) {
+          console.warn("[PDF] Skipping unreadable photo:", dbPath);
+          return null;
+        }
+        return `<div class="foto-item"><img src="${uri}" alt="Foto maintenance" /></div>`;
+      })
+      .filter(Boolean)
       .join("\n");
-    fotoContent = `<div class="foto-grid">${items}</div>`;
+
+    fotoContent = items.length
+      ? `<div class="foto-grid">${items}</div>`
+      : `<div class="foto-empty">Tidak ada foto dokumentasi.</div>`;
   }
 
   return template
-    .replace("{{JUDUL}}", judul)
-    .replace("{{SUBJUDUL}}", subjudul)
-    .replace("{{TANGGAL}}", tanggal)
-    .replace("{{ALAT}}", alatDisplay)
-    .replace(/{{PETUGAS}}/g, petugas)
-    .replace("{{DESKRIPSI}}", deskripsi)
-    .replace("{{KONDISI_AWAL}}", kondisiAwal)
-    .replace("{{TINDAKAN}}", tindakan)
+    .replace("{{JUDUL}}",             judul)
+    .replace("{{SUBJUDUL}}",          subjudul)
+    .replace("{{TANGGAL}}",           tanggal)
+    .replace("{{ALAT}}",              alatDisplay)
+    .replace(/{{PETUGAS}}/g,          petugas)
+    .replace("{{DESKRIPSI}}",         deskripsi)
+    .replace("{{KONDISI_AWAL}}",      kondisiAwal)
+    .replace("{{TINDAKAN}}",          tindakan)
     .replace("{{TINDAKAN_TAMBAHAN}}", tindakanTambahan)
-    .replace("{{KONDISI_AKHIR}}", kondisiAkhir)
-    .replace("{{RENCANA_BERIKUTNYA}}", rencanaBeriktnya)
-    .replace("{{KETERANGAN_ROW}}", keteranganRow)
-    .replace("{{FOTO_CONTENT}}", fotoContent);
+    .replace("{{KONDISI_AKHIR}}",     kondisiAkhir)
+    .replace("{{RENCANA_BERIKUTNYA}}",rencanaBerikutnya)
+    .replace("{{KETERANGAN_ROW}}",    keteranganRow)
+    .replace("{{FOTO_CONTENT}}",      fotoContent);
 }
 
 async function renderPdf(html) {
+  const headerUri = getHeaderUri();
+  const footerUri = getFooterUri();
+
+  const headerTemplate = headerUri
+    ? `<div style="width:100%;margin:0;padding:0;line-height:0;">
+         <img src="${headerUri}" style="width:100%;display:block;margin:0;padding:0;" />
+       </div>`
+    : `<div></div>`;
+
+  const footerTemplate = footerUri
+    ? `<div style="width:100%;margin:0;padding:0;line-height:0;">
+         <img src="${footerUri}" style="width:100%;display:block;margin:0;padding:0;" />
+       </div>`
+    : `<div></div>`;
+
   const browser = await puppeteer.launch({
     headless: true,
     args: [
@@ -233,19 +226,19 @@ async function renderPdf(html) {
   try {
     const page = await browser.newPage();
 
-    await page.setContent(html, {
-      waitUntil: "networkidle0",
-      timeout: 30000,
-    });
+    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate,
+      footerTemplate,
       margin: {
-        top: "0",
-        bottom: "0",
-        left: "0",
-        right: "0",
+        top:    "140px",  
+        bottom: "100px",  
+        left:   "40px",
+        right:  "40px",
       },
     });
 
@@ -255,15 +248,56 @@ async function renderPdf(html) {
   }
 }
 
-const BACKEND_ROOT = path.join(__dirname, "..");
+
+function buildRecord(row) {
+  return {
+    id:         row.id,
+    deskripsi:  row.deskripsi,
+    awal:       row.awal,
+    tindakan:   row.tindakan,
+    tambahan:   row.tambahan,
+    akhir:      row.akhir,
+    berikutnya: row.berikutnya,
+    keterangan: row.keterangan,
+    petugas:    row.petugas,
+    i_alat:     row.i_alat,      
+    id_m_alat:  row.id_m_alat,
+    tanggal:    row.tanggal,
+  };
+}
+
+function buildAlat(row) {
+  if (!row.nama) return null;
+  return {
+    nama:   row.nama,
+    lokasi: row.lokasi,
+    jenis:  row.jenis,
+    device: row.device,
+    sensor: row.sensor,
+  };
+}
+
+function sendPdf(res, pdfBuffer, prefix, alatNama, tanggal, id) {
+  const namaAlat    = (alatNama || `record-${id}`).replace(/\s+/g, "-");
+  const tanggalSlug = formatDateSlug(tanggal);
+  const filename    = `Laporan-${prefix}-${namaAlat}-${tanggalSlug}.pdf`;
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+  res.setHeader("Content-Length", pdfBuffer.length);
+  return res.end(pdfBuffer);
+}
 
 const getPreventivePdf = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [rows] = await db.query(
+<<<<<<< HEAD
       `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
               p.nama_singkat_perusahaan
+=======
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
        FROM m_record r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
        LEFT JOIN m_client c ON a.pelanggan = c.id
@@ -271,11 +305,13 @@ const getPreventivePdf = async (req, res) => {
        WHERE r.id = ?`,
       [id],
     );
+    if (!rows.length) return res.status(404).json({ message: "Record tidak ditemukan" });
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Record tidak ditemukan" });
-    }
+    const row    = rows[0];
+    const record = buildRecord(row);
+    const alat   = buildAlat(row);
 
+<<<<<<< HEAD
     const row = rows[0];
 
     const record = {
@@ -305,34 +341,27 @@ const getPreventivePdf = async (req, res) => {
       : null;
 
     const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
+=======
+    const html      = buildHtml(record, alat);
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
     const pdfBuffer = await renderPdf(html);
-
-    const namaAlat = (alat?.nama || `record-${id}`).replace(/\s+/g, "-");
-    const tanggalSlug = formatDateSlug(record.tanggal);
-    const filename = `Laporan-Preventive-${namaAlat}-${tanggalSlug}.pdf`;
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
-    res.setHeader("Content-Length", pdfBuffer.length);
-    return res.end(pdfBuffer);
-  } catch (error) {
-    console.error("[PDF] Preventive error:", error);
-    return res
-      .status(500)
-      .json({ message: "Gagal generate PDF", error: error.message });
+    return sendPdf(res, pdfBuffer, "Preventive", alat?.nama, record.tanggal, id);
+  } catch (err) {
+    console.error("[PDF] Preventive error:", err);
+    return res.status(500).json({ message: "Gagal generate PDF", error: err.message });
   }
 };
 
-/**
- * GET /api/maintenance/corrective/:id/pdf
- */
 const getCorrectivePdf = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [rows] = await db.query(
+<<<<<<< HEAD
       `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
               p.nama_singkat_perusahaan
+=======
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
        FROM m_record_corrective r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
        LEFT JOIN m_client c ON a.pelanggan = c.id
@@ -340,11 +369,13 @@ const getCorrectivePdf = async (req, res) => {
        WHERE r.id = ?`,
       [id],
     );
+    if (!rows.length) return res.status(404).json({ message: "Record tidak ditemukan" });
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Record tidak ditemukan" });
-    }
+    const row    = rows[0];
+    const record = buildRecord(row);
+    const alat   = buildAlat(row);
 
+<<<<<<< HEAD
     const row = rows[0];
 
     const record = {
@@ -374,21 +405,14 @@ const getCorrectivePdf = async (req, res) => {
       : null;
 
     const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
+=======
+    const html      = buildHtml(record, alat);
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
     const pdfBuffer = await renderPdf(html);
-
-    const namaAlat = (alat?.nama || `record-${id}`).replace(/\s+/g, "-");
-    const tanggalSlug = formatDateSlug(record.tanggal);
-    const filename = `Laporan-Corrective-${namaAlat}-${tanggalSlug}.pdf`;
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
-    res.setHeader("Content-Length", pdfBuffer.length);
-    return res.end(pdfBuffer);
-  } catch (error) {
-    console.error("[PDF] Corrective error:", error);
-    return res
-      .status(500)
-      .json({ message: "Gagal generate PDF", error: error.message });
+    return sendPdf(res, pdfBuffer, "Corrective", alat?.nama, record.tanggal, id);
+  } catch (err) {
+    console.error("[PDF] Corrective error:", err);
+    return res.status(500).json({ message: "Gagal generate PDF", error: err.message });
   }
 };
 
