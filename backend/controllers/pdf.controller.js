@@ -39,11 +39,16 @@ function uploadPathToAbs(dbPath) {
 let _headerUri = null;
 let _footerUri = null;
 
+function bustKopCache() {
+  _headerUri = null;
+  _footerUri = null;
+}
+
 function getHeaderUri() {
   if (!_headerUri) {
     _headerUri = imageToBase64(path.join(ASSETS_DIR, "kop-header.jpg"));
-    if (_headerUri) console.log("[PDF] kop-header.jpg loaded");
-    else _headerUri = ""; 
+    if (_headerUri) console.log("[PDF] kop-header.jpg loaded, size:", Math.round(_headerUri.length / 1024), "KB");
+    else _headerUri = "";
   }
   return _headerUri;
 }
@@ -51,7 +56,7 @@ function getHeaderUri() {
 function getFooterUri() {
   if (!_footerUri) {
     _footerUri = imageToBase64(path.join(ASSETS_DIR, "kop-footer.jpg"));
-    if (_footerUri) console.log("[PDF] kop-footer.jpg loaded");
+    if (_footerUri) console.log("[PDF] kop-footer.jpg loaded, size:", Math.round(_footerUri.length / 1024), "KB");
     else _footerUri = "";
   }
   return _footerUri;
@@ -196,15 +201,15 @@ async function renderPdf(html) {
   const footerUri = getFooterUri();
 
   const headerTemplate = headerUri
-    ? `<div style="width:100%;margin:0;padding:0;line-height:0;">
-         <img src="${headerUri}" style="width:100%;display:block;margin:0;padding:0;" />
-       </div>`
+    ? `<div style="width:100%;margin:-8px 0 0 0;padding:0;line-height:0;font-size:0;">` +
+      `<img src="${headerUri}" style="width:100%;display:block;margin:0;padding:0;" />` +
+      `</div>`
     : `<div></div>`;
 
   const footerTemplate = footerUri
-    ? `<div style="width:100%;margin:0;padding:0;line-height:0;">
-         <img src="${footerUri}" style="width:100%;display:block;margin:0;padding:0;" />
-       </div>`
+    ? `<div style="width:100%;margin:0;padding:0;line-height:0;font-size:0;">` +
+      `<img src="${footerUri}" style="width:100%;display:block;margin:0;padding:0;" />` +
+      `</div>`
     : `<div></div>`;
 
   const browser = await puppeteer.launch({
@@ -229,10 +234,10 @@ async function renderPdf(html) {
       headerTemplate,
       footerTemplate,
       margin: {
-        top:    "140px",  
-        bottom: "100px",  
-        left:   "40px",
-        right:  "40px",
+        top:    "160px",
+        bottom: "134px",
+        left:   "20px",
+        right:  "20px",
       },
     });
 
