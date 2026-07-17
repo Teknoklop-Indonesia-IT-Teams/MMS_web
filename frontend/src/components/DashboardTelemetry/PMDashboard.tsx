@@ -334,11 +334,10 @@ const PMDashboard: React.FC<PMDashboardProps> = ({
                   onClick={() =>
                     openPdfPreview("preventive", selectedRecord.id)
                   }
-                  className="inline-flex items-center px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60 text-sm font-medium"
-                  title="Buka laporan PDF di tab baru"
+                  className="inline-flex items-center px-3 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 transition-colors dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60"
                 >
-                  <FileText size={15} className="mr-1.5" />
-                  Cetak PDF
+                  <FileText className="mr-1" />
+                  View PDF
                 </button>
                 <button
                   onClick={() => setSelectedRecord(null)}
