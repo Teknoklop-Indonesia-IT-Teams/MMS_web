@@ -19,6 +19,7 @@ import PMDashboard from "./PMDashboard";
 import CMDashboard from "./CMDashboard";
 import { telemetryService } from "../../services/api";
 import ThemeToggle from "../Common/ThemeToggle";
+import ThemeSwitch from "../Common/ThemeSwitch";
 
 interface DashboardProps {
   hideEmptyCards?: boolean;
@@ -276,9 +277,12 @@ const Dashboard: React.FC<DashboardProps> = ({ hideEmptyCards = false }) => {
                 </span>
                 Dashboard
                 {!hasFullAccess && (
-                  <span className="px-2 py-1 ml-3 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
-                    View Only
-                  </span>
+                  <>
+                    <span className="px-2 py-1 ml-3 mr-3 text-xs font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200">
+                      View Only
+                    </span>
+                    <ThemeSwitch />
+                  </>
                 )}
               </h1>
               <p

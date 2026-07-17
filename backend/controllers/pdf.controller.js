@@ -231,29 +231,20 @@ async function buildHtml(record, alat) {
     .replace("{{FOTO_CONTENT}}", fotoContent);
 }
 
-// Banners render at their natural size (full page width, height follows the
-// source image's own aspect ratio — never shrunk/cropped). To keep them
-// from overlapping the report title/content, the page margin below reserves
-// clear space for the tallest known banner plus a fixed gap, and the gap
-// itself is added as padding around the image rather than resizing it.
-const BANNER_GAP = 20; // px of breathing room between banner and page content
-const HEADER_MARGIN_TOP = "220px"; // fits the tallest current header banner + gap
-const FOOTER_MARGIN_BOTTOM = "160px"; // fits the tallest current footer banner + gap
-
 async function renderPdf(html, namaSingkatPerusahaan) {
   const headerUri = getHeaderUri(namaSingkatPerusahaan);
   const footerUri = getFooterUri(namaSingkatPerusahaan);
 
   const headerTemplate = headerUri
-    ? `<div style="width:100%;margin:0;padding:0 0 ${BANNER_GAP}px 0;line-height:0;">
-         <img src="${headerUri}" style="width:100%;height:auto;display:block;margin:0;padding:0;" />
-       </div>`
+    ? `<div style="width:100%;margin:-8px 0 0 0;padding:0;line-height:0;font-size:0;">` +
+      `<img src="${headerUri}" style="width:100%;display:block;margin:0;padding:0;" />` +
+      `</div>`
     : `<div></div>`;
 
   const footerTemplate = footerUri
-    ? `<div style="width:100%;margin:0;padding:${BANNER_GAP}px 0 0 0;line-height:0;">
-         <img src="${footerUri}" style="width:100%;height:auto;display:block;margin:0;padding:0;" />
-       </div>`
+    ? `<div style="width:100%;margin:0;padding:0;line-height:0;font-size:0;">` +
+      `<img src="${footerUri}" style="width:100%;display:block;margin:0;padding:0;" />` +
+      `</div>`
     : `<div></div>`;
 
   const browser = await puppeteer.launch({
@@ -278,10 +269,10 @@ async function renderPdf(html, namaSingkatPerusahaan) {
       headerTemplate,
       footerTemplate,
       margin: {
-        top: HEADER_MARGIN_TOP,
-        bottom: FOOTER_MARGIN_BOTTOM,
-        left: "40px",
-        right: "40px",
+        top:    "200px",
+        bottom: "134px",
+        left:   "20px",
+        right:  "20px",
       },
     });
 
