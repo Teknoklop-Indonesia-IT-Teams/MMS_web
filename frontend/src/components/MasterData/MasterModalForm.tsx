@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Check, Loader2 } from "lucide-react";
+import { perusahaanService } from "../../services/api";
+import SearchableSelect from "../Common/SearchableSelect";
 
 export type TableType = "telemetry" | "client";
 
@@ -16,23 +18,59 @@ export const TABLE_CONFIG = {
 
 interface MasterModalFormProps {
     tableType: TableType;
-    onSave: (value: string) => Promise<void>;
+    mode?: "add" | "edit";
+    initialValue?: string;
+    initialPerusahaanId?: number | null;
+    onSave: (value: string, id_perusahaan: number | null) => Promise<void>;
     onCancel: () => void;
     saving: boolean;
 }
 
 const MasterModalForm: React.FC<MasterModalFormProps> = ({
     tableType,
+    mode = "add",
+    initialValue = "",
+    initialPerusahaanId = null,
     onSave,
     onCancel,
     saving,
 }) => {
-    const [value, setValue] = useState("");
+    const [value, setValue] = useState(initialValue);
+    const [perusahaanId, setPerusahaanId] = useState(
+        initialPerusahaanId != null ? String(initialPerusahaanId) : "",
+    );
+    const [perusahaanOptions, setPerusahaanOptions] = useState<
+        { value: string; label: string }[]
+    >([]);
+    const [loadingPerusahaan, setLoadingPerusahaan] = useState(false);
     const config = TABLE_CONFIG[tableType];
+    const isEdit = mode === "edit";
+
+    useEffect(() => {
+        if (tableType !== "client") return;
+        const fetchPerusahaan = async () => {
+            try {
+                setLoadingPerusahaan(true);
+                const data = await perusahaanService.getAll();
+                setPerusahaanOptions(
+                    data.map((d) => ({ value: d.id.toString(), label: d.name })),
+                );
+            } catch (error) {
+                console.error("❌ Error fetching perusahaan:", error);
+                setPerusahaanOptions([]);
+            } finally {
+                setLoadingPerusahaan(false);
+            }
+        };
+        fetchPerusahaan();
+    }, [tableType]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (value.trim()) onSave(value.trim());
+        if (!value.trim()) return;
+        const idPerusahaan =
+            tableType === "client" && perusahaanId ? Number(perusahaanId) : null;
+        onSave(value.trim(), idPerusahaan);
     };
 
     return (
@@ -40,7 +78,7 @@ const MasterModalForm: React.FC<MasterModalFormProps> = ({
             <div className="w-full max-w-md bg-white rounded-lg shadow-xl dark:bg-gray-800">
                 <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                        Tambah Jenis {config.label}
+                        {isEdit ? "Edit" : "Tambah"} Jenis {config.label}
                     </h2>
                     <button
                         onClick={onCancel}
@@ -66,6 +104,21 @@ const MasterModalForm: React.FC<MasterModalFormProps> = ({
                         />
                     </div>
 
+                    {tableType === "client" && (
+                        <div>
+                            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Perusahaan
+                            </label>
+                            <SearchableSelect
+                                options={perusahaanOptions}
+                                value={perusahaanId}
+                                onChange={setPerusahaanId}
+                                placeholder="Pilih perusahaan (opsional)"
+                                disabled={saving || loadingPerusahaan}
+                            />
+                        </div>
+                    )}
+
                     <div className="flex pt-2 space-x-3">
                         <button
                             type="submit"
@@ -77,7 +130,7 @@ const MasterModalForm: React.FC<MasterModalFormProps> = ({
                             ) : (
                                 <Check size={16} />
                             )}
-                            Simpan
+                            {isEdit ? "Simpan Perubahan" : "Simpan"}
                         </button>
                         <button
                             type="button"
