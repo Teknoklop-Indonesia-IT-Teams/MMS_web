@@ -1,34 +1,48 @@
 const path = require("path");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
+const sharp = require("sharp");
 const { db } = require("../config/db.js");
 
-const KOP_IMAGE_PATH = path.join(
-  __dirname,
-  "..",
-  "public",
-  "assets",
-  "kop-tekno.jpg",
-);
-let _kopBase64Uri = null;
+const ASSETS_DIR = path.join(__dirname, "..", "public", "assets");
+const DEFAULT_KOP_FILENAME = "kop-tekno.jpg";
+const FALLBACK_PIXEL_URI =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+const _kopBase64Cache = new Map();
 
-function getKopBase64Uri() {
-  if (_kopBase64Uri) return _kopBase64Uri;
+function loadKopAsBase64Uri(filename) {
+  if (_kopBase64Cache.has(filename)) return _kopBase64Cache.get(filename);
   try {
-    const imgBuffer = fs.readFileSync(KOP_IMAGE_PATH);
+    const imgBuffer = fs.readFileSync(path.join(ASSETS_DIR, filename));
     const b64 = imgBuffer.toString("base64");
-    _kopBase64Uri = `data:image/jpeg;base64,${b64}`;
+    const uri = `data:image/jpeg;base64,${b64}`;
+    _kopBase64Cache.set(filename, uri);
     console.log(
-      "[PDF] kop-tekno.jpg loaded as base64, size:",
+      `[PDF] ${filename} loaded as base64, size:`,
       Math.round(b64.length / 1024),
       "KB",
     );
+    return uri;
   } catch (err) {
-    console.error("[PDF] Could not load kop-tekno.jpg:", err.message);
-    _kopBase64Uri =
-      "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    console.error(`[PDF] Could not load ${filename}:`, err.message);
+    return null;
   }
-  return _kopBase64Uri;
+}
+
+function resolveKopBase64Uri(namaSingkatPerusahaan) {
+  const candidate = namaSingkatPerusahaan
+    ? `kop-${String(namaSingkatPerusahaan).trim().toLowerCase()}.jpg`
+    : null;
+
+  if (candidate && candidate !== DEFAULT_KOP_FILENAME) {
+    const candidatePath = path.join(ASSETS_DIR, candidate);
+    if (fs.existsSync(candidatePath)) {
+      const uri = loadKopAsBase64Uri(candidate);
+      if (uri) return uri;
+    }
+  }
+
+  return loadKopAsBase64Uri(DEFAULT_KOP_FILENAME) || FALLBACK_PIXEL_URI;
 }
 
 function parseArrayField(value) {
@@ -91,11 +105,30 @@ function esc(str) {
     .replace(/\n/g, "<br/>");
 }
 
-function pathToFileUri(relativePath, backendRoot) {
-  const cleaned = relativePath.replace(/^\/+/, "");
-  const abs = path.join(backendRoot, cleaned);
-  const uri = "file:///" + abs.replace(/\\/g, "/");
-  return uri;
+// Photos are displayed at ~160x130 CSS px in the report grid; 480px covers
+// that at print/zoom resolution without embedding full-resolution originals.
+const FOTO_MAX_DIMENSION = 480;
+const FOTO_JPEG_QUALITY = 75;
+
+async function imagePathToBase64Uri(relativePath, backendRoot) {
+  try {
+    const cleaned = relativePath.replace(/^\/+/, "");
+    const abs = path.join(backendRoot, cleaned);
+    const buffer = await sharp(abs)
+      .rotate()
+      .resize({
+        width: FOTO_MAX_DIMENSION,
+        height: FOTO_MAX_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: FOTO_JPEG_QUALITY })
+      .toBuffer();
+    return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+  } catch (err) {
+    console.error(`[PDF] Could not load foto ${relativePath}:`, err.message);
+    return null;
+  }
 }
 
 function getTemplate() {
@@ -108,10 +141,13 @@ function getTemplate() {
   return fs.readFileSync(templatePath, "utf-8");
 }
 
-function buildHtml(record, alat, backendRoot) {
+async function buildHtml(record, alat, backendRoot, namaSingkatPerusahaan) {
   let template = getTemplate();
 
-  template = template.replace("{{KOP_BG_URI}}", getKopBase64Uri());
+  template = template.replace(
+    "{{KOP_BG_URI}}",
+    resolveKopBase64Uri(namaSingkatPerusahaan),
+  );
 
   const nama = alat?.nama || "-";
   const lokasi = alat?.lokasi || "-";
@@ -148,16 +184,21 @@ function buildHtml(record, alat, backendRoot) {
 
   // Photos
   const fotoPaths = parseArrayField(record.i_alat);
+  const fotoUris = (
+    await Promise.all(
+      fotoPaths.map((p) => imagePathToBase64Uri(p, backendRoot)),
+    )
+  ).filter(Boolean);
 
   let fotoContent = "";
-  if (fotoPaths.length === 0) {
+  if (fotoUris.length === 0) {
     fotoContent = `<div class="foto-empty">Tidak ada foto dokumentasi.</div>`;
   } else {
-    const items = fotoPaths
-      .map((p) => {
-        const uri = pathToFileUri(p, backendRoot);
-        return `<div class="foto-item"><img src="${uri}" alt="Foto maintenance" onerror="this.style.display='none'" /></div>`;
-      })
+    const items = fotoUris
+      .map(
+        (uri) =>
+          `<div class="foto-item"><img src="${uri}" alt="Foto maintenance" /></div>`,
+      )
       .join("\n");
     fotoContent = `<div class="foto-grid">${items}</div>`;
   }
@@ -221,9 +262,12 @@ const getPreventivePdf = async (req, res) => {
     const { id } = req.params;
 
     const [rows] = await db.query(
-      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
+              p.nama_singkat_perusahaan
        FROM m_record r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
+       LEFT JOIN m_client c ON a.pelanggan = c.id
+       LEFT JOIN m_perusahaan p ON c.id_perusahaan = p.id
        WHERE r.id = ?`,
       [id],
     );
@@ -260,7 +304,7 @@ const getPreventivePdf = async (req, res) => {
         }
       : null;
 
-    const html = buildHtml(record, alat, BACKEND_ROOT);
+    const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
     const pdfBuffer = await renderPdf(html);
 
     const namaAlat = (alat?.nama || `record-${id}`).replace(/\s+/g, "-");
@@ -287,9 +331,12 @@ const getCorrectivePdf = async (req, res) => {
     const { id } = req.params;
 
     const [rows] = await db.query(
-      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
+              p.nama_singkat_perusahaan
        FROM m_record_corrective r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
+       LEFT JOIN m_client c ON a.pelanggan = c.id
+       LEFT JOIN m_perusahaan p ON c.id_perusahaan = p.id
        WHERE r.id = ?`,
       [id],
     );
@@ -326,7 +373,7 @@ const getCorrectivePdf = async (req, res) => {
         }
       : null;
 
-    const html = buildHtml(record, alat, BACKEND_ROOT);
+    const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
     const pdfBuffer = await renderPdf(html);
 
     const namaAlat = (alat?.nama || `record-${id}`).replace(/\s+/g, "-");
