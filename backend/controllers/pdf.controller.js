@@ -3,6 +3,7 @@
 const path = require("path");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
+const sharp = require("sharp");
 const { db } = require("../config/db.js");
 
 const BACKEND_ROOT = path.join(__dirname, "..");
@@ -157,6 +158,11 @@ function buildHtml(record, alat) {
 
   // Photos
   const fotoPaths = parseArrayField(record.i_alat);
+  const fotoUris = (
+    await Promise.all(
+      fotoPaths.map((p) => imagePathToBase64Uri(p, backendRoot)),
+    )
+  ).filter(Boolean);
 
   let fotoContent;
   if (fotoPaths.length === 0) {
@@ -291,9 +297,16 @@ const getPreventivePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await db.query(
+<<<<<<< HEAD
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
+              p.nama_singkat_perusahaan
+=======
       `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
        FROM m_record r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
+       LEFT JOIN m_client c ON a.pelanggan = c.id
+       LEFT JOIN m_perusahaan p ON c.id_perusahaan = p.id
        WHERE r.id = ?`,
       [id],
     );
@@ -303,7 +316,39 @@ const getPreventivePdf = async (req, res) => {
     const record = buildRecord(row);
     const alat   = buildAlat(row);
 
+<<<<<<< HEAD
+    const row = rows[0];
+
+    const record = {
+      id: row.id,
+      deskripsi: row.deskripsi,
+      awal: row.awal,
+      tindakan: row.tindakan,
+      tambahan: row.tambahan,
+      akhir: row.akhir,
+      berikutnya: row.berikutnya,
+      keterangan: row.keterangan,
+      petugas: row.petugas,
+      i_alat: row.i_alat,
+      id_m_alat: row.id_m_alat,
+      tanggal: row.tanggal,
+    };
+
+    const alat = row.nama
+      ? {
+          nama: row.nama,
+          lokasi: row.lokasi,
+          jenis: row.jenis,
+          device: row.device,
+          sensor: row.sensor,
+          i_alat: row.alat_foto,
+        }
+      : null;
+
+    const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
+=======
     const html      = buildHtml(record, alat);
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
     const pdfBuffer = await renderPdf(html);
     return sendPdf(res, pdfBuffer, "Preventive", alat?.nama, record.tanggal, id);
   } catch (err) {
@@ -316,9 +361,16 @@ const getCorrectivePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await db.query(
+<<<<<<< HEAD
+      `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor, a.i_alat AS alat_foto,
+              p.nama_singkat_perusahaan
+=======
       `SELECT r.*, a.nama, a.lokasi, a.jenis, a.device, a.sensor
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
        FROM m_record_corrective r
        LEFT JOIN m_alat a ON r.id_m_alat = a.id
+       LEFT JOIN m_client c ON a.pelanggan = c.id
+       LEFT JOIN m_perusahaan p ON c.id_perusahaan = p.id
        WHERE r.id = ?`,
       [id],
     );
@@ -328,7 +380,39 @@ const getCorrectivePdf = async (req, res) => {
     const record = buildRecord(row);
     const alat   = buildAlat(row);
 
+<<<<<<< HEAD
+    const row = rows[0];
+
+    const record = {
+      id: row.id,
+      deskripsi: row.deskripsi,
+      awal: row.awal,
+      tindakan: row.tindakan,
+      tambahan: row.tambahan,
+      akhir: row.akhir,
+      berikutnya: row.berikutnya,
+      keterangan: row.keterangan,
+      petugas: row.petugas,
+      i_alat: row.i_alat,
+      id_m_alat: row.id_m_alat,
+      tanggal: row.tanggal,
+    };
+
+    const alat = row.nama
+      ? {
+          nama: row.nama,
+          lokasi: row.lokasi,
+          jenis: row.jenis,
+          device: row.device,
+          sensor: row.sensor,
+          i_alat: row.alat_foto,
+        }
+      : null;
+
+    const html = await buildHtml(record, alat, BACKEND_ROOT, row.nama_singkat_perusahaan);
+=======
     const html      = buildHtml(record, alat);
+>>>>>>> 495bc422fbf4debbb959e5340624e21890b08c69
     const pdfBuffer = await renderPdf(html);
     return sendPdf(res, pdfBuffer, "Corrective", alat?.nama, record.tanggal, id);
   } catch (err) {
