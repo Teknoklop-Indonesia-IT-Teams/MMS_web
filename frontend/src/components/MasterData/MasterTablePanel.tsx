@@ -8,7 +8,7 @@ import {
     ColumnDef,
     flexRender,
 } from "@tanstack/react-table";
-import { Plus, Search, Trash2, Database, Users, Loader2, QrCode } from "lucide-react";
+import { Plus, Search, Trash2, Database, Users, Loader2, QrCode, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 import { MasterItem } from "../../types";
 import { telemetryService, clientService } from "../../services/api";
@@ -41,6 +41,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
     const [saving, setSaving] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [qrClient, setQrClient] = useState<string | null>(null);
+    const [editItem, setEditItem] = useState<MasterItem | null>(null);
 
     const service = tableType === "telemetry" ? telemetryService : clientService;
 
@@ -64,13 +65,17 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
         fetchItems();
     }, [fetchItems]);
 
-    const handleAdd = async (value: string) => {
+    const handleAdd = async (value: string, id_perusahaan: number | null) => {
         const loadingToastId = showLoadingToast(
             `Menambahkan ${displayLabel}...`,
         );
         try {
             setSaving(true);
-            await service.create(value);
+            if (tableType === "client") {
+                await clientService.create(value, id_perusahaan);
+            } else {
+                await telemetryService.create(value);
+            }
             showSuccessToast(
                 `${displayLabel} ditambahkan!`,
                 `"${value}" berhasil ditambahkan`,
@@ -79,6 +84,28 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
             await fetchItems();
         } catch (err: any) {
             showErrorToast("Gagal menambahkan", err.message || "Terjadi kesalahan");
+        } finally {
+            setSaving(false);
+            toast.dismiss(loadingToastId);
+        }
+    };
+
+    const handleUpdate = async (value: string, id_perusahaan: number | null) => {
+        if (!editItem) return;
+        const loadingToastId = showLoadingToast(
+            `Memperbarui ${displayLabel}...`,
+        );
+        try {
+            setSaving(true);
+            await clientService.update(editItem.id, value, id_perusahaan);
+            showSuccessToast(
+                `${displayLabel} diperbarui!`,
+                `"${value}" berhasil diperbarui`,
+            );
+            setEditItem(null);
+            await fetchItems();
+        } catch (err: any) {
+            showErrorToast("Gagal memperbarui", err.message || "Terjadi kesalahan");
         } finally {
             setSaving(false);
             toast.dismiss(loadingToastId);
@@ -135,7 +162,7 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
             {
                 header: "Aksi",
                 id: "actions",
-                size: tableType === "client" ? 120 : 80,
+                size: tableType === "client" ? 160 : 80,
                 cell: ({ row }) => (
                     <div className="flex items-center space-x-1">
                         {tableType === "client" && (
@@ -145,6 +172,18 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                                 title="QR Code Dashboard"
                             >
                                 <QrCode size={14} />
+                            </button>
+                        )}
+                        {tableType === "client" && (
+                            <button
+                                onClick={() => {
+                                    setIsFormOpen(false);
+                                    setEditItem(row.original);
+                                }}
+                                className="p-2 text-white transition-colors bg-amber-500 rounded-md shadow-sm hover:bg-amber-600"
+                                title="Edit"
+                            >
+                                <Pencil size={14} />
                             </button>
                         )}
                         <button
@@ -203,7 +242,10 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
                             </div>
 
                             <button
-                                onClick={() => setIsFormOpen(true)}
+                                onClick={() => {
+                                    setEditItem(null);
+                                    setIsFormOpen(true);
+                                }}
                                 className="flex items-center justify-center px-4 py-2 space-x-2 text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 whitespace-nowrap"
                             >
                                 <Plus size={16} />
@@ -331,8 +373,21 @@ const MasterTablePanel: React.FC<MasterTablePanelProps> = ({ tableType }) => {
             {isFormOpen && (
                 <MasterModalForm
                     tableType={tableType}
+                    mode="add"
                     onSave={handleAdd}
                     onCancel={() => setIsFormOpen(false)}
+                    saving={saving}
+                />
+            )}
+
+            {editItem && (
+                <MasterModalForm
+                    tableType={tableType}
+                    mode="edit"
+                    initialValue={editItem.name}
+                    initialPerusahaanId={editItem.id_perusahaan ?? null}
+                    onSave={handleUpdate}
+                    onCancel={() => setEditItem(null)}
                     saving={saving}
                 />
             )}

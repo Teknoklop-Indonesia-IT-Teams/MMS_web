@@ -85,6 +85,8 @@ const authRoutes = require("./routes/auth.routes.js");
 const usersRoutes = require("./routes/users.routes.js");
 const telemetryRoutes = require("./routes/telemetry.routes.js");
 const clientRoutes = require("./routes/client.routes.js");
+const maintenanceRoutes = require("./routes/maintenance.routes.js");
+const perusahaanRoutes = require("./routes/perusahaan.routes.js");
 
 app.get("/", (req, res) => {
   res.json({
@@ -115,6 +117,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/telemetry", telemetryRoutes);
 app.use("/api/client", clientRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/perusahaan", perusahaanRoutes);
 const PORT = process.env.PORT || 3001;
 
 app.use((err, req, res, next) => {

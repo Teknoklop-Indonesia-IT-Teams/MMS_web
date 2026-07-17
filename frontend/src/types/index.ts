@@ -130,6 +130,7 @@ export interface Staff {
 export interface MasterItem {
   id: number;
   name: string;
+  id_perusahaan?: number | null;
 }
 
 export interface ApiItem {

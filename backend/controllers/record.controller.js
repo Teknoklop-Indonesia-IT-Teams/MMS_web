@@ -25,14 +25,20 @@ const deleteRecordImages = (i_alat) => {
 
 const getAllRecords = async (req, res) => {
   try {
-    const [records] = await db.query("SELECT * FROM m_record");
+    const [records] = await db.query(
+      "SELECT * FROM m_record ORDER BY tanggal DESC, id DESC",
+    );
 
     const processedRecords = records.map((record) => ({
       ...record,
       i_panel: record.i_panel
         ? `data:image/jpeg;base64,${record.i_panel}`
         : null,
-      i_alat: record.i_alat ? `data:image/jpeg;base64,${record.i_alat}` : null,
+      i_alat: (() => {
+        if (!record.i_alat) return null;
+        try { return JSON.parse(record.i_alat); }
+        catch { return [record.i_alat]; }
+      })(),
       i_sensor: record.i_sensor
         ? `data:image/jpeg;base64,${record.i_sensor}`
         : null,
@@ -79,7 +85,7 @@ const getRecordByEquipmentId = async (req, res) => {
     const { id } = req.params;
 
     const [records] = await db.query(
-      "SELECT * FROM m_record WHERE id_m_alat = ?",
+      "SELECT * FROM m_record WHERE id_m_alat = ? ORDER BY tanggal DESC, id DESC",
       [id],
     );
 
@@ -239,14 +245,20 @@ const deleteRecord = async (req, res) => {
 
 const getAllCorrectiveRecords = async (req, res) => {
   try {
-    const [records] = await db.query("SELECT * FROM m_record_corrective");
+    const [records] = await db.query(
+      "SELECT * FROM m_record_corrective ORDER BY tanggal DESC, id DESC",
+    );
 
     const processedRecords = records.map((record) => ({
       ...record,
       i_panel: record.i_panel
         ? `data:image/jpeg;base64,${record.i_panel}`
         : null,
-      i_alat: record.i_alat ? `data:image/jpeg;base64,${record.i_alat}` : null,
+      i_alat: (() => {
+        if (!record.i_alat) return null;
+        try { return JSON.parse(record.i_alat); }
+        catch { return [record.i_alat]; }
+      })(),
       i_sensor: record.i_sensor
         ? `data:image/jpeg;base64,${record.i_sensor}`
         : null,
@@ -294,7 +306,7 @@ const getCorrectiveRecordByEquipmentId = async (req, res) => {
     const { id } = req.params;
 
     const [records] = await db.query(
-      "SELECT * FROM m_record_corrective WHERE id_m_alat = ?",
+      "SELECT * FROM m_record_corrective WHERE id_m_alat = ? ORDER BY tanggal DESC, id DESC",
       [id],
     );
 

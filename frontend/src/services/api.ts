@@ -760,15 +760,48 @@ export const publicAlatService = {
   },
 };
 
+// PDF Preview
+export function openPdfPreview(type: "preventive" | "corrective", id: number | string): void {
+  const url = `${VITE_API_URL}/maintenance/${type}/${id}/pdf`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+export const perusahaanService = {
+  getAll: async () => {
+    const res = await api.get<
+      { id: number; nama_perusahaan: string; nama_singkat_perusahaan: string }[]
+    >("/perusahaan");
+    if (!Array.isArray(res.data)) return [];
+    return res.data.map((d) => ({ id: d.id, name: d.nama_perusahaan }));
+  },
+};
+
 export const clientService = {
   getAll: async () => {
-    const res = await api.get<{ id: number; nama_client: string }[]>("/client");
+    const res = await api.get<
+      { id: number; nama_client: string; id_perusahaan: number | null }[]
+    >("/client");
     if (!Array.isArray(res.data)) return [];
-    return res.data.map((d) => ({ id: d.id, name: d.nama_client }));
+    return res.data.map((d) => ({
+      id: d.id,
+      name: d.nama_client,
+      id_perusahaan: d.id_perusahaan ?? null,
+    }));
   },
 
-  create: async (name: string) => {
-    const res = await api.post("/client", { nama_client: name });
+  create: async (name: string, id_perusahaan?: number | null) => {
+    const res = await api.post("/client", {
+      nama_client: name,
+      id_perusahaan: id_perusahaan ?? null,
+    });
+    return res.data;
+  },
+
+  update: async (id: number, name: string, id_perusahaan?: number | null) => {
+    const res = await api.put(`/client/${id}`, {
+      nama_client: name,
+      id_perusahaan: id_perusahaan ?? null,
+    });
     return res.data;
   },
 
